@@ -21,7 +21,7 @@
         const pathSegments = window.location.pathname.split('/');
         const toolsIndex = pathSegments.indexOf('tools');
         if (toolsIndex !== -1) {
-            const depth = pathSegments.length - toolsIndex - 2; // -2 because of filename
+            const depth = pathSegments.length - toolsIndex - 1; // -2 because of filename
             if (depth > 0) {
                 prefix = '../'.repeat(depth);
             }
@@ -451,7 +451,7 @@
                     <button class="hamburger" id="tv-hamburger" style="display: none; background: none; border: none; cursor: pointer; color: var(--tv-text); padding: 0;">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
                     </button>
-                    <a href="${prefix}../index.html" class="tv-nav-logo" style="text-decoration:none;">
+                    <a href="${prefix}index.html" class="tv-nav-logo" style="text-decoration:none;">
                         <span style=" color: var(--tv-text); font-family: 'Ole', cursive; font-size: 2.25rem; transform: translateY(4px);">TRutiL Studio</span>
                     </a>
                 </div>
@@ -1250,7 +1250,7 @@
                 sidebar.className = 'sidebar';
                 sidebar.innerHTML = `
                     <div class="sidebar-logo">
-                        <a href="${prefix}../index.html" style="text-decoration:none; display:flex; align-items:center;">
+                        <a href="${prefix}index.html" style="text-decoration:none; display:flex; align-items:center;">
                             <span style="font-weight: 800; color: var(--tv-text); font-family: 'Ole', cursive; font-size: 1.75rem; transform: translateY(4px);">TRutiL Studio</span>
                         </a>
                         <div class="sidebar-toggle-btn" id="tv-sidebar-toggle">
@@ -1271,7 +1271,7 @@
                 
                 const navContainer = document.getElementById('tv-sidebar-nav');
                 let html = '';
-                html += `<a href="${prefix}../index.html" class="nav-home"><span class="ni">🏠</span> Main Hub</a>`;
+                html += `<a href="${prefix}index.html" class="nav-home"><span class="ni">🏠</span> Main Hub</a>`;
                 html += `<a href="${prefix}${currentMainCategory}/hub.html" class="nav-home" style="margin-bottom: 1rem;"><span class="ni">📂</span> ${currentMainCategory} Hub</a>`;
                 
                 // Render all subcategories for the current main category
