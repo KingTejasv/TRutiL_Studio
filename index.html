@@ -29,6 +29,20 @@
             </div>
         </div>
 
+        <div class="section-header" id="pinned-header" style="margin-top: 5rem;">
+            <div>
+                <h2 class="section-title">📌 Pinned Tools</h2>
+            </div>
+        </div>
+        
+        <div id="pinned-empty-state" style="text-align: center; padding: 3rem; background: var(--bg-elevated); border: 1px dashed var(--border); border-radius: var(--radius-lg); color: var(--text-muted); margin-bottom: 2rem;">
+            You haven't pinned anything yet. Click the ⭐ icon on any tool to pin it here for quick access!
+        </div>
+
+        <div class="grid grid-4" id="pinned-grid" style="display: none; margin-bottom: 2rem;">
+            <!-- Pinned tools injected here -->
+        </div>
+
         <div class="section-header" style="margin-top: 5rem;">
             <div>
                 <h2 class="section-title">Directory Categories</h2>
@@ -120,5 +134,67 @@
         </div>
         
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const pinnedGrid = document.getElementById('pinned-grid');
+            const pinnedEmpty = document.getElementById('pinned-empty-state');
+            
+            function renderPinnedTools() {
+                const pinned = JSON.parse(localStorage.getItem('TRutiL_PinnedTools') || '[]');
+                
+                if (pinned.length === 0) {
+                    pinnedEmpty.style.display = 'block';
+                    pinnedGrid.style.display = 'none';
+                    return;
+                }
+                
+                pinnedEmpty.style.display = 'none';
+                pinnedGrid.style.display = 'grid';
+                pinnedGrid.innerHTML = '';
+                
+                if (!window.navData) return;
+                
+                const allTools = [];
+                for (const [mainCat, subCats] of Object.entries(window.navData)) {
+                    for (const [subCat, tools] of Object.entries(subCats)) {
+                        for (const tool of tools) {
+                            allTools.push({
+                                ...tool,
+                                category: mainCat
+                            });
+                        }
+                    }
+                }
+                
+                pinned.forEach(pinnedPath => {
+                    const toolInfo = allTools.find(t => t.path.replace(/\\/g, '/') === pinnedPath);
+                    if (toolInfo) {
+                        const card = document.createElement('a');
+                        card.href = 'tools/' + toolInfo.path;
+                        card.className = 'premium-card';
+                        card.innerHTML = `
+                            <div class="card-icon">⚡</div>
+                            <h3 class="card-title">${toolInfo.name}</h3>
+                            <p class="card-desc">${toolInfo.category}</p>
+                            <div class="card-footer">
+                                <span class="card-tag">Launch Tool</span>
+                                <span class="card-arrow">Explore →</span>
+                            </div>
+                        `;
+                        pinnedGrid.appendChild(card);
+                    }
+                });
+            }
+            
+            renderPinnedTools();
+            
+            window.addEventListener('storage', (e) => {
+                if (e.key === 'TRutiL_PinnedTools') {
+                    renderPinnedTools();
+                }
+            });
+        });
+    </script>
 </body>
 </html>

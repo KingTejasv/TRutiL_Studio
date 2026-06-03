@@ -1356,6 +1356,56 @@
                     localStorage.setItem('TRutiL Studio_sidebar_min', isMin);
                 });
             }
+            // --- Pin Tool Logic ---
+            const appHeader = document.querySelector('.app-header');
+            if (appHeader) {
+                appHeader.style.position = 'relative';
+                const pinBtn = document.createElement('button');
+                pinBtn.className = 'btn btn-ghost pin-tool-btn';
+                pinBtn.style.position = 'absolute';
+                pinBtn.style.right = '20px';
+                pinBtn.style.top = '20px';
+                pinBtn.style.padding = '8px 12px';
+                pinBtn.style.fontSize = '14px';
+                pinBtn.style.display = 'flex';
+                pinBtn.style.alignItems = 'center';
+                pinBtn.style.gap = '6px';
+                pinBtn.style.transition = 'all 0.2s';
+                pinBtn.style.zIndex = '10';
+                
+                // Get relative path for storage
+                let relPath = currentPath.substring(currentPath.indexOf('/tools/') + 7);
+                relPath = decodeURIComponent(relPath).replace(/\\/g, '/');
+                
+                function updatePinUI() {
+                    const pinned = JSON.parse(localStorage.getItem('TRutiL_PinnedTools') || '[]');
+                    if (pinned.includes(relPath)) {
+                        pinBtn.innerHTML = '🌟 <span>Pinned</span>';
+                        pinBtn.style.background = 'rgba(245, 158, 11, 0.15)';
+                        pinBtn.style.color = '#F59E0B';
+                        pinBtn.style.border = '1px solid rgba(245, 158, 11, 0.3)';
+                    } else {
+                        pinBtn.innerHTML = '⭐ <span>Pin</span>';
+                        pinBtn.style.background = 'transparent';
+                        pinBtn.style.color = 'var(--text-muted)';
+                        pinBtn.style.border = '1px solid var(--border)';
+                    }
+                }
+                
+                pinBtn.addEventListener('click', () => {
+                    let pinned = JSON.parse(localStorage.getItem('TRutiL_PinnedTools') || '[]');
+                    if (pinned.includes(relPath)) {
+                        pinned = pinned.filter(p => p !== relPath);
+                    } else {
+                        pinned.push(relPath);
+                    }
+                    localStorage.setItem('TRutiL_PinnedTools', JSON.stringify(pinned));
+                    updatePinUI();
+                });
+                
+                updatePinUI();
+                appHeader.appendChild(pinBtn);
+            }
 
 
         } else {
