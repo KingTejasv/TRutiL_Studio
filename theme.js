@@ -1272,7 +1272,7 @@
                 const navContainer = document.getElementById('tv-sidebar-nav');
                 let html = '';
                 html += `<a href="${prefix}index.html" class="nav-home"><span class="ni">🏠</span> Main Hub</a>`;
-                html += `<a href="${prefix}${currentMainCategory}/hub.html" class="nav-home" style="margin-bottom: 1rem;"><span class="ni">📂</span> ${currentMainCategory} Hub</a>`;
+                html += `<a href="${prefix}${currentMainCategory}/index.html" class="nav-home" style="margin-bottom: 1rem;"><span class="ni">📂</span> ${currentMainCategory} Hub</a>`;
                 
                 // Render all subcategories for the current main category
                 const subHubs = navData[currentMainCategory];
@@ -1378,82 +1378,7 @@
                 });
             }
 
-            // --- SPA Routing & Lazy Loading ---
-            const setupSPA = () => {
-                const links = document.querySelectorAll('.nav-item, .nav-home, .premium-card, .tool-card');
-                links.forEach(link => {
-                    if (link.hasAttribute('data-spa-bound')) return;
-                    link.setAttribute('data-spa-bound', 'true');
-                    
-                    link.addEventListener('click', async (e) => {
-                        const href = link.getAttribute('href');
-                        if (!href || href.startsWith('http') || href.startsWith('#')) return;
-                        
-                        if (window.location.protocol === 'file:') {
-                            return;
-                        }
-                        
-                        e.preventDefault();
-                        const loader = document.getElementById('tv-loader');
-                        if(loader) { loader.style.transform = 'scaleX(0.3)'; document.body.classList.add('spa-loading'); }
-                        
-                        try {
-                            const response = await fetch(href);
-                            const htmlString = await response.text();
-                            if(loader) loader.style.transform = 'scaleX(0.8)';
-                            
-                            const parser = new DOMParser();
-                            const doc = parser.parseFromString(htmlString, 'text/html');
-                            
-                            const newMain = doc.querySelector('.app-layout, .main-container, .main-content');
-                            const currentMain = document.querySelector('.app-layout, .main-container, .main-content');
-                            
-                            if (newMain && currentMain) {
-                                currentMain.parentNode.replaceChild(newMain, currentMain);
-                                document.title = doc.title;
-                                history.pushState({ path: href }, '', href);
-                                
-                                const scripts = doc.querySelectorAll('script');
-                                scripts.forEach(oldScript => {
-                                    if (oldScript.src && oldScript.src.includes('theme.js')) return;
-                                    const newScript = document.createElement('script');
-                                    if(oldScript.src) {
-                                        newScript.src = oldScript.src;
-                                    } else {
-                                        newScript.textContent = oldScript.textContent;
-                                    }
-                                    document.body.appendChild(newScript);
-                                });
-                                
-                                document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
-                                if (link.classList.contains('nav-item')) {
-                                    link.classList.add('active');
-                                }
-                                
-                                setTimeout(setupSPA, 100);
-                            } else {
-                                window.location.href = href;
-                            }
-                        } catch (err) {
-                            window.location.href = href;
-                        } finally {
-                            if(loader) { 
-                                loader.style.transform = 'scaleX(1)'; 
-                                setTimeout(() => {
-                                    loader.style.transform = 'scaleX(0)';
-                                    document.body.classList.remove('spa-loading');
-                                }, 300);
-                            }
-                        }
-                    });
-                });
-            };
-            
-            setupSPA();
-            
-            window.addEventListener('popstate', () => {
-                window.location.reload(); 
-            });
+
         } else {
             const hamburgerBtn = document.getElementById('tv-hamburger');
             if(hamburgerBtn) hamburgerBtn.style.display = 'none';
