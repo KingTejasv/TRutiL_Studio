@@ -480,6 +480,28 @@
         btn.innerHTML = `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>`;
         document.body.appendChild(btn);
 
+        // Inject Universal Footer if not already present
+        if (!document.querySelector('.tv-footer')) {
+            const footer = document.createElement('footer');
+            footer.className = 'tv-footer';
+            footer.style.cssText = 'background: transparent; padding: 2rem; margin-top: auto; border-top: 1px solid var(--tv-border); width: 100%; box-sizing: border-box;';
+            footer.innerHTML = `
+                <div class="tv-footer-content" style="max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; font-size: 0.875rem; color: var(--tv-text); opacity: 0.7; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+                    <div>&copy; 2026 TRutiL Studio. All rights reserved.</div>
+                    <div style="display: flex; gap: 1.5rem;">
+                        <a href="${prefix}terms.html" style="color: inherit; text-decoration: none;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">Terms of Service</a>
+                        <a href="${prefix}privacy.html" style="color: inherit; text-decoration: none;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">Privacy Policy</a>
+                    </div>
+                </div>
+            `;
+            const mainContainer = document.querySelector('.main-container') || document.querySelector('.app-layout');
+            if (mainContainer) {
+                mainContainer.appendChild(footer);
+            } else {
+                document.body.appendChild(footer);
+            }
+        }
+
         // Logic
         btn.addEventListener('click', () => {
             panel.classList.toggle('active');
