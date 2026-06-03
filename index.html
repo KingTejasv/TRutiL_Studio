@@ -6,6 +6,7 @@
 <title>TRutiL Studio - The Ultimate Developer Toolset</title>
 <link rel="stylesheet" href="hub.css">
 <script src="theme.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2/dist/fuse.min.js"></script>
 </head>
 <body>
     <div class="bg-mesh"></div>
@@ -18,7 +19,17 @@
             <p>Access our curated directory of over 150+ essential tools across every digital domain.</p>
         </div>
         
-        <div class="stats-bar">
+        <div class="search-container" style="max-width: 800px; margin: 0 auto 3rem auto; padding: 0 1rem; position: relative;">
+            <input type="text" id="universal-search" placeholder="Search for any tool (e.g. js minifire, calc)..." style="width: 100%; padding: 1.25rem 1.5rem; border-radius: 99px; border: 1px solid var(--badge-border); background: var(--bg-elevated); color: var(--text-primary); font-size: 1.1rem; box-shadow: 0 4px 20px rgba(0,0,0,0.1); outline: none; transition: all 0.2s;" onfocus="this.style.borderColor='var(--accent-blue)'; this.style.boxShadow='0 4px 20px rgba(59, 130, 246, 0.2)';" onblur="this.style.borderColor='var(--badge-border)'; this.style.boxShadow='0 4px 20px rgba(0,0,0,0.1)';" autocomplete="off" />
+            <div id="search-icon" style="position: absolute; right: 2rem; top: 50%; transform: translateY(-50%); font-size: 1.2rem; color: var(--text-muted); pointer-events: none;">🔍</div>
+        </div>
+        
+        <div id="search-results-container" style="display: none; margin-top: 2rem; margin-bottom: 5rem;">
+            <h2 class="section-title" style="text-align: center; margin-bottom: 2rem;" id="search-results-title">Search Results</h2>
+            <div id="search-results-grid" class="grid grid-4"></div>
+        </div>
+
+        <div class="stats-bar" id="stats-bar">
             <div class="stat-item">
                 <div class="stat-num">150+</div>
                 <div class="stat-label">Premium Tools</div>
@@ -29,13 +40,13 @@
             </div>
         </div>
 
-        <div class="section-header" style="margin-top: 5rem;">
+        <div class="section-header" id="categories-header" style="margin-top: 5rem;">
             <div>
                 <h2 class="section-title">Directory Categories</h2>
             </div>
         </div>
         
-        <div class="grid grid-4">
+        <div class="grid grid-4" id="categories-grid">
 
             <a href="tools/Business & Finance/index.html" class="premium-card">
                 <div class="card-icon">📁</div>
@@ -120,5 +131,84 @@
         </div>
         
     </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const searchInput = document.getElementById('universal-search');
+        const categoriesHeader = document.getElementById('categories-header');
+        const categoriesGrid = document.getElementById('categories-grid');
+        const statsBar = document.getElementById('stats-bar');
+        const searchContainer = document.getElementById('search-results-container');
+        const searchGrid = document.getElementById('search-results-grid');
+        const searchTitle = document.getElementById('search-results-title');
+
+        if (!searchInput || !window.navData) return;
+
+        // Flatten navData into a searchable array
+        const allTools = [];
+        for (const [mainCategory, subCategories] of Object.entries(window.navData)) {
+            for (const [subCategory, tools] of Object.entries(subCategories)) {
+                for (const tool of tools) {
+                    allTools.push({
+                        name: tool.name,
+                        path: 'tools/' + tool.path.replace(/\\/g, '/'),
+                        category: mainCategory,
+                        subCategory: subCategory
+                    });
+                }
+            }
+        }
+
+        // Initialize Fuse.js for fuzzy searching
+        const fuse = new Fuse(allTools, {
+            keys: ['name', 'category', 'subCategory'],
+            threshold: 0.4, // High tolerance for typos
+            distance: 100,
+            ignoreLocation: true
+        });
+
+        searchInput.addEventListener('input', (e) => {
+            const term = e.target.value.trim();
+            if (!term) {
+                // Restore default view
+                categoriesHeader.style.display = 'block';
+                categoriesGrid.style.display = 'grid';
+                statsBar.style.display = 'flex';
+                searchContainer.style.display = 'none';
+                return;
+            }
+
+            // Perform search
+            const results = fuse.search(term);
+            
+            // Hide categories, show search results
+            categoriesHeader.style.display = 'none';
+            categoriesGrid.style.display = 'none';
+            statsBar.style.display = 'none';
+            searchContainer.style.display = 'block';
+            
+            searchTitle.textContent = results.length > 0 ? \`Found \${results.length} tools for "\${term}"\` : \`No tools found for "\${term}"\`;
+            
+            // Render results
+            searchGrid.innerHTML = '';
+            results.forEach(result => {
+                const tool = result.item;
+                const card = document.createElement('a');
+                card.href = tool.path;
+                card.className = 'premium-card';
+                card.innerHTML = \`
+                    <div class="card-icon">⚡</div>
+                    <h3 class="card-title">\${tool.name}</h3>
+                    <p class="card-desc">\${tool.category} / \${tool.subCategory}</p>
+                    <div class="card-footer">
+                        <span class="card-tag">Launch Tool</span>
+                        <span class="card-arrow">Explore →</span>
+                    </div>
+                \`;
+                searchGrid.appendChild(card);
+            });
+        });
+    });
+</script>
 </body>
 </html>

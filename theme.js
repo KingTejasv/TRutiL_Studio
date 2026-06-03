@@ -543,7 +543,7 @@
         
         
         // --- Sidebar Logic ---
-        const navData = {
+        window.navData = {
     "Business & Finance": {
         "Calculators": [
             {
@@ -1245,9 +1245,8 @@
                 "path": "Text & Data Processing/Text Formatting/text-formatter.html"
             }
         ]
-    }
 };
-        
+        const navData = window.navData;
         // Determine current main category and sub-hub
         const currentPath = window.location.pathname;
         const decodedPath = decodeURIComponent(currentPath);
