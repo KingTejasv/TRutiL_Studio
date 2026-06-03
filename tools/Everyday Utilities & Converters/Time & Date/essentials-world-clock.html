@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>World Clock</title>
+<link href="../../../style.css" rel="stylesheet"/>
+<link href="../../../custom-tools.css" rel="stylesheet"/>
+    <script src="../../../theme.js"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-essentials-world-clock">
+<div class="app-header">
+<h1>🌍 World Clock</h1>
+<p>Track current times across multiple timezones.</p>
+</div>
+<div class="add-tz-container">
+<select class="form-input" id="tzSelect">
+<option value="America/New_York">New York (EST/EDT)</option>
+<option value="America/Los_Angeles">Los Angeles (PST/PDT)</option>
+<option value="Europe/London">London (GMT/BST)</option>
+<option value="Europe/Paris">Paris (CET/CEST)</option>
+<option value="Asia/Tokyo">Tokyo (JST)</option>
+<option value="Asia/Dubai">Dubai (GST)</option>
+<option value="Australia/Sydney">Sydney (AEST/AEDT)</option>
+<option value="UTC">UTC</option>
+<option value="Asia/Kolkata">India (IST)</option>
+<option value="America/Sao_Paulo">São Paulo (BRT)</option>
+</select>
+<button class="btn btn-primary" id="addBtn">➕ Add Clock</button>
+</div>
+<div class="clocks-grid" id="clocksGrid">
+<!-- Clock cards go here -->
+</div>
+<script>
+  // A few default timezones
+  let myTimezones = ['UTC', 'America/New_York', 'Asia/Tokyo', 'Europe/London'];
+  
+  const tzSelect = document.getElementById('tzSelect');
+  const addBtn = document.getElementById('addBtn');
+  const clocksGrid = document.getElementById('clocksGrid');
+  
+  // Formatters
+  const timeOpts = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
+  const dateOpts = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
+
+  function renderClocks() {
+    clocksGrid.innerHTML = '';
+    const now = new Date();
+    
+    myTimezones.forEach((tz, index) => {
+      try {
+        const timeStr = now.toLocaleTimeString('en-US', { ...timeOpts, timeZone: tz });
+        const dateStr = now.toLocaleDateString('en-US', { ...dateOpts, timeZone: tz });
+        
+        let tzDisplayName = tz;
+        let tzRegion = '';
+        if (tz.includes('/')) {
+          const parts = tz.split('/');
+          tzDisplayName = parts[1].replace(/_/g, ' ');
+          tzRegion = parts[0];
+        } else {
+          tzRegion = 'Global';
+        }
+        
+        const card = document.createElement('div');
+        card.className = 'clock-card';
+        card.innerHTML = \`
+          <button class="remove-btn" onclick="removeTz(\${index})" title="Remove">×</button>
+          <div class="tz-name">\${tzDisplayName}</div>
+          <div class="tz-region">\${tzRegion}</div>
+          <div class="time-display">\${timeStr}</div>
+          <div class="date-display">\${dateStr}</div>
+        \`;
+        clocksGrid.appendChild(card);
+      } catch (e) {
+        console.error("Invalid timezone: ", tz);
+      }
+    });
+  }
+
+  function removeTz(index) {
+    myTimezones.splice(index, 1);
+    renderClocks();
+  }
+
+  addBtn.addEventListener('click', () => {
+    const tz = tzSelect.value;
+    if (!myTimezones.includes(tz)) {
+      myTimezones.push(tz);
+      renderClocks();
+    }
+  });
+
+  // Update clocks every second
+  setInterval(renderClocks, 1000);
+  
+  // Initial render
+  renderClocks();
+
+  // Make removeTz available globally
+  window.removeTz = removeTz;
+</script>
+</div></div></div></div></body>
+</html>

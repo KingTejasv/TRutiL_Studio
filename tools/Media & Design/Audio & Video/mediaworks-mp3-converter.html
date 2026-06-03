@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Audio Analyzer</title>
+<link href="../../../style.css" rel="stylesheet"/>
+
+<link href="../../../custom-tools.css" rel="stylesheet"/>
+    <script src="../../../theme.js"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-mediaworks-mp3-converter">
+<div class="app-header">
+<h1>🎵 Audio Analyzer</h1>
+<p>Analyze audio files locally to extract metadata and visualize waveforms.</p>
+</div>
+<div class="workspace">
+<div class="panel">
+<div class="pane-header">
+<div class="pane-title">Audio Input</div>
+</div>
+<div class="pane-content">
+<label class="file-upload" id="drop-zone">
+<div style="font-size: 2rem; margin-bottom: 1rem;">📁</div>
+<div>Click or drag audio file here</div>
+<div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem;">Supports MP3, WAV, OGG</div>
+<input accept="audio/*" class="hidden-input" id="file-input" type="file"/>
+</label>
+<div id="loading">Analyzing... Please wait.</div>
+<div class="stats-grid" id="stats-container" style="display: none;">
+<div class="stat-card">
+<div class="stat-label">File Size</div>
+<div class="stat-value" id="val-size">-</div>
+</div>
+<div class="stat-card">
+<div class="stat-label">Duration</div>
+<div class="stat-value" id="val-duration">-</div>
+</div>
+<div class="stat-card">
+<div class="stat-label">Sample Rate</div>
+<div class="stat-value" id="val-samplerate">-</div>
+</div>
+<div class="stat-card">
+<div class="stat-label">Channels</div>
+<div class="stat-value" id="val-channels">-</div>
+</div>
+</div>
+</div>
+</div>
+<div class="panel">
+<div class="pane-header">
+<div class="pane-title">Waveform Visualization</div>
+</div>
+<div class="pane-content" style="justify-content: center;">
+<div class="waveform-container">
+<canvas id="waveform-canvas"></canvas>
+</div>
+</div>
+</div>
+</div>
+<script>
+        const fileInput = document.getElementById('file-input');
+        const dropZone = document.getElementById('drop-zone');
+        const loading = document.getElementById('loading');
+        const statsContainer = document.getElementById('stats-container');
+        const canvas = document.getElementById('waveform-canvas');
+        const ctx = canvas.getContext('2d');
+
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function formatTime(seconds) {
+            const m = Math.floor(seconds / 60);
+            const s = Math.floor(seconds % 60);
+            const ms = Math.floor((seconds % 1) * 100);
+            return `${m}:${s.toString().padStart(2, '0')}.${ms.toString().padStart(2, '0')}`;
+        }
+
+        function drawWaveform(audioBuffer) {
+            const rawData = audioBuffer.getChannelData(0); // Only use first channel
+            const samples = 1000; 
+            const blockSize = Math.floor(rawData.length / samples);
+            const filteredData = [];
+            for (let i = 0; i < samples; i++) {
+                let blockStart = blockSize * i;
+                let sum = 0;
+                for (let j = 0; j < blockSize; j++) {
+                    sum = sum + Math.abs(rawData[blockStart + j]);
+                }
+                filteredData.push(sum / blockSize);
+            }
+
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = canvas.clientWidth * dpr;
+            canvas.height = canvas.clientHeight * dpr;
+            ctx.scale(dpr, dpr);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const width = canvas.clientWidth;
+            const height = canvas.clientHeight;
+            const barWidth = width / samples;
+            
+            const multiplier = Math.max(...filteredData);
+
+            ctx.fillStyle = '#06B6D4';
+            for (let i = 0; i < samples; i++) {
+                const x = i * barWidth;
+                const barHeight = (filteredData[i] / multiplier) * height;
+                const y = (height - barHeight) / 2;
+                ctx.fillRect(x, y, barWidth, barHeight);
+            }
+        }
+
+        async function processFile(file) {
+            if (!file) return;
+            dropZone.style.display = 'none';
+            loading.style.display = 'block';
+            statsContainer.style.display = 'none';
+            
+            document.getElementById('val-size').textContent = formatBytes(file.size);
+
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+                
+                document.getElementById('val-duration').textContent = formatTime(audioBuffer.duration);
+                document.getElementById('val-samplerate').textContent = audioBuffer.sampleRate + ' Hz';
+                document.getElementById('val-channels').textContent = audioBuffer.numberOfChannels;
+                
+                drawWaveform(audioBuffer);
+                
+                loading.style.display = 'none';
+                statsContainer.style.display = 'grid';
+                dropZone.style.display = 'flex';
+            } catch (err) {
+                console.error(err);
+                alert("Error analyzing audio file. It might be corrupt or unsupported.");
+                loading.style.display = 'none';
+                dropZone.style.display = 'flex';
+            }
+        }
+
+        fileInput.addEventListener('change', (e) => processFile(e.target.files[0]));
+        
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = '#06B6D4';
+        });
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.style.borderColor = 'var(--border)';
+        });
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = 'var(--border)';
+            if (e.dataTransfer.files.length) {
+                processFile(e.dataTransfer.files[0]);
+            }
+        });
+    </script>
+</div></div></div></div></body>
+</html>

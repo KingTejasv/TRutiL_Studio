@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Metadata Remover — Totil Studio</title>
+<link href="../../../style.css" rel="stylesheet"/>
+
+<link href="../../../custom-tools.css" rel="stylesheet"/>
+    <script src="../../../theme.js"></script>
+</head>
+<body>
+<div class="app-layout" id="app-layout">
+<div class="main-content">
+<div class="page-content"><div id="tool-metadata">
+<div class="app-header">
+<div class="app-icon" style="background:linear-gradient(135deg,#8B5CF6,#6D28D9); color: white;">📷</div>
+<div>
+<h1>Metadata Remover</h1>
+<p>Scrub EXIF metadata from JPEG and PNG images to protect your privacy</p>
+</div>
+</div>
+<div id="upload-container">
+<div class="upload-area" id="upload-area">
+<div class="upload-icon">📁</div>
+<h3 style="color: var(--text-primary); margin: 0 0 8px 0; font-weight: 500;">Drag &amp; drop an image here</h3>
+<p style="color: var(--text-muted); font-size: 0.875rem; margin: 0;">or click to browse your files (JPEG, PNG)</p>
+<input accept="image/jpeg, image/png, image/webp" id="file-input" type="file"/>
+</div>
+</div>
+<div class="result-section" id="result-section">
+<div class="preview-container">
+<img alt="Scrubbed image preview" id="image-preview" src=""/>
+</div>
+<div class="stats-grid">
+<div class="stat-card">
+<div class="stat-value" id="original-size">-</div>
+<div class="stat-label">Original Size</div>
+</div>
+<div class="stat-card">
+<div class="stat-value" id="new-size">-</div>
+<div class="stat-label">Scrubbed Size</div>
+</div>
+<div class="stat-card">
+<div class="stat-value" id="saved-size">-</div>
+<div class="stat-label">Metadata Removed</div>
+</div>
+</div>
+<div class="action-buttons">
+<button class="btn btn-primary" id="download-btn">Download Scrubbed Image</button>
+<button class="btn btn-ghost" id="reset-btn">Scrub Another Image</button>
+</div>
+</div>
+</div></div>
+</div>
+</div>
+<script>
+  const uploadArea = document.getElementById('upload-area');
+  const fileInput = document.getElementById('file-input');
+  const uploadContainer = document.getElementById('upload-container');
+  const resultSection = document.getElementById('result-section');
+  const imagePreview = document.getElementById('image-preview');
+  const originalSizeEl = document.getElementById('original-size');
+  const newSizeEl = document.getElementById('new-size');
+  const savedSizeEl = document.getElementById('saved-size');
+  const downloadBtn = document.getElementById('download-btn');
+  const resetBtn = document.getElementById('reset-btn');
+
+  let currentBlobUrl = null;
+  let originalFilename = '';
+
+  function formatBytes(bytes, decimals = 2) {
+    if (!+bytes) return '0 B';
+    const k = 1024;
+    const dm = decimals < 0 ? 0 : decimals;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
+  }
+
+  // Upload Area Events
+  uploadArea.addEventListener('click', () => fileInput.click());
+  
+  uploadArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadArea.classList.add('drag-over');
+  });
+
+  uploadArea.addEventListener('dragleave', () => {
+    uploadArea.classList.remove('drag-over');
+  });
+
+  uploadArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadArea.classList.remove('drag-over');
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      handleFile(e.dataTransfer.files[0]);
+    }
+  });
+
+  fileInput.addEventListener('change', (e) => {
+    if (e.target.files && e.target.files.length > 0) {
+      handleFile(e.target.files[0]);
+    }
+  });
+
+  function handleFile(file) {
+    if (!file.type.startsWith('image/')) {
+      alert('Please upload a valid image file.');
+      return;
+    }
+
+    originalFilename = file.name;
+    const originalSize = file.size;
+    originalSizeEl.textContent = formatBytes(originalSize);
+    
+    // Reset previous state
+    savedSizeEl.style.color = '';
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+
+        const compressionQuality = file.type === 'image/png' ? 1.0 : 0.98;
+        canvas.toBlob((blob) => {
+          if (currentBlobUrl) {
+            URL.revokeObjectURL(currentBlobUrl);
+          }
+          currentBlobUrl = URL.createObjectURL(blob);
+          
+          const newSize = blob.size;
+          newSizeEl.textContent = formatBytes(newSize);
+          
+          const saved = originalSize - newSize;
+          if (saved > 0) {
+            savedSizeEl.textContent = formatBytes(saved);
+          } else {
+            savedSizeEl.textContent = '0 B';
+            if (newSize > originalSize) {
+              savedSizeEl.textContent = `+${formatBytes(newSize - originalSize)}`;
+              // Red color for size increase
+              savedSizeEl.style.color = '#ef4444';
+            }
+          }
+          
+          imagePreview.src = currentBlobUrl;
+          
+          uploadContainer.style.display = 'none';
+          resultSection.style.display = 'block';
+        }, file.type, compressionQuality);
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  downloadBtn.addEventListener('click', () => {
+    if (!currentBlobUrl) return;
+    const a = document.createElement('a');
+    a.href = currentBlobUrl;
+    
+    // Create new filename
+    const dotIndex = originalFilename.lastIndexOf('.');
+    let newFilename = originalFilename;
+    if (dotIndex !== -1) {
+      newFilename = originalFilename.substring(0, dotIndex) + '-scrubbed' + originalFilename.substring(dotIndex);
+    } else {
+      newFilename += '-scrubbed';
+    }
+    
+    a.download = newFilename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  });
+
+  resetBtn.addEventListener('click', () => {
+    uploadContainer.style.display = 'block';
+    resultSection.style.display = 'none';
+    fileInput.value = '';
+    if (currentBlobUrl) {
+      URL.revokeObjectURL(currentBlobUrl);
+      currentBlobUrl = null;
+    }
+    imagePreview.src = '';
+  });
+</script>
+</body>
+</html>

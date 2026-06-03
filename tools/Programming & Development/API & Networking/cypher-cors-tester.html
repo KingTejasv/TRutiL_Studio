@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CORS Tester</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Fira+Code&amp;display=swap" rel="stylesheet"/>
+
+<link href="../../../style.css" rel="stylesheet"/><link href="../../../custom-tools.css" rel="stylesheet"/>
+    <script src="../../../theme.js"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-cypher-cors-tester">
+<div class="app-header">
+<h1>🌐 CORS Tester</h1>
+<p>Test Cross-Origin Resource Sharing (CORS) rules on any API.</p>
+</div>
+<div class="tool-layout-container">
+<div class="panel">
+<h2>Request Details</h2>
+<div>
+<label>Target URL</label>
+<input class="form-input" id="reqUrl" placeholder="https://api.example.com/data" type="text" value="https://jsonplaceholder.typicode.com/posts/1"/>
+</div>
+<div>
+<label>HTTP Method</label>
+<select class="form-input" id="reqMethod">
+<option>GET</option><option>POST</option><option>PUT</option>
+<option>DELETE</option><option>PATCH</option><option>OPTIONS</option>
+</select>
+</div>
+<div>
+<label>Custom Headers (JSON)</label>
+<textarea class="form-input" id="reqHeaders">{"Accept": "application/json"}</textarea>
+</div>
+<button class="btn btn-primary" onclick="testCORS()">⚡ Send Request</button>
+</div>
+<div class="panel">
+<h2>Response</h2>
+<div>
+<label>Status</label>
+<div id="resStatus" style="font-size: 1.5rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-muted)">-</div>
+</div>
+<div>
+<label>Response Headers</label>
+<pre id="resHeaders">N/A</pre>
+</div>
+<div>
+<label>Response Body</label>
+<textarea class="form-input" id="resBody" placeholder="Response content..." readonly=""></textarea>
+</div>
+</div>
+</div>
+<div class="stats-bar">
+<div class="stat">
+<span class="stat-label">Latency</span>
+<span class="stat-value" id="statTime">0 ms</span>
+</div>
+<div class="stat">
+<span class="stat-label">CORS Status</span>
+<span class="pill" id="statCORS">Idle</span>
+</div>
+</div>
+<script>
+  async function testCORS() {
+    const url = document.getElementById('reqUrl').value;
+    const method = document.getElementById('reqMethod').value;
+    let headers = {};
+    try {
+      headers = JSON.parse(document.getElementById('reqHeaders').value);
+    } catch(e) {
+      alert("Invalid JSON in headers!");
+      return;
+    }
+    
+    document.getElementById('resStatus').textContent = 'Loading...';
+    document.getElementById('resStatus').style.color = 'var(--text-muted)';
+    document.getElementById('resHeaders').textContent = 'Loading...';
+    document.getElementById('resBody').value = 'Loading...';
+    
+    const start = performance.now();
+    try {
+      const res = await fetch(url, { method, headers, mode: 'cors' });
+      const end = performance.now();
+      
+      document.getElementById('statTime').textContent = (end - start).toFixed(2) + ' ms';
+      document.getElementById('resStatus').textContent = res.status + ' ' + res.statusText;
+      document.getElementById('resStatus').style.color = '#10B981';
+      
+      let resHdrs = '';
+      res.headers.forEach((val, key) => { resHdrs += `${key}: ${val}\n`; });
+      document.getElementById('resHeaders').textContent = resHdrs || 'No Headers';
+      
+      const body = await res.text();
+      document.getElementById('resBody').value = body;
+      
+      const pill = document.getElementById('statCORS');
+      pill.textContent = 'CORS Allowed';
+      pill.className = 'pill';
+    } catch(err) {
+      const end = performance.now();
+      document.getElementById('statTime').textContent = (end - start).toFixed(2) + ' ms';
+      document.getElementById('resStatus').textContent = 'Network / CORS Error';
+      document.getElementById('resStatus').style.color = '#EF4444';
+      document.getElementById('resHeaders').textContent = 'N/A';
+      document.getElementById('resBody').value = err.toString();
+      
+      const pill = document.getElementById('statCORS');
+      pill.textContent = 'CORS Blocked or Network Error';
+      pill.className = 'pill error';
+    }
+  }
+</script>
+</div></div></div></div></body>
+</html>

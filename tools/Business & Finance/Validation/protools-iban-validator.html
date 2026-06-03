@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>IBAN Validator Pro</title>
+<link href="../../../style.css" rel="stylesheet"/>
+
+<link href="../../../custom-tools.css" rel="stylesheet"/>
+    <script src="../../../theme.js"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-protools-iban-validator">
+<div class="tool-layout-container">
+<div class="app-header">
+<h1>🏦 IBAN Validator Pro</h1>
+<p>Verify International Bank Account Numbers securely.</p>
+</div>
+<div class="card" style="max-width: 600px; margin: 0 auto;">
+<label for="iban-input">IBAN</label>
+<input class="form-input" id="iban-input" placeholder="e.g. GB29 MIDL 4005 1560 2280 11" style="font-family: 'Cascadia Code', monospace; font-size: 1.1rem; text-transform: uppercase;" type="text"/>
+<div class="toolbar">
+<button class="btn btn-primary" id="validate-btn">⚡ Validate IBAN</button>
+<button class="btn btn-primary" id="clear-btn" style="background: transparent; border-color: var(--text-muted); color: var(--text-muted);">Clear</button>
+</div>
+<div class="result-panel" id="result" style="display:none; margin-top:1rem;">
+<div id="validity" style="font-size: 1.2rem; margin-bottom: 1rem;"></div>
+<div style="display:flex; justify-content:space-between; margin-bottom: 0.5rem;">
+<span style="color:var(--text-muted);">Country:</span>
+<strong id="country"></strong>
+</div>
+<div style="display:flex; justify-content:space-between; margin-bottom: 0.5rem;">
+<span style="color:var(--text-muted);">Format:</span>
+<strong id="format-len"></strong>
+</div>
+<div style="display:flex; justify-content:space-between;">
+<span style="color:var(--text-muted);">Checksum:</span>
+<strong id="checksum"></strong>
+</div>
+</div>
+<div class="stats-bar">
+<span id="status-text">Ready to validate</span>
+<span class="pill" id="status-pill" style="display:none;"></span>
+</div>
+</div>
+</div>
+<script>
+    const input = document.getElementById('iban-input');
+    const validateBtn = document.getElementById('validate-btn');
+    const clearBtn = document.getElementById('clear-btn');
+    const resultPanel = document.getElementById('result');
+
+    function mod97(string) {
+        let checksum = string.slice(0, 2), fragment;
+        for (let offset = 2; offset < string.length; offset += 7) {
+            fragment = String(checksum) + string.substring(offset, offset + 7);
+            checksum = parseInt(fragment, 10) % 97;
+        }
+        return checksum;
+    }
+
+    function validateIBAN(iban) {
+        iban = iban.replace(/[\s\-]/g, '').toUpperCase();
+        if (!/^([A-Z]{2})([0-9]{2})([A-Z0-9]{9,30})$/.test(iban)) return { valid: false, code: 'INVALID_FORMAT' };
+        
+        const country = iban.substring(0, 2);
+        const rearranged = iban.substring(4) + iban.substring(0, 4);
+        
+        let numeric = '';
+        for (let i = 0; i < rearranged.length; i++) {
+            const charCode = rearranged.charCodeAt(i);
+            if (charCode >= 65 && charCode <= 90) {
+                numeric += (charCode - 55).toString();
+            } else {
+                numeric += rearranged.charAt(i);
+            }
+        }
+        
+        if (mod97(numeric) !== 1) return { valid: false, code: 'INVALID_CHECKSUM', country };
+        return { valid: true, country };
+    }
+
+    const countryNames = {
+        "AL":"Albania","AD":"Andorra","AT":"Austria","AZ":"Azerbaijan","BH":"Bahrain","BY":"Belarus","BE":"Belgium","BA":"Bosnia and Herzegovina","BR":"Brazil","BG":"Bulgaria","CR":"Costa Rica","HR":"Croatia","CY":"Cyprus","CZ":"Czech Republic","DK":"Denmark","DO":"Dominican Republic","EG":"Egypt","SV":"El Salvador","EE":"Estonia","FO":"Faroe Islands","FI":"Finland","FR":"France","GE":"Georgia","DE":"Germany","GI":"Gibraltar","GR":"Greece","GL":"Greenland","GT":"Guatemala","HU":"Hungary","IS":"Iceland","IQ":"Iraq","IE":"Ireland","IL":"Israel","IT":"Italy","JO":"Jordan","KZ":"Kazakhstan","XK":"Kosovo","KW":"Kuwait","LV":"Latvia","LB":"Lebanon","LI":"Liechtenstein","LT":"Lithuania","LU":"Luxembourg","MK":"Macedonia","MT":"Malta","MR":"Mauritania","MU":"Mauritius","MD":"Moldova","MC":"Monaco","ME":"Montenegro","NL":"Netherlands","NO":"Norway","PK":"Pakistan","PS":"Palestinian Territory","PL":"Poland","PT":"Portugal","QA":"Qatar","RO":"Romania","SM":"San Marino","SA":"Saudi Arabia","RS":"Serbia","SK":"Slovakia","SI":"Slovenia","ES":"Spain","SE":"Sweden","CH":"Switzerland","TL":"Timor-Leste","TN":"Tunisia","TR":"Turkey","UA":"Ukraine","AE":"United Arab Emirates","GB":"United Kingdom","VG":"Virgin Islands, British"
+    };
+
+    function validate() {
+        const val = input.value;
+        if (!val) return;
+        
+        const res = validateIBAN(val);
+        const ibanClean = val.replace(/[\s\-]/g, '').toUpperCase();
+        
+        resultPanel.style.display = 'block';
+        
+        const validityEl = document.getElementById('validity');
+        const pill = document.getElementById('status-pill');
+        pill.style.display = 'inline-block';
+        
+        let cName = res.country ? (countryNames[res.country] || res.country) : 'Unknown';
+        if (res.valid) {
+            validityEl.innerHTML = '✅ <span style="color:#10B981;">Valid IBAN</span>';
+            document.getElementById('country').textContent = cName;
+            document.getElementById('format-len').textContent = `${ibanClean.length} chars`;
+            document.getElementById('checksum').textContent = 'Passed (Mod 97)';
+            
+            pill.textContent = 'Valid';
+            pill.className = 'pill';
+        } else {
+            validityEl.innerHTML = '❌ <span style="color:#EF4444;">Invalid IBAN</span>';
+            document.getElementById('country').textContent = cName;
+            document.getElementById('format-len').textContent = `${ibanClean.length} chars`;
+            document.getElementById('checksum').textContent = res.code === 'INVALID_CHECKSUM' ? 'Failed' : 'Format Error';
+            
+            pill.textContent = 'Invalid';
+            pill.className = 'pill error';
+        }
+        document.getElementById('status-text').textContent = 'Validation complete';
+    }
+
+    validateBtn.addEventListener('click', validate);
+    input.addEventListener('keypress', e => { if(e.key === 'Enter') validate(); });
+    
+    clearBtn.addEventListener('click', () => {
+        input.value = '';
+        resultPanel.style.display = 'none';
+        document.getElementById('status-text').textContent = 'Ready to validate';
+        document.getElementById('status-pill').style.display = 'none';
+    });
+</script>
+</div></div></div></div></body>
+</html>

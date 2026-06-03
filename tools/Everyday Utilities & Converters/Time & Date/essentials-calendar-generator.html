@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Calendar Generator – Totil Studio</title>
+    <meta content="Generate a quick view monthly calendar." name="description"/>
+    <link href="../../../style.css" rel="stylesheet"/>
+    
+
+    <script src="../../../theme.js"></script>
+</head>
+<body>
+    <div class="app-layout" id="app-layout">
+        <div class="main-content">
+            <div class="page-content">
+                <div class="app-header">
+                    <div class="app-icon">📅</div>
+                    <div>
+                        <h1>Calendar Generator</h1>
+                        <p>Generate a quick view monthly calendar.</p>
+                    </div>
+                </div>
+                <div class="tool-workspace">
+                    
+<div class="grid-2">
+    <div class="panel">
+        <div class="form-group">
+            <label class="form-label">Year</label>
+            <input type="number" class="form-input" id="cal-year" value="2026">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Month</label>
+            <select class="form-select" id="cal-month">
+                <option value="0">January</option><option value="1">February</option><option value="2">March</option>
+                <option value="3">April</option><option value="5" selected>May</option><option value="6">June</option>
+                <option value="7">July</option><option value="8">August</option><option value="9">September</option>
+                <option value="10">October</option><option value="11">November</option><option value="12">December</option>
+            </select>
+        </div>
+        <button class="btn btn-primary" id="btn-gen-cal">Generate Calendar</button>
+    </div>
+    <div class="panel" style="background: var(--bg-elevated);">
+        <h3 id="cal-title" style="text-align:center; margin-bottom: 15px;">May 2026</h3>
+        <div id="cal-grid" style="display:grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align:center;"></div>
+    </div>
+</div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+
+const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+document.getElementById('btn-gen-cal').addEventListener('click', () => {
+    let y = parseInt(document.getElementById('cal-year').value);
+    let m = parseInt(document.getElementById('cal-month').value);
+    
+    document.getElementById('cal-title').textContent = months[m] + " " + y;
+    
+    let html = '';
+    days.forEach(d => html += `<div style="font-weight:bold; color:var(--text-muted); font-size:12px;">${d}</div>`);
+    
+    let firstDay = new Date(y, m, 1).getDay();
+    let daysInMonth = new Date(y, m + 1, 0).getDate();
+    
+    for(let i=0; i<firstDay; i++) html += `<div></div>`;
+    for(let i=1; i<=daysInMonth; i++) html += `<div style="padding:10px 0; background:var(--bg-card); border-radius:4px;">${i}</div>`;
+    
+    document.getElementById('cal-grid').innerHTML = html;
+});
+document.getElementById('btn-gen-cal').click();
+
+    </script>
+</body>
+</html>

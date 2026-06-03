@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ICO Generator</title>
+<link href="../../../../style.css" rel="stylesheet"/><link href="../../../../custom-tools.css" rel="stylesheet"/>
+<script src="../../../../theme.js"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-mediaworks-ico-generator">
+<div class="app-header">
+<div class="app-icon" style="background:linear-gradient(135deg, #3b82f6, #1d4ed8);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:24px;">🖼</div>
+<div>
+<h1>️ ICO Generator</h1>
+<p>Convert your PNG or JPG images into perfectly sized ICO files for favicons.</p>
+</div>
+</div>
+<div class="tool-layout-container">
+<div class="panel">
+<h3>1. Upload &amp; Settings</h3>
+<label class="upload-area" id="drop-zone">
+<div style="font-size: 2rem; margin-bottom: 0.5rem;">📁</div>
+<div>Click or drag image to upload</div>
+<div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem;">Supports PNG, JPG, WEBP</div>
+<input accept="image/*" id="file-input" type="file"/>
+</label>
+<div class="control-group">
+<label for="size-select">Icon Size</label>
+<select class="form-input" id="size-select">
+<option value="256">256 x 256 (High Quality)</option>
+<option value="128">128 x 128</option>
+<option value="64">64 x 64</option>
+<option value="32">32 x 32 (Standard)</option>
+<option value="16">16 x 16 (Small)</option>
+</select>
+</div>
+<button class="btn btn-primary" disabled="" id="generate-btn">⚡ Generate ICO</button>
+</div>
+<div class="panel">
+<h3>2. Preview &amp; Download</h3>
+<div class="preview-area" id="preview-container">
+<span style="color: var(--text-muted)">No image generated</span>
+</div>
+<div class="stats-bar" id="stats-bar" style="display: none;">
+<span id="stat-size">Size: 0 KB</span>
+<span class="pill">ICO Format</span>
+</div>
+<a class="btn btn-primary" id="download-btn" style="display: none;">💾 Download ICO</a>
+</div>
+</div>
+<script>
+    const fileInput = document.getElementById('file-input');
+    const dropZone = document.getElementById('drop-zone');
+    const sizeSelect = document.getElementById('size-select');
+    const generateBtn = document.getElementById('generate-btn');
+    const previewContainer = document.getElementById('preview-container');
+    const downloadBtn = document.getElementById('download-btn');
+    const statsBar = document.getElementById('stats-bar');
+    const statSize = document.getElementById('stat-size');
+
+    let currentFile = null;
+    let originalImgUrl = null;
+
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.style.borderColor = 'var(--accent)'; });
+    dropZone.addEventListener('dragleave', () => { dropZone.style.borderColor = 'var(--border)'; });
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.style.borderColor = 'var(--border)';
+      if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+    });
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files.length) handleFile(e.target.files[0]);
+    });
+
+    function handleFile(file) {
+      if (!file.type.startsWith('image/')) return alert('Please upload an image file.');
+      currentFile = file;
+      originalImgUrl = URL.createObjectURL(file);
+      dropZone.innerHTML = `<div style="color:var(--accent); font-weight: 500;">✓ ${file.name} selected</div>`;
+      generateBtn.disabled = false;
+    }
+
+    generateBtn.addEventListener('click', async () => {
+      if (!currentFile) return;
+      const size = parseInt(sizeSelect.value);
+      
+      const img = new Image();
+      await new Promise(r => { img.onload = r; img.src = originalImgUrl; });
+      
+      const canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      // Draw centered, preserving aspect ratio 
+      const scale = Math.max(size / img.width, size / img.height);
+      const x = (size / scale - img.width) / 2;
+      const y = (size / scale - img.height) / 2;
+      ctx.drawImage(img, x * scale, y * scale, img.width * scale, img.height * scale);
+      
+      const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
+      const arrayBuffer = await blob.arrayBuffer();
+      const pngBytes = new Uint8Array(arrayBuffer);
+      
+      const icoSize = 22 + pngBytes.length;
+      const icoBytes = new Uint8Array(icoSize);
+      
+      // ICO Header
+      icoBytes[0] = 0; icoBytes[1] = 0;
+      icoBytes[2] = 1; icoBytes[3] = 0;
+      icoBytes[4] = 1; icoBytes[5] = 0;
+      // Image Dir
+      icoBytes[6] = size >= 256 ? 0 : size;
+      icoBytes[7] = size >= 256 ? 0 : size;
+      icoBytes[8] = 0; icoBytes[9] = 0;
+      icoBytes[10] = 1; icoBytes[11] = 0;
+      icoBytes[12] = 32; icoBytes[13] = 0;
+      const dataSize = pngBytes.length;
+      icoBytes[14] = dataSize & 0xFF;
+      icoBytes[15] = (dataSize >> 8) & 0xFF;
+      icoBytes[16] = (dataSize >> 16) & 0xFF;
+      icoBytes[17] = (dataSize >> 24) & 0xFF;
+      icoBytes[18] = 22; icoBytes[19] = 0; icoBytes[20] = 0; icoBytes[21] = 0;
+      
+      icoBytes.set(pngBytes, 22);
+      
+      const icoBlob = new Blob([icoBytes], { type: 'image/x-icon' });
+      const icoUrl = URL.createObjectURL(icoBlob);
+      
+      previewContainer.innerHTML = `<img src="${icoUrl}" alt="ICO Preview" style="width:${size}px; height:${size}px; image-rendering: pixelated; background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAH0lEQVQ4T2NkYGD4z8DAwMgAI0AMDAz/MTAwMAwMDDAAJXoP/wF5Z0MAAAAASUVORK5CYII=') repeat;">`;
+      
+      downloadBtn.href = icoUrl;
+      downloadBtn.download = currentFile.name.replace(/\.[^/.]+$/, "") + ".ico";
+      downloadBtn.style.display = 'inline-flex';
+      
+      statsBar.style.display = 'flex';
+      statSize.textContent = `Size: ${(icoBlob.size / 1024).toFixed(1)} KB`;
+    });
+  </script>
+</div></div></div></div></body>
+</html>

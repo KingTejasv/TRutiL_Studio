@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Financial & Loan Calculators – Totil Studio</title>
+    <meta content="Calculate loans, mortgages, ROI, and compound interest." name="description"/>
+    <link href="../../../style.css" rel="stylesheet"/>
+    <link href="../../../custom-tools.css" rel="stylesheet"/>
+    <script src="../../../theme.js"></script>
+</head>
+<body>
+    <div class="app-layout" id="app-layout">
+        <div class="main-content">
+            <div class="page-content">
+                <div class="app-header">
+                    <div class="app-icon">💰</div>
+                    <div>
+                        <h1>Financial & Loan Calculators</h1>
+                        <p>Calculate loans, mortgages, ROI, and compound interest.</p>
+                    </div>
+                </div>
+                <div class="tool-workspace">
+                    
+<div class="grid-2">
+    <!-- Auto Loan / Mortgage -->
+    <div class="panel">
+        <div class="panel-title">Loan & Mortgage Calculator</div>
+        <div class="form-group">
+            <label class="form-label">Principal Amount ($)</label>
+            <input type="number" class="form-input" id="loan-amount" placeholder="e.g. 25000" value="25000">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Down Payment ($)</label>
+            <input type="number" class="form-input" id="loan-down" placeholder="e.g. 5000" value="5000">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Interest Rate (%)</label>
+            <input type="number" class="form-input" id="loan-rate" placeholder="e.g. 5.5" value="5.5">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Loan Term (Years)</label>
+            <input type="number" class="form-input" id="loan-years" placeholder="e.g. 5" value="5">
+        </div>
+        <button class="btn btn-primary" id="btn-calc-loan">Calculate Payment</button>
+        
+        <div class="result-card" style="margin-top:20px; background: var(--accent-blue);">
+            <div style="font-size: 14px; opacity: 0.9;">Estimated Monthly Payment</div>
+            <div id="res-loan-monthly" class="result-big" style="-webkit-text-fill-color:#fff;">$0.00</div>
+            <div style="margin-top: 10px; font-size: 14px; opacity: 0.8;">Total Interest: <span id="res-loan-interest" style="font-weight:bold;">$0.00</span></div>
+        </div>
+    </div>
+
+    <!-- Compound Interest & ROI -->
+    <div class="panel">
+        <div class="panel-title">Investment (Compound Interest / ROI)</div>
+        <div class="form-group">
+            <label class="form-label">Initial Investment ($)</label>
+            <input type="number" class="form-input" id="inv-initial" placeholder="e.g. 10000" value="10000">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Annual Interest Rate (%)</label>
+            <input type="number" class="form-input" id="inv-rate" placeholder="e.g. 7" value="7">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Years to Grow</label>
+            <input type="number" class="form-input" id="inv-years" placeholder="e.g. 10" value="10">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Compound Frequency</label>
+            <select class="form-select" id="inv-freq">
+                <option value="1">Annually</option>
+                <option value="12" selected>Monthly</option>
+                <option value="365">Daily</option>
+            </select>
+        </div>
+        <button class="btn btn-primary" id="btn-calc-inv">Calculate Growth</button>
+
+        <div class="result-card" style="margin-top:20px; background: var(--accent-green);">
+            <div style="font-size: 14px; opacity: 0.9;">Future Value</div>
+            <div id="res-inv-future" class="result-big" style="-webkit-text-fill-color:#fff;">$0.00</div>
+            <div style="margin-top: 10px; font-size: 14px; opacity: 0.8;">ROI: <span id="res-inv-roi" style="font-weight:bold;">0.00%</span></div>
+        </div>
+    </div>
+</div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+
+document.getElementById('btn-calc-loan').addEventListener('click', () => {
+    let p = (parseFloat(document.getElementById('loan-amount').value) || 0) - (parseFloat(document.getElementById('loan-down').value) || 0);
+    let r = (parseFloat(document.getElementById('loan-rate').value) || 0) / 100 / 12;
+    let n = (parseFloat(document.getElementById('loan-years').value) || 0) * 12;
+    
+    if(p > 0 && n > 0) {
+        let monthly = 0;
+        if(r === 0) {
+            monthly = p / n;
+        } else {
+            monthly = p * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+        }
+        let totalInt = (monthly * n) - p;
+        document.getElementById('res-loan-monthly').textContent = "$" + monthly.toFixed(2);
+        document.getElementById('res-loan-interest').textContent = "$" + totalInt.toFixed(2);
+    }
+});
+
+document.getElementById('btn-calc-inv').addEventListener('click', () => {
+    let p = parseFloat(document.getElementById('inv-initial').value) || 0;
+    let r = parseFloat(document.getElementById('inv-rate').value) || 0;
+    let t = parseFloat(document.getElementById('inv-years').value) || 0;
+    let n = parseFloat(document.getElementById('inv-freq').value) || 12;
+    
+    if(p > 0) {
+        let future = p * Math.pow(1 + ((r/100)/n), n*t);
+        let roi = ((future - p) / p) * 100;
+        
+        document.getElementById('res-inv-future').textContent = "$" + future.toFixed(2);
+        document.getElementById('res-inv-roi').textContent = roi.toFixed(2) + "%";
+    }
+});
+// Init
+document.getElementById('btn-calc-loan').click();
+document.getElementById('btn-calc-inv').click();
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Favicon Generator - MediaWorks</title>
+<link href="../../../../style.css" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<link href="../../../../custom-tools.css" rel="stylesheet"/>
+<script src="../../../../theme.js"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-mediaworks-favicon-generator">
+<div class="app-header">
+<div class="app-icon" style="background:linear-gradient(135deg, #3b82f6, #1d4ed8);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:24px;">🌐</div>
+<div>
+<h1>Favicon Generator</h1>
+<p>Generate responsive favicons for all devices from any image</p>
+</div>
+</div>
+<div class="tool-layout-container">
+<!-- Input Panel -->
+<div class="panel">
+<div class="panel-title">
+<svg fill="none" height="20" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="20"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" x2="12" y1="3" y2="15"></line></svg>
+                1. Upload Source Image
+            </div>
+<div class="drop-zone" id="dropZone">
+<svg fill="none" height="48" stroke="var(--accent)" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" style="margin-bottom: 1rem;" viewbox="0 0 24 24" width="48"><rect height="18" rx="2" ry="2" width="18" x="3" y="3"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+<div id="dropText" style="font-weight: 600; margin-bottom: 0.5rem;">Click or drag image here</div>
+<div style="color: var(--text-muted); font-size: 0.875rem;">Supports JPG, PNG (Ideally square)</div>
+<input accept="image/*" id="fileInput" type="file"/>
+</div>
+</div>
+<!-- Output Panel -->
+<div class="panel">
+<div class="panel-title">
+<svg fill="none" height="20" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="20"><rect height="18" rx="2" ry="2" width="18" x="3" y="3"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                2. Preview &amp; Download
+            </div>
+<div class="favicon-grid">
+<div class="favicon-item">
+<img height="16" id="img-16" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" width="16"/>
+<div class="favicon-label">16x16</div>
+</div>
+<div class="favicon-item">
+<img height="32" id="img-32" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" width="32"/>
+<div class="favicon-label">32x32</div>
+</div>
+<div class="favicon-item">
+<img height="64" id="img-192" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" width="64"/>
+<div class="favicon-label">192x192</div>
+</div>
+<div class="favicon-item">
+<img height="64" id="img-512" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" width="64"/>
+<div class="favicon-label">512x512</div>
+</div>
+</div>
+<div class="controls">
+<button class="btn btn-primary" disabled="" id="downloadBtn">
+<svg fill="none" height="18" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="18"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" x2="12" y1="15" y2="3"></line></svg>
+                    Download ZIP
+                </button>
+</div>
+</div>
+</div>
+<script>
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const dropText = document.getElementById('dropText');
+        
+        let zipContent = null;
+        
+        dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            if (e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                generateFavicons(fileInput.files[0]);
+            }
+        });
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length > 0) generateFavicons(fileInput.files[0]);
+        });
+        
+        function generateFavicons(file) {
+            dropText.textContent = file.name;
+            const img = new Image();
+            const url = URL.createObjectURL(file);
+            img.onload = async function() {
+                const sizes = [16, 32, 192, 512];
+                const zip = new JSZip();
+                
+                for (let size of sizes) {
+                    let canvas = document.createElement('canvas');
+                    canvas.width = size;
+                    canvas.height = size;
+                    let ctx = canvas.getContext('2d');
+                    
+                    let sizeDim = Math.min(img.width, img.height);
+                    let sx = (img.width - sizeDim) / 2;
+                    let sy = (img.height - sizeDim) / 2;
+                    ctx.drawImage(img, sx, sy, sizeDim, sizeDim, 0, 0, size, size);
+                    
+                    let dataUrl = canvas.toDataURL('image/png');
+                    let b64 = dataUrl.split(',')[1];
+                    zip.file(`favicon-${size}x${size}.png`, b64, {base64: true});
+                    
+                    document.getElementById(`img-${size}`).src = dataUrl;
+                }
+                
+                zipContent = await zip.generateAsync({type: "blob"});
+                downloadBtn.disabled = false;
+                URL.revokeObjectURL(url);
+            };
+            img.src = url;
+        }
+        
+        downloadBtn.addEventListener('click', () => {
+            if(!zipContent) return;
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(zipContent);
+            a.download = "favicons.zip";
+            a.click();
+            URL.revokeObjectURL(a.href);
+        });
+    </script>
+</div></div></div></div></body>
+</html>

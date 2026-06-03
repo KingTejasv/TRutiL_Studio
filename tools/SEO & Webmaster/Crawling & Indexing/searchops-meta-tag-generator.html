@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Meta Tag Generator - SearchOps</title>
+<link href="../../../style.css" rel="stylesheet"/><link href="../../../custom-tools.css" rel="stylesheet"/>
+<script src="../../../theme.js"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-searchops-meta-tag-generator">
+<div class="tool-layout-container">
+<div class="app-header">
+<div class="app-icon" style="background:linear-gradient(135deg, #3b82f6, #1d4ed8);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:24px;">🏷</div>
+<div>
+<h1>️ Meta Tag Generator</h1>
+<p>Generate SEO-optimized meta tags and social cards</p>
+</div>
+</div>
+<div class="grid">
+<div class="panel">
+<div class="input-group">
+<label>Site Title <span class="char-count" id="title-count">0/60</span></label>
+<input class="form-input" id="title" oninput="generateMeta()" placeholder="Awesome Site" type="text"/>
+</div>
+<div class="input-group">
+<label>Site Description <span class="char-count" id="desc-count">0/160</span></label>
+<textarea class="form-input" id="desc" oninput="generateMeta()" placeholder="A comprehensive description..." style="min-height:80px;"></textarea>
+</div>
+<div class="input-group">
+<label>Keywords (comma separated)</label>
+<input class="form-input" id="keywords" oninput="generateMeta()" placeholder="seo, tools, meta" type="text"/>
+</div>
+<div class="input-group">
+<label>Primary Image URL</label>
+<input class="form-input" id="img" oninput="generateMeta()" placeholder="https://example.com/image.png" type="text"/>
+</div>
+<div class="input-group">
+<label>Author</label>
+<input class="form-input" id="author" oninput="generateMeta()" placeholder="John Doe" type="text"/>
+</div>
+<div class="input-group">
+<label>Robots Indexing</label>
+<select class="form-input" id="robots" onchange="generateMeta()">
+<option value="index, follow">Index, Follow</option>
+<option value="noindex, follow">NoIndex, Follow</option>
+<option value="index, nofollow">Index, NoFollow</option>
+<option value="noindex, nofollow">NoIndex, NoFollow</option>
+</select>
+</div>
+</div>
+<div class="panel">
+<div class="input-group">
+<label>Generated HTML</label>
+<textarea class="code-area form-input" id="output" readonly=""></textarea>
+</div>
+<button class="btn btn-primary" onclick="copyCode()">📋 Copy Code</button>
+</div>
+</div>
+</div>
+<script>
+function generateMeta() {
+    const title = document.getElementById('title').value;
+    const desc = document.getElementById('desc').value;
+    const img = document.getElementById('img').value;
+    const keywords = document.getElementById('keywords').value;
+    const author = document.getElementById('author').value;
+    const robots = document.getElementById('robots').value;
+    
+    document.getElementById('title-count').textContent = title.length + '/60';
+    document.getElementById('title-count').className = 'char-count ' + (title.length > 60 ? 'danger' : (title.length > 50 ? 'warning' : ''));
+    
+    document.getElementById('desc-count').textContent = desc.length + '/160';
+    document.getElementById('desc-count').className = 'char-count ' + (desc.length > 160 ? 'danger' : (desc.length > 150 ? 'warning' : ''));
+
+    let html = '<!-- Primary Meta Tags -->\n';
+    html += '<title>' + title + '</title>\n';
+    html += '<meta name="title" content="' + title + '">\n';
+    html += '<meta name="description" content="' + desc + '">\n';
+    if(keywords) html += '<meta name="keywords" content="' + keywords + '">\n';
+    if(author) html += '<meta name="author" content="' + author + '">\n';
+    if(robots) html += '<meta name="robots" content="' + robots + '">\n\n';
+
+    html += '<!-- Open Graph / Facebook -->\n';
+    html += '<meta property="og:type" content="website">\n';
+    html += '<meta property="og:title" content="' + title + '">\n';
+    html += '<meta property="og:description" content="' + desc + '">\n';
+    if(img) html += '<meta property="og:image" content="' + img + '">\n\n';
+
+    html += '<!-- Twitter -->\n';
+    html += '<meta property="twitter:card" content="summary_large_image">\n';
+    html += '<meta property="twitter:title" content="' + title + '">\n';
+    html += '<meta property="twitter:description" content="' + desc + '">\n';
+    if(img) html += '<meta property="twitter:image" content="' + img + '">\n';
+
+    document.getElementById('output').value = html;
+}
+function copyCode() {
+    const out = document.getElementById('output');
+    out.select();
+    document.execCommand('copy');
+    alert('Code copied!');
+}
+generateMeta();
+</script>
+</div></div></div></div></body>
+</html>

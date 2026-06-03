@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>API Response Visualizer – Totil Studio</title>
+    <meta content="Visualize complex JSON API responses." name="description"/>
+    <link href="../../../style.css" rel="stylesheet"/>
+    
+
+    <script src="../../../theme.js"></script>
+</head>
+<body>
+    <div class="app-layout" id="app-layout">
+        <div class="main-content">
+            <div class="page-content">
+                <div class="app-header">
+                    <div class="app-icon">👨‍💻</div>
+                    <div>
+                        <h1>API Response Visualizer</h1>
+                        <p>Visualize complex JSON API responses.</p>
+                    </div>
+                </div>
+                <div class="tool-workspace">
+                    
+<div class="grid-2">
+    <div class="panel">
+        <div class="panel-title">Raw JSON</div>
+        <textarea class="form-textarea" id="api-input" placeholder='{"status": 200, "data": "..."}' style="min-height: 300px; font-family: monospace;"></textarea>
+        <button class="btn btn-primary" id="btn-format" style="margin-top:10px;">Format JSON</button>
+    </div>
+    <div class="panel">
+        <div class="panel-title">Visualized Tree</div>
+        <pre id="api-output" style="background: var(--bg-elevated); border: 1px solid var(--border); color: var(--accent-green); min-height: 300px; padding: 15px; overflow: auto; margin:0; border-radius: var(--radius-sm);"></pre>
+    </div>
+</div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+
+document.getElementById('btn-format').addEventListener('click', () => {
+    try {
+        let raw = document.getElementById('api-input').value;
+        let parsed = JSON.parse(raw);
+        document.getElementById('api-output').textContent = JSON.stringify(parsed, null, 4);
+    } catch(e) {
+        document.getElementById('api-output').textContent = "Invalid JSON:\n" + e.message;
+        document.getElementById('api-output').style.color = "var(--accent-red)";
+    }
+});
+
+    </script>
+</body>
+</html>

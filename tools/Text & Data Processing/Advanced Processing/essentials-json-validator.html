@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>JSON Validator &amp; Formatter</title>
+<link href="../../../style.css" rel="stylesheet"/>
+<link href="../../../custom-tools.css" rel="stylesheet"/>
+<script src="../../../theme.js"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-essentials-json-validator">
+<div class="app-header">
+<div class="app-icon" style="background:linear-gradient(135deg, #3b82f6, #1d4ed8);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:24px;">✅</div>
+<div>
+<h1>JSON Validator &amp; Formatter</h1>
+<p>Validate, format, and minify JSON data perfectly.</p>
+</div>
+</div>
+<div class="toolbar">
+<button class="primary-btn btn btn-primary" onclick="formatJSON()">⚡ Format</button>
+<button class="btn btn-primary" onclick="minifyJSON()">🗜️ Minify</button>
+<button class="btn btn-primary" onclick="clearAll()">🗑️ Clear</button>
+<button class="btn btn-primary" onclick="copyOutput()" style="margin-left: auto;">📋 Copy Output</button>
+</div>
+<div class="grid">
+<div class="panel">
+<div class="pane-header">Input JSON</div>
+<textarea class="form-input" id="input" placeholder="Paste your JSON here..." spellcheck="false"></textarea>
+</div>
+<div class="panel">
+<div class="pane-header">Output</div>
+<pre id="output"></pre>
+</div>
+</div>
+<div class="stats-bar">
+<div class="stat-pill" id="statusPill">Waiting for input</div>
+<div class="stat-pill">Input Size: <span id="inputSize">0 B</span></div>
+<div class="stat-pill">Output Size: <span id="outputSize">0 B</span></div>
+</div>
+<script>
+        const input = document.getElementById('input');
+        const output = document.getElementById('output');
+        const statusPill = document.getElementById('statusPill');
+        const inputSize = document.getElementById('inputSize');
+        const outputSize = document.getElementById('outputSize');
+
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function updateStats(inStr, outStr, isValid) {
+            inputSize.textContent = formatBytes(new Blob([inStr]).size);
+            outputSize.textContent = formatBytes(new Blob([outStr]).size);
+            if (inStr.trim() === '') {
+                statusPill.textContent = 'Waiting for input';
+                statusPill.className = 'stat-pill';
+            } else if (isValid) {
+                statusPill.textContent = 'Valid JSON';
+                statusPill.className = 'stat-pill success';
+            } else {
+                statusPill.textContent = 'Invalid JSON';
+                statusPill.className = 'stat-pill error';
+            }
+        }
+
+        function formatJSON() {
+            const val = input.value;
+            if (!val.trim()) return;
+            try {
+                const parsed = JSON.parse(val);
+                const formatted = JSON.stringify(parsed, null, 2);
+                output.textContent = formatted;
+                output.style.color = 'var(--text-primary)';
+                updateStats(val, formatted, true);
+            } catch (e) {
+                output.textContent = e.toString();
+                output.style.color = '#EF4444';
+                updateStats(val, e.toString(), false);
+            }
+        }
+
+        function minifyJSON() {
+            const val = input.value;
+            if (!val.trim()) return;
+            try {
+                const parsed = JSON.parse(val);
+                const minified = JSON.stringify(parsed);
+                output.textContent = minified;
+                output.style.color = 'var(--text-primary)';
+                updateStats(val, minified, true);
+            } catch (e) {
+                output.textContent = e.toString();
+                output.style.color = '#EF4444';
+                updateStats(val, e.toString(), false);
+            }
+        }
+
+        function clearAll() {
+            input.value = '';
+            output.textContent = '';
+            updateStats('', '', false);
+        }
+
+        function copyOutput() {
+            if (output.textContent) {
+                navigator.clipboard.writeText(output.textContent);
+                const btn = document.querySelector('button[onclick="copyOutput()"]');
+                const orig = btn.innerHTML;
+                btn.innerHTML = '✅ Copied!';
+                setTimeout(() => btn.innerHTML = orig, 2000);
+            }
+        }
+
+        input.addEventListener('input', () => {
+            if (input.value.trim() === '') {
+                output.textContent = '';
+                updateStats('', '', false);
+            }
+        });
+    </script>
+</div></div></div></div></body>
+</html>

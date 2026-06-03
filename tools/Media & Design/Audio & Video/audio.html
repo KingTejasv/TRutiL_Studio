@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Audio Converter — Totil Studio</title>
+<meta content="Convert audio files between MP3, WAV, OGG, FLAC, AAC — client-side." name="description"/>
+<link href="../../../style.css" rel="stylesheet"/>
+<link href="../../../custom-tools.css" rel="stylesheet"/>
+<script src="../../../theme.js"></script>
+</head>
+<body>
+<div class="app-layout" id="app-layout">
+<div class="main-content">
+<div class="page-content"><div id="tool-audio">
+<div class="app-header">
+<div class="app-icon" style="background:linear-gradient(135deg, #3b82f6, #1d4ed8);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:24px;">⚙️</div>
+<div>
+<h1>Audio Format Converter</h1>
+<p>Convert between popular audio formats — all client-side</p>
+</div>
+</div>
+<div id="engineSec" style="background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius-sm);padding:20px;margin-bottom:20px;text-align:center;">
+<h3 style="margin-bottom:10px;font-size:16px;">FFmpeg.wasm Engine</h3>
+<p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">This tool uses FFmpeg.wasm to process files entirely in your browser. The engine is about 30MB and only needs to be loaded once.</p>
+<button class="btn btn-primary" id="loadEngineBtn" onclick="loadFFmpeg()" style="margin: 0 auto;">
+           🚀 Load Engine (~30MB)
+        </button>
+<div id="engineStatus" style="display:none;margin-top:10px;font-size:13px;color:var(--accent-green);"></div>
+</div>
+<div class="audio-layout">
+<!-- Left: Upload -->
+<div>
+<div class="drop-zone" id="dropZone" onclick="document.getElementById('audioInput').click()">
+<div class="dz-icon">🎵</div>
+<h3>Drop audio file here</h3>
+<p>MP3, WAV, OGG, FLAC, AAC, M4A, WEBM</p>
+<input accept="audio/*" id="audioInput" onchange="loadAudio(this)" style="display:none" type="file"/>
+</div>
+<div id="audioMeta" style="display:none;margin-top:14px;">
+<div class="audio-preview">
+<div class="audio-wave" id="audioWave">
+<div class="wave-bar" style="height:50%"></div>
+<div class="wave-bar"></div>
+<div class="wave-bar"></div>
+<div class="wave-bar"></div>
+<div class="wave-bar"></div>
+<div class="wave-bar"></div>
+<div class="wave-bar"></div>
+</div>
+<div>
+<div id="audioName" style="font-size:14px;font-weight:600;">audio.mp3</div>
+<div id="audioInfo" style="font-size:12px;color:var(--text-muted);">—</div>
+</div>
+</div>
+<audio controls="" id="audioPlayer"></audio>
+</div>
+</div>
+<!-- Right: Options -->
+<div class="panel">
+<div class="panel-title">Output Settings</div>
+<div class="form-group">
+<label class="form-label">Target Format</label>
+<div class="format-chips" id="fmtChips">
+<div class="fmt-chip sel" data-fmt="mp3" onclick="selFmt(this)"><span class="fe">MP3</span><span class="fd">MPEG</span></div>
+<div class="fmt-chip" data-fmt="wav" onclick="selFmt(this)"><span class="fe">WAV</span><span class="fd">PCM</span></div>
+<div class="fmt-chip" data-fmt="ogg" onclick="selFmt(this)"><span class="fe">OGG</span><span class="fd">Vorbis</span></div>
+<div class="fmt-chip" data-fmt="flac" onclick="selFmt(this)"><span class="fe">FLAC</span><span class="fd">Lossless</span></div>
+<div class="fmt-chip" data-fmt="aac" onclick="selFmt(this)"><span class="fe">AAC</span><span class="fd">MPEG-4</span></div>
+<div class="fmt-chip" data-fmt="opus" onclick="selFmt(this)"><span class="fe">OPUS</span><span class="fd">Modern</span></div>
+</div>
+</div>
+<div class="form-group">
+<label class="form-label">Bitrate</label>
+<select class="form-select form-input" id="bitrate">
+<option value="320">320 kbps (High Quality)</option>
+<option value="256">256 kbps</option>
+<option selected="" value="192">192 kbps (Recommended)</option>
+<option value="128">128 kbps</option>
+<option value="96">96 kbps</option>
+<option value="64">64 kbps (Low / Voice)</option>
+</select>
+</div>
+<div class="form-group">
+<label class="form-label">Sample Rate</label>
+<select class="form-select form-input" id="sampleRate">
+<option value="48000">48,000 Hz (Studio)</option>
+<option selected="" value="44100">44,100 Hz (CD Quality)</option>
+<option value="22050">22,050 Hz</option>
+<option value="16000">16,000 Hz (Voice)</option>
+</select>
+</div>
+<div class="form-group">
+<label class="form-label">Channels</label>
+<select class="form-select form-input" id="channels">
+<option selected="" value="2">Stereo (2 channels)</option>
+<option value="1">Mono (1 channel)</option>
+</select>
+</div>
+<button class="btn btn-primary w-full" disabled="" id="convertBtn" onclick="startConvert()">
+            ⚡ Convert Audio
+          </button>
+<div id="progressSec" style="display:none;margin-top:14px;">
+<div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-muted);margin-bottom:6px;">
+<span>Converting...</span><span id="pctLabel">0%</span>
+</div>
+<div class="progress-wrap"><div class="progress-bar" id="audioProgress" style="width:0%"></div></div>
+<div class="log-box" id="logBox"></div>
+</div>
+<div id="dlSec" style="display:none;margin-top:12px;">
+<a class="btn btn-primary w-full" download="" id="dlLink" style="background:var(--grad-green);justify-content:center;">
+              ⬇ Download Converted Audio
+            </a>
+</div>
+</div>
+</div>
+<!-- Info tiles -->
+<div class="info-grid">
+<div class="info-tile">
+<div class="it-icon">🔒</div>
+<div class="it-title">100% Private</div>
+<div class="it-desc">Your audio never leaves your device. All processing is local.</div>
+</div>
+<div class="info-tile">
+<div class="it-icon">⚡</div>
+<div class="it-title">WebAssembly</div>
+<div class="it-desc">Powered by FFmpeg.wasm — near-native speed in the browser.</div>
+</div>
+<div class="info-tile">
+<div class="it-icon">🎵</div>
+<div class="it-title">6 Formats</div>
+<div class="it-desc">MP3, WAV, OGG, FLAC, AAC, WEBM output support.</div>
+</div>
+</div>
+</div></div>
+</div>
+</div>
+<script>
+  let selFormat = 'mp3';
+  let loadedFile = null;
+  let ffmpeg = null;
+  let fetchFile = null;
+
+  function loadScript(src) {
+    return new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = src;
+      script.onload = resolve;
+      script.onerror = reject;
+      document.head.appendChild(script);
+    });
+  }
+
+  async function loadFFmpeg() {
+    const btn = document.getElementById('loadEngineBtn');
+    const status = document.getElementById('engineStatus');
+    btn.disabled = true;
+    btn.textContent = 'Loading Engine...';
+    
+    try {
+      await Promise.all([
+        loadScript('https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js'),
+        loadScript('https://unpkg.com/@ffmpeg/util@0.12.1/dist/umd/index.js')
+      ]);
+      
+      const { FFmpeg } = window.FFmpegWASM;
+      fetchFile = window.FFmpegUtil.fetchFile;
+      
+      ffmpeg = new FFmpeg();
+      
+      ffmpeg.on('log', ({ message }) => {
+        log(message);
+      });
+      
+      ffmpeg.on('progress', ({ progress, time }) => {
+        const pb = document.getElementById('audioProgress');
+        const pct = document.getElementById('pctLabel');
+        const p = Math.max(0, Math.min(100, Math.round(progress * 100)));
+        pb.style.width = p + '%';
+        pct.textContent = p + '%';
+      });
+
+      status.style.display = 'block';
+      status.style.color = 'var(--text-muted)';
+      status.textContent = 'Loading core (this may take a moment)...';
+
+      const coreURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.js';
+      const wasmURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.wasm';
+      
+      await ffmpeg.load({
+        coreURL: coreURL,
+        wasmURL: wasmURL
+      });
+      
+      status.style.color = 'var(--accent-green)';
+      status.textContent = '✅ Engine loaded successfully!';
+      btn.style.display = 'none';
+      
+    } catch (err) {
+      status.style.display = 'block';
+      status.style.color = '#F87171';
+      status.textContent = '❌ Failed to load engine: ' + err.message;
+      btn.disabled = false;
+      btn.textContent = 'Retry Loading Engine';
+      console.error(err);
+    }
+  }
+
+  function selFmt(el){
+    document.querySelectorAll('.fmt-chip').forEach(c=>c.classList.remove('sel'));
+    el.classList.add('sel');
+    selFormat = el.dataset.fmt;
+  }
+
+  function loadAudio(input){
+    const file = input.files[0]; if(!file) return;
+    loadedFile = file;
+    const url = URL.createObjectURL(file);
+    document.getElementById('audioPlayer').src = url;
+    document.getElementById('audioName').textContent = file.name;
+    document.getElementById('audioInfo').textContent =
+      (file.size/1024/1024).toFixed(2)+' MB · '+file.type;
+    document.getElementById('audioMeta').style.display = 'block';
+    document.getElementById('convertBtn').disabled = false;
+    document.getElementById('dropZone').style.display = 'none';
+  }
+
+  function log(msg){ const b=document.getElementById('logBox'); b.innerHTML+=msg+'<br>'; b.scrollTop=b.scrollHeight; }
+
+  async function startConvert(){
+    if(!loadedFile) return;
+    if(!ffmpeg || !ffmpeg.loaded) {
+      alert("Please load the FFmpeg engine first.");
+      return;
+    }
+    document.getElementById('progressSec').style.display='block';
+    document.getElementById('dlSec').style.display='none';
+    document.getElementById('convertBtn').disabled=true;
+    document.getElementById('logBox').innerHTML='';
+    const pb=document.getElementById('audioProgress');
+    const pct=document.getElementById('pctLabel');
+    pb.style.width='0%';
+    pct.textContent='0%';
+
+    const waveBars=document.querySelectorAll('.wave-bar');
+    const waveIv=setInterval(()=>{
+      waveBars.forEach(b=>b.style.height=(Math.random()*80+20)+'%');
+    }, 150);
+
+    try {
+      const inputName = 'input_' + loadedFile.name;
+      const outputName = 'output.' + selFormat;
+      
+      log('Writing file to memory...');
+      await ffmpeg.writeFile(inputName, await fetchFile(loadedFile));
+      
+      const bitrate = document.getElementById('bitrate').value + 'k';
+      const sampleRate = document.getElementById('sampleRate').value;
+      const channels = document.getElementById('channels').value;
+      
+      const args = [
+        '-i', inputName,
+        '-b:a', bitrate,
+        '-ar', sampleRate,
+        '-ac', channels,
+        outputName
+      ];
+      
+      log('Executing FFmpeg: ffmpeg ' + args.join(' '));
+      
+      await ffmpeg.exec(args);
+      
+      log('Reading output file...');
+      const data = await ffmpeg.readFile(outputName);
+      
+      const blob = new Blob([data.buffer], { type: 'audio/' + selFormat });
+      const url = URL.createObjectURL(blob);
+      
+      const dl = document.getElementById('dlLink');
+      dl.href = url;
+      dl.download = loadedFile.name.replace(/\.[^.]+$/, '') + '.' + selFormat;
+      
+      document.getElementById('dlSec').style.display = 'block';
+      log('✅ Conversion complete!');
+      
+    } catch (err) {
+      log('❌ Error: ' + err.message);
+      console.error(err);
+    } finally {
+      clearInterval(waveIv);
+      waveBars.forEach(b=>b.style.height='50%');
+      document.getElementById('convertBtn').disabled = false;
+    }
+  }
+
+  const dz=document.getElementById('dropZone');
+  dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('drag-over');});
+  dz.addEventListener('dragleave',()=>dz.classList.remove('drag-over'));
+  dz.addEventListener('drop',e=>{
+    e.preventDefault(); dz.classList.remove('drag-over');
+    if(e.dataTransfer.files[0]){
+      const inp=document.getElementById('audioInput');
+      inp.files=e.dataTransfer.files; loadAudio(inp);
+    }
+  });
+</script>
+</body>
+</html>

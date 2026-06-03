@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Scientific Calculator — Totil Studio</title>
+<meta content="Full scientific calculator with standard arithmetic, trigonometry, logarithms, and memory functions." name="description"/>
+<link href="../../../style.css" rel="stylesheet"/>
+
+<link href="../../../custom-tools.css" rel="stylesheet"/>
+    <script src="../../../theme.js"></script>
+</head>
+<body>
+<div class="app-layout" id="app-layout">
+<div class="main-content">
+<div class="page-content"><div id="tool-scientific">
+<div class="app-header">
+<div class="app-icon">🔬</div>
+<div>
+<h1>Scientific Calculator</h1>
+<p>Standard &amp; scientific functions with history</p>
+</div>
+</div>
+<div class="tabs" id="modeTabs">
+<button class="tab-btn active btn btn-primary" id="tabStd" onclick="setMode('standard')">Standard</button>
+<button class="tab-btn btn btn-primary" id="tabSci" onclick="setMode('scientific')">Scientific</button>
+</div>
+<div class="sci-calc-wrap">
+<!-- LEFT: Calculator -->
+<div>
+<div class="calc-panel">
+<div class="mode-indicator"><div class="mode-dot"></div><span id="modeLabel">Standard Mode</span></div>
+<div class="calc-display">
+<div class="calc-expr" id="calcExpr"></div>
+<div class="calc-value" id="calcValue">0</div>
+</div>
+<!-- Standard Grid -->
+<div class="std-grid" id="standardGrid">
+<button class="calc-btn fn btn btn-primary" onclick="clearAll()">AC</button>
+<button class="calc-btn fn btn btn-primary" onclick="toggleSign()">+/−</button>
+<button class="calc-btn fn btn btn-primary" onclick="percentage()">%</button>
+<button class="calc-btn op btn btn-primary" onclick="input('/')">÷</button>
+<button class="calc-btn btn btn-primary" onclick="input('7')">7</button>
+<button class="calc-btn btn btn-primary" onclick="input('8')">8</button>
+<button class="calc-btn btn btn-primary" onclick="input('9')">9</button>
+<button class="calc-btn op btn btn-primary" onclick="input('*')">×</button>
+<button class="calc-btn btn btn-primary" onclick="input('4')">4</button>
+<button class="calc-btn btn btn-primary" onclick="input('5')">5</button>
+<button class="calc-btn btn btn-primary" onclick="input('6')">6</button>
+<button class="calc-btn op btn btn-primary" onclick="input('-')">−</button>
+<button class="calc-btn btn btn-primary" onclick="input('1')">1</button>
+<button class="calc-btn btn btn-primary" onclick="input('2')">2</button>
+<button class="calc-btn btn btn-primary" onclick="input('3')">3</button>
+<button class="calc-btn op btn btn-primary" onclick="input('+')">+</button>
+<button class="calc-btn zero btn btn-primary" onclick="input('0')">0</button>
+<button class="calc-btn btn btn-primary" onclick="inputDot()">.</button>
+<button class="calc-btn eq btn btn-primary" onclick="calculate()">=</button>
+</div>
+<!-- Scientific Grid (hidden by default) -->
+<div class="sci-grid" id="sciGrid" style="display:none; margin-bottom:10px;">
+<button class="calc-btn fn btn btn-primary" onclick="sciFunc('sin')">sin</button>
+<button class="calc-btn fn btn btn-primary" onclick="sciFunc('cos')">cos</button>
+<button class="calc-btn fn btn btn-primary" onclick="sciFunc('tan')">tan</button>
+<button class="calc-btn fn btn btn-primary" onclick="sciFunc('log')">log</button>
+<button class="calc-btn fn btn btn-primary" onclick="sciFunc('ln')">ln</button>
+<button class="calc-btn fn btn btn-primary" onclick="sciFunc('asin')">sin⁻¹</button>
+<button class="calc-btn fn btn btn-primary" onclick="sciFunc('acos')">cos⁻¹</button>
+<button class="calc-btn fn btn btn-primary" onclick="sciFunc('atan')">tan⁻¹</button>
+<button class="calc-btn fn btn btn-primary" onclick="sciFunc('sqrt')">√</button>
+<button class="calc-btn fn btn btn-primary" onclick="sciFunc('cbrt')">∛</button>
+<button class="calc-btn fn btn btn-primary" onclick="sciFunc('pow2')">x²</button>
+<button class="calc-btn fn btn btn-primary" onclick="sciFunc('pow3')">x³</button>
+<button class="calc-btn fn btn btn-primary" onclick="input('^')">xⁿ</button>
+<button class="calc-btn fn btn btn-primary" onclick="sciFunc('recip')">1/x</button>
+<button class="calc-btn fn btn btn-primary" onclick="sciFunc('abs')">|x|</button>
+<button class="calc-btn fn btn btn-primary" onclick="sciFunc('fact')">n!</button>
+<button class="calc-btn fn btn btn-primary" onclick="insertConst('Math.PI')">π</button>
+<button class="calc-btn fn btn btn-primary" onclick="insertConst('Math.E')">e</button>
+<button class="calc-btn fn btn btn-primary" onclick="memStore()">MS</button>
+<button class="calc-btn fn btn btn-primary" onclick="memRecall()">MR</button>
+<button class="calc-btn fn btn btn-primary" onclick="input('(')"> ( </button>
+<button class="calc-btn fn btn btn-primary" onclick="input(')')"> ) </button>
+<button class="calc-btn fn btn btn-primary" onclick="sciFunc('exp10')">10ˣ</button>
+<button class="calc-btn fn btn btn-primary" onclick="sciFunc('exp2')">2ˣ</button>
+<button class="calc-btn fn clear btn btn-primary" onclick="backspace()">⌫</button>
+</div>
+</div>
+</div>
+<!-- RIGHT: History -->
+<div>
+<div class="calc-panel" style="height:100%;">
+<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+<h2 style="margin-bottom:0">History</h2>
+<button class="copy-btn btn btn-primary" onclick="clearHistory()">Clear</button>
+</div>
+<div class="history-list" id="historyList">
+<div style="color:var(--text-muted); font-size:13px; text-align:center; padding:30px 0;">
+                No calculations yet
+              </div>
+</div>
+</div>
+</div>
+</div>
+</div></div>
+</div>
+</div>
+<script>
+  let display = '';
+  let memory = 0;
+  let currentMode = 'standard';
+  let history = [];
+  let justCalc = false;
+
+  const valEl  = document.getElementById('calcValue');
+  const exprEl = document.getElementById('calcExpr');
+
+  function setMode(m) {
+    if (currentMode !== m) {
+      clearAll();
+    }
+    currentMode = m;
+    document.getElementById('tabStd').classList.toggle('active', m === 'standard');
+    document.getElementById('tabSci').classList.toggle('active', m === 'scientific');
+    document.getElementById('modeLabel').textContent = m === 'standard' ? 'Standard Mode' : 'Scientific Mode';
+    document.getElementById('sciGrid').style.display = m === 'scientific' ? 'grid' : 'none';
+  }
+
+  function updateDisplay() {
+    valEl.textContent = display || '0';
+    if (valEl.textContent.length > 14) valEl.style.fontSize = '24px';
+    else if (valEl.textContent.length > 10) valEl.style.fontSize = '30px';
+    else valEl.style.fontSize = '';
+  }
+
+  function input(ch) {
+    if (justCalc && !isNaN(ch)) { display = ''; justCalc = false; }
+    if (justCalc) justCalc = false;
+    display += ch;
+    updateDisplay();
+  }
+
+  function inputDot() {
+    const parts = display.split(/[\+\-\*\/\^]/);
+    const last = parts[parts.length - 1];
+    if (!last.includes('.')) display += '.';
+    updateDisplay();
+  }
+
+  function backspace() {
+    display = display.slice(0, -1);
+    updateDisplay();
+  }
+
+  function clearAll() {
+    display = '';
+    exprEl.textContent = '';
+    updateDisplay();
+  }
+
+  function toggleSign() {
+    if (!display) return;
+    if (display.startsWith('-')) display = display.slice(1);
+    else display = '-' + display;
+    updateDisplay();
+  }
+
+  function percentage() {
+    try { display = String(new Function('return ' + display)() / 100); updateDisplay(); } catch(e) {}
+  }
+
+  function insertConst(c) {
+    if (c === 'Math.PI') display += '3.14159265358979';
+    else if (c === 'Math.E') display += '2.71828182845905';
+    updateDisplay();
+  }
+
+  function sciFunc(fn) {
+    const v = parseFloat(display) || 0;
+    let r;
+    switch(fn) {
+      case 'sin':   r = Math.sin(v * Math.PI / 180); break;
+      case 'cos':   r = Math.cos(v * Math.PI / 180); break;
+      case 'tan':   r = Math.tan(v * Math.PI / 180); break;
+      case 'asin':  r = Math.asin(v) * 180 / Math.PI; break;
+      case 'acos':  r = Math.acos(v) * 180 / Math.PI; break;
+      case 'atan':  r = Math.atan(v) * 180 / Math.PI; break;
+      case 'log':   r = Math.log10(v); break;
+      case 'ln':    r = Math.log(v); break;
+      case 'sqrt':  r = Math.sqrt(v); break;
+      case 'cbrt':  r = Math.cbrt(v); break;
+      case 'pow2':  r = v * v; break;
+      case 'pow3':  r = v * v * v; break;
+      case 'recip': r = 1 / v; break;
+      case 'abs':   r = Math.abs(v); break;
+      case 'exp10': r = Math.pow(10, v); break;
+      case 'exp2':  r = Math.pow(2, v); break;
+      case 'fact': {
+        let f = 1;
+        for (let i = 2; i <= Math.floor(v); i++) f *= i;
+        r = f;
+        break;
+      }
+      default: r = v;
+    }
+    const expr = `${fn}(${display})`;
+    r = +r.toFixed(10);
+    addHistory(expr, r);
+    exprEl.textContent = expr + ' =';
+    display = String(r);
+    updateDisplay();
+    justCalc = true;
+  }
+
+  function memStore() { memory = parseFloat(display) || 0; }
+  function memRecall() { display += String(memory); updateDisplay(); }
+
+  function calculate() {
+    if (!display) return;
+    try {
+      const expr = display.replace(/\^/g, '**');
+      const result = +(new Function('return ' + expr)()).toFixed(10);
+      addHistory(display, result);
+      exprEl.textContent = display + ' =';
+      display = String(result);
+      updateDisplay();
+      justCalc = true;
+    } catch(e) {
+      valEl.textContent = 'Error';
+      display = '';
+    }
+  }
+
+  function addHistory(expr, val) {
+    history.unshift({ expr, val });
+    if (history.length > 20) history.pop();
+    renderHistory();
+  }
+
+  function renderHistory() {
+    const el = document.getElementById('historyList');
+    if (!history.length) {
+      el.innerHTML = '<div style="color:var(--text-muted); font-size:13px; text-align:center; padding:30px 0;">No calculations yet</div>';
+      return;
+    }
+    el.innerHTML = history.map((h, i) => `
+      <div class="history-item" onclick="loadHistory(${i})">
+        <div class="h-expr">${h.expr} =</div>
+        <div class="h-val">${h.val}</div>
+      </div>`).join('');
+  }
+
+  function loadHistory(i) { display = String(history[i].val); updateDisplay(); }
+  function clearHistory() { history = []; renderHistory(); }
+
+  document.addEventListener('keydown', e => {
+    if (e.key >= '0' && e.key <= '9') input(e.key);
+    else if (['+','-','*','/','(',')','^','.'].includes(e.key)) input(e.key);
+    else if (e.key === 'Enter' || e.key === '=') calculate();
+    else if (e.key === 'Backspace') backspace();
+    else if (e.key === 'Escape') clearAll();
+  });
+</script>
+</body>
+</html>

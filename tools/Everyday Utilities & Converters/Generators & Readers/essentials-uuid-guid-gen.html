@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>UUID/GUID Generator</title>
+<link href="../../../style.css" rel="stylesheet"/>
+<link href="../../../custom-tools.css" rel="stylesheet"/>
+    <script src="../../../theme.js"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-essentials-uuid-guid-gen">
+<div class="app-header">
+<h1>🔑 UUID/GUID Generator</h1>
+<p>Generate bulk universally unique identifiers.</p>
+</div>
+<div class="grid">
+<div class="panel">
+<h2>⚙️ Settings</h2>
+<div class="form-group">
+<label for="version">UUID Version</label>
+<select class="form-input" id="version">
+<option value="4">Version 4 (Random)</option>
+</select>
+</div>
+<div class="form-group">
+<label for="quantity">Quantity</label>
+<input class="form-input" id="quantity" max="1000" min="1" type="number" value="5"/>
+</div>
+<div class="checkbox-group">
+<input id="uppercase" type="checkbox"/>
+<label for="uppercase">Uppercase</label>
+</div>
+<div class="checkbox-group">
+<input checked="" id="hyphens" type="checkbox"/>
+<label for="hyphens">Include Hyphens</label>
+</div>
+<button class="btn btn-primary" id="generateBtn">⚡ Generate UUIDs</button>
+</div>
+<div class="panel">
+<h2>📤 Output</h2>
+<textarea class="form-input" id="output" readonly=""></textarea>
+<button class="secondary btn btn-primary" id="copyBtn">📋 Copy to Clipboard</button>
+</div>
+<div class="stats-bar">
+<div>Generated: <span id="statCount">0</span></div>
+<div class="pill" id="statusMessage">Ready</div>
+</div>
+</div>
+<script>
+  function generateUUIDv4() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      const r = Math.random() * 16 | 0;
+      const v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  }
+
+  const quantityInput = document.getElementById('quantity');
+  const uppercaseCheckbox = document.getElementById('uppercase');
+  const hyphensCheckbox = document.getElementById('hyphens');
+  const generateBtn = document.getElementById('generateBtn');
+  const outputEl = document.getElementById('output');
+  const copyBtn = document.getElementById('copyBtn');
+  const statCount = document.getElementById('statCount');
+  const statusMessage = document.getElementById('statusMessage');
+
+  function doGenerate() {
+    const qty = parseInt(quantityInput.value) || 1;
+    const isUpper = uppercaseCheckbox.checked;
+    const hasHyphens = hyphensCheckbox.checked;
+    
+    let results = [];
+    for (let i = 0; i < qty; i++) {
+      let uuid = generateUUIDv4();
+      if (isUpper) uuid = uuid.toUpperCase();
+      if (!hasHyphens) uuid = uuid.replace(/-/g, '');
+      results.push(uuid);
+    }
+    
+    outputEl.value = results.join('\n');
+    statCount.textContent = qty;
+    statusMessage.textContent = 'Generated Successfully';
+    statusMessage.style.color = '#10B981';
+    statusMessage.style.background = 'rgba(16, 185, 129, 0.15)';
+  }
+
+  generateBtn.addEventListener('click', doGenerate);
+
+  copyBtn.addEventListener('click', () => {
+    if (!outputEl.value) return;
+    navigator.clipboard.writeText(outputEl.value).then(() => {
+      statusMessage.textContent = 'Copied to Clipboard!';
+      statusMessage.style.color = 'var(--accent)';
+      statusMessage.style.background = 'rgba(6,182,212,0.15)';
+      setTimeout(() => {
+        statusMessage.textContent = 'Ready';
+        statusMessage.style.color = '#10B981';
+        statusMessage.style.background = 'rgba(16, 185, 129, 0.15)';
+      }, 2000);
+    });
+  });
+
+  // Initial generation
+  doGenerate();
+</script>
+</div></div></div></div></body>
+</html>

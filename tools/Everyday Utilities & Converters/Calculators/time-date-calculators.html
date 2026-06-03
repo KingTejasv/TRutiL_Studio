@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Time & Date Calculators – Totil Studio</title>
+    <meta content="Date differences and time addition/subtraction." name="description"/>
+    <link href="../../../style.css" rel="stylesheet"/>
+    <link href="../../../custom-tools.css" rel="stylesheet"/>
+    <script src="../../../theme.js"></script>
+</head>
+<body>
+    <div class="app-layout" id="app-layout">
+        <div class="main-content">
+            <div class="page-content">
+                <div class="app-header">
+                    <div class="app-icon">⏱️</div>
+                    <div>
+                        <h1>Time & Date Calculators</h1>
+                        <p>Date differences and time addition/subtraction.</p>
+                    </div>
+                </div>
+                <div class="tool-workspace">
+                    
+<div class="grid-2">
+    <!-- Date Difference -->
+    <div class="panel">
+        <div class="panel-title">Date Difference Calculator</div>
+        <div class="form-group">
+            <label class="form-label">Start Date</label>
+            <input type="date" class="form-input" id="date-start">
+        </div>
+        <div class="form-group">
+            <label class="form-label">End Date</label>
+            <input type="date" class="form-input" id="date-end">
+        </div>
+        <button class="btn btn-primary w-full" id="btn-calc-date">Calculate Days Between</button>
+        
+        <div class="result-card" style="margin-top:20px; background: var(--bg-hover); text-align:center;">
+            <div style="font-size: 14px; opacity: 0.9;">Difference</div>
+            <div id="res-date-diff" class="result-big" style="color: var(--accent-green); -webkit-text-fill-color: var(--accent-green);">0 Days</div>
+        </div>
+    </div>
+
+    <!-- Time Addition -->
+    <div class="panel">
+        <div class="panel-title">Time Calculator</div>
+        <div style="display:flex; gap:10px;">
+            <div class="form-group" style="flex:1;">
+                <label class="form-label">Time 1 (HH:MM)</label>
+                <input type="time" class="form-input" id="time-1" value="08:00">
+            </div>
+            <div class="form-group" style="flex:1;">
+                <label class="form-label">Time 2 (HH:MM)</label>
+                <input type="time" class="form-input" id="time-2" value="02:30">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Operation</label>
+            <select class="form-select" id="time-op">
+                <option value="add">Add Time 2 to Time 1</option>
+                <option value="sub">Subtract Time 2 from Time 1</option>
+                <option value="diff">Difference between times</option>
+            </select>
+        </div>
+        <button class="btn btn-primary w-full" id="btn-calc-time">Calculate Time</button>
+
+        <div class="result-card" style="margin-top:20px; text-align:center;">
+            <div style="font-size: 14px; opacity: 0.9;">Result</div>
+            <div id="res-time" style="font-size: 2rem; font-weight:bold;">00:00</div>
+        </div>
+    </div>
+</div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+
+document.getElementById('btn-calc-date').addEventListener('click', () => {
+    let s = new Date(document.getElementById('date-start').value);
+    let e = new Date(document.getElementById('date-end').value);
+    if(s && e && !isNaN(s) && !isNaN(e)) {
+        const diffTime = Math.abs(e - s);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+        document.getElementById('res-date-diff').textContent = diffDays + " Days";
+    }
+});
+
+document.getElementById('btn-calc-time').addEventListener('click', () => {
+    let t1 = document.getElementById('time-1').value.split(':');
+    let t2 = document.getElementById('time-2').value.split(':');
+    let op = document.getElementById('time-op').value;
+    
+    if(t1.length===2 && t2.length===2) {
+        let min1 = parseInt(t1[0])*60 + parseInt(t1[1]);
+        let min2 = parseInt(t2[0])*60 + parseInt(t2[1]);
+        let res = 0;
+        
+        if(op === 'add') res = min1 + min2;
+        if(op === 'sub') res = min1 - min2;
+        if(op === 'diff') res = Math.abs(min1 - min2);
+        
+        if(res < 0) res += 24*60;
+        
+        let h = Math.floor(res/60);
+        let m = res%60;
+        document.getElementById('res-time').textContent = String(h).padStart(2,'0') + "h " + String(m).padStart(2,'0') + "m";
+    }
+});
+
+    </script>
+</body>
+</html>

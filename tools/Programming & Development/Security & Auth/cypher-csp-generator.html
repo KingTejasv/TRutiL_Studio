@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CSP Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Fira+Code&amp;display=swap" rel="stylesheet"/>
+<link href="../../../style.css" rel="stylesheet"/><link href="../../../custom-tools.css" rel="stylesheet"/>
+<script src="../../../theme.js"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-cypher-csp-generator">
+<div class="app-header">
+<div class="app-icon" style="background:linear-gradient(135deg, #3b82f6, #1d4ed8);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:24px;">🛡</div>
+<div>
+<h1>️ CSP Generator</h1>
+<p>Build Content-Security-Policy headers for secure web applications.</p>
+</div>
+</div>
+<div class="tool-layout-container">
+<div class="panel">
+<h2>Directives</h2>
+<div class="grid-layout">
+<div class="directive-group"><label>default-src</label><input class="form-input" id="default-src" oninput="generateCSP()" type="text" value="'self'"/></div>
+<div class="directive-group"><label>script-src</label><input class="form-input" id="script-src" oninput="generateCSP()" placeholder="'self' 'unsafe-inline' https://apis.google.com" type="text"/></div>
+<div class="directive-group"><label>style-src</label><input class="form-input" id="style-src" oninput="generateCSP()" placeholder="'self' 'unsafe-inline'" type="text"/></div>
+<div class="directive-group"><label>img-src</label><input class="form-input" id="img-src" oninput="generateCSP()" placeholder="'self' data: https:" type="text"/></div>
+<div class="directive-group"><label>font-src</label><input class="form-input" id="font-src" oninput="generateCSP()" placeholder="'self' https://fonts.gstatic.com" type="text"/></div>
+<div class="directive-group"><label>connect-src</label><input class="form-input" id="connect-src" oninput="generateCSP()" placeholder="'self' https://api.example.com" type="text"/></div>
+<div class="directive-group"><label>frame-src</label><input class="form-input" id="frame-src" oninput="generateCSP()" placeholder="'self'" type="text"/></div>
+<div class="directive-group"><label>object-src</label><input class="form-input" id="object-src" oninput="generateCSP()" placeholder="'none'" type="text" value="'none'"/></div>
+</div>
+</div>
+<div class="panel">
+<h2>Generated Output</h2>
+<div>
+<label>Raw Header Value</label>
+<textarea class="form-input" id="rawCsp" readonly=""></textarea>
+</div>
+<div>
+<label>HTML Meta Tag</label>
+<textarea class="form-input" id="metaCsp" readonly=""></textarea>
+</div>
+<div>
+<label>Nginx Config</label>
+<textarea class="form-input" id="nginxCsp" readonly=""></textarea>
+</div>
+</div>
+</div>
+<div class="stats-bar">
+<div class="stat">
+<span class="stat-label">Active Directives</span>
+<span class="stat-value" id="statCount">2</span>
+</div>
+<div class="stat">
+<span class="stat-label">Status</span>
+<span class="pill">Real-time update</span>
+</div>
+</div>
+<script>
+  const directives = ['default-src', 'script-src', 'style-src', 'img-src', 'font-src', 'connect-src', 'frame-src', 'object-src'];
+  function generateCSP() {
+    let csp = [];
+    directives.forEach(dir => {
+      const val = document.getElementById(dir).value.trim();
+      if (val) {
+        csp.push(`${dir} ${val}`);
+      }
+    });
+    const finalCSP = csp.join('; ');
+    document.getElementById('rawCsp').value = finalCSP;
+    document.getElementById('metaCsp').value = `<meta http-equiv="Content-Security-Policy" content="${finalCSP}">`;
+    document.getElementById('nginxCsp').value = `add_header Content-Security-Policy "${finalCSP}";`;
+    document.getElementById('statCount').textContent = csp.length;
+  }
+  generateCSP();
+</script>
+</div></div></div></div></body>
+</html>

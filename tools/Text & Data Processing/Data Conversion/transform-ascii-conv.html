@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ASCII Converter</title>
+<link href="../../../style.css" rel="stylesheet"/><link href="../../../custom-tools.css" rel="stylesheet"/>
+<script src="../../../theme.js"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-transform-ascii-conv">
+<div class="app-header">
+<div class="app-icon" style="background:linear-gradient(135deg, #3b82f6, #1d4ed8);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:24px;">🔡</div>
+<div>
+<h1>ASCII Converter</h1>
+<p>Convert text to ASCII decimal, hex, or binary seamlessly</p>
+</div>
+</div>
+<div class="tool-layout-container">
+<div class="toolbar">
+<label for="formatSelect" style="font-weight: 500;">Format:</label>
+<select class="form-input" id="formatSelect">
+<option value="decimal">Decimal</option>
+<option value="hex">Hexadecimal</option>
+<option value="binary">Binary</option>
+</select>
+<label for="separatorSelect" style="font-weight: 500; margin-left: 1rem;">Separator:</label>
+<select class="form-input" id="separatorSelect">
+<option value=" ">Space</option>
+<option value=",">Comma</option>
+<option value="-">Dash</option>
+<option value="none">None</option>
+</select>
+<button class="btn btn-primary" id="clearBtn" style="margin-left: auto;">
+<svg fill="none" height="16" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="16"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
+                Clear
+            </button>
+</div>
+<div class="split-pane">
+<div class="panel">
+<div class="pane-header">
+<h2 class="pane-title">Text</h2>
+<button class="copy-btn btn btn-primary" id="copyTextBtn">Copy</button>
+</div>
+<textarea class="form-input" id="textInput" placeholder="Type text here to convert to ASCII..."></textarea>
+</div>
+<div class="panel">
+<div class="pane-header">
+<h2 class="pane-title" id="asciiTitle">ASCII (Decimal)</h2>
+<button class="copy-btn btn btn-primary" id="copyAsciiBtn">Copy</button>
+</div>
+<textarea class="form-input" id="asciiInput" placeholder="Type ASCII values here to convert to text..."></textarea>
+</div>
+</div>
+<div class="stats-bar">
+<span id="charCount">Characters: 0</span>
+<span id="codeCount">ASCII Codes: 0</span>
+</div>
+</div>
+<script>
+        const textInput = document.getElementById('textInput');
+        const asciiInput = document.getElementById('asciiInput');
+        const formatSelect = document.getElementById('formatSelect');
+        const separatorSelect = document.getElementById('separatorSelect');
+        const asciiTitle = document.getElementById('asciiTitle');
+        const charCount = document.getElementById('charCount');
+        const codeCount = document.getElementById('codeCount');
+
+        let isTypingText = false;
+        let isTypingAscii = false;
+
+        function getSeparator() {
+            return separatorSelect.value === 'none' ? '' : separatorSelect.value;
+        }
+
+        function textToAscii(str) {
+            const format = formatSelect.value;
+            const sep = getSeparator();
+            let result = [];
+            
+            for (let i = 0; i < str.length; i++) {
+                let code = str.charCodeAt(i);
+                if (format === 'decimal') {
+                    result.push(code.toString(10));
+                } else if (format === 'hex') {
+                    // Padding to 2 characters for hex
+                    result.push(code.toString(16).padStart(2, '0').toUpperCase());
+                } else if (format === 'binary') {
+                    // Padding to 8 characters for binary
+                    result.push(code.toString(2).padStart(8, '0'));
+                }
+            }
+            return result.join(sep);
+        }
+
+        function asciiToText(str) {
+            const format = formatSelect.value;
+            const sep = getSeparator();
+            let result = '';
+            
+            // If no separator, we have to chunk it
+            let codes = [];
+            if (sep === '') {
+                if (format === 'hex') {
+                    for(let i=0; i<str.length; i+=2) codes.push(str.substring(i, i+2));
+                } else if (format === 'binary') {
+                    for(let i=0; i<str.length; i+=8) codes.push(str.substring(i, i+8));
+                } else {
+                    // Decimal without separator is ambiguous, can't reliably decode.
+                    // We'll just try splitting by spaces as fallback
+                    codes = str.split(/\s+/);
+                }
+            } else {
+                // Escape regex special chars if any
+                const sepRegex = new RegExp(sep === ' ' ? '\\s+' : '\\' + sep, 'g');
+                codes = str.split(sepRegex);
+            }
+
+            for (let code of codes) {
+                if (!code) continue;
+                code = code.trim();
+                let num;
+                if (format === 'decimal') num = parseInt(code, 10);
+                else if (format === 'hex') num = parseInt(code, 16);
+                else if (format === 'binary') num = parseInt(code, 2);
+                
+                if (!isNaN(num)) {
+                    result += String.fromCharCode(num);
+                }
+            }
+            return result;
+        }
+
+        function updateFromText() {
+            if (isTypingAscii) return;
+            isTypingText = true;
+            asciiInput.value = textToAscii(textInput.value);
+            updateStats();
+            isTypingText = false;
+        }
+
+        function updateFromAscii() {
+            if (isTypingText) return;
+            isTypingAscii = true;
+            textInput.value = asciiToText(asciiInput.value);
+            updateStats();
+            isTypingAscii = false;
+        }
+
+        function updateStats() {
+            charCount.textContent = `Characters: ${textInput.value.length}`;
+            // Count valid non-empty codes
+            const sep = getSeparator();
+            let count = 0;
+            if (asciiInput.value.trim()) {
+                if(sep === '') {
+                    if (formatSelect.value === 'hex') count = Math.ceil(asciiInput.value.length / 2);
+                    else if (formatSelect.value === 'binary') count = Math.ceil(asciiInput.value.length / 8);
+                    else count = asciiInput.value.length; // rough estimate
+                } else {
+                    const sepRegex = new RegExp(sep === ' ' ? '\\s+' : '\\' + sep, 'g');
+                    count = asciiInput.value.trim().split(sepRegex).filter(x => x).length;
+                }
+            }
+            codeCount.textContent = `ASCII Codes: ${count}`;
+        }
+
+        function reformat() {
+            asciiTitle.textContent = `ASCII (${formatSelect.options[formatSelect.selectedIndex].text})`;
+            // Re-convert from text as source of truth
+            updateFromText();
+        }
+
+        textInput.addEventListener('input', updateFromText);
+        asciiInput.addEventListener('input', updateFromAscii);
+        
+        formatSelect.addEventListener('change', reformat);
+        separatorSelect.addEventListener('change', reformat);
+
+        document.getElementById('clearBtn').addEventListener('click', () => {
+            textInput.value = '';
+            asciiInput.value = '';
+            updateStats();
+        });
+
+        document.getElementById('copyTextBtn').addEventListener('click', () => {
+            navigator.clipboard.writeText(textInput.value);
+            const btn = document.getElementById('copyTextBtn');
+            btn.textContent = 'Copied!';
+            setTimeout(() => btn.textContent = 'Copy', 2000);
+        });
+
+        document.getElementById('copyAsciiBtn').addEventListener('click', () => {
+            navigator.clipboard.writeText(asciiInput.value);
+            const btn = document.getElementById('copyAsciiBtn');
+            btn.textContent = 'Copied!';
+            setTimeout(() => btn.textContent = 'Copy', 2000);
+        });
+
+        // Initialize with default text
+        textInput.value = "Hello World!";
+        updateFromText();
+    </script>
+</div></div></div></div></body>
+</html>

@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CSV to JSON Converter</title>
+
+<link href="../../../style.css" rel="stylesheet"/><link href="../../../custom-tools.css" rel="stylesheet"/>
+    <script src="../../../theme.js"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-transform-csv-to-json">
+<div class="app-header">
+<h1>📊 CSV to JSON</h1>
+<p>Convert Comma-Separated Values into Structured JSON Data</p>
+</div>
+<div class="tool-layout-container">
+<div class="toolbar">
+<label class="checkbox-group">
+<input checked="" id="hasHeader" type="checkbox"/>
+                First Row is Header
+            </label>
+<label class="checkbox-group">
+<input checked="" id="parseTypes" type="checkbox"/>
+                Parse Numbers &amp; Booleans
+            </label>
+<label class="checkbox-group">
+<input checked="" id="prettyPrint" type="checkbox"/>
+                Pretty Print
+            </label>
+<div style="margin-left: auto; display: flex; gap: 1rem;">
+<button class="btn btn-primary" id="clearBtn">Clear</button>
+<button class="primary-btn btn btn-primary" id="convertBtn">
+<svg fill="none" height="16" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="16"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                    Convert
+                </button>
+</div>
+</div>
+<div class="split-pane">
+<div class="panel">
+<div class="pane-header">
+<h2 class="pane-title">CSV Input</h2>
+<div>
+<button class="copy-btn btn btn-primary" id="loadSampleBtn" style="margin-right: 0.5rem;">Sample</button>
+<button class="copy-btn btn btn-primary" id="copyCsvBtn">Copy</button>
+</div>
+</div>
+<textarea bob",45,true"="" class="form-input" doe,="" id="csvInput" placeholder="id,name,age,isActive
+1,John Doe,28,true
+2,Jane Smith,32,false
+3," spellcheck="false"></textarea>
+</div>
+<div class="panel">
+<div class="pane-header">
+<h2 class="pane-title">JSON Output</h2>
+<button class="copy-btn btn btn-primary" id="copyJsonBtn">Copy</button>
+</div>
+<textarea class="form-input" id="jsonOutput" placeholder="JSON output will appear here..." readonly="" spellcheck="false"></textarea>
+<div class="error" id="errorMsg"></div>
+</div>
+</div>
+<div class="stats-bar">
+<span id="rowStats">Rows: 0 | Columns: 0</span>
+<span class="pill" id="sizeStats">0 bytes</span>
+</div>
+</div>
+<script>
+        const csvInput = document.getElementById('csvInput');
+        const jsonOutput = document.getElementById('jsonOutput');
+        const hasHeader = document.getElementById('hasHeader');
+        const parseTypes = document.getElementById('parseTypes');
+        const prettyPrint = document.getElementById('prettyPrint');
+        const convertBtn = document.getElementById('convertBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const loadSampleBtn = document.getElementById('loadSampleBtn');
+        const errorMsg = document.getElementById('errorMsg');
+        const rowStats = document.getElementById('rowStats');
+        const sizeStats = document.getElementById('sizeStats');
+
+        // Robust CSV Parser
+        function parseCSV(text) {
+            let p = '', row = [''], ret = [row], i = 0, r = 0, s = !0, l;
+            for (l of text) {
+                if ('"' === l) {
+                    if (s && l === p) row[i] += l;
+                    s = !s;
+                } else if (',' === l && s) l = row[++i] = '';
+                else if ('\n' === l && s) {
+                    if ('\r' === p) row[i] = row[i].slice(0, -1);
+                    row = ret[++r] = [l = '']; i = 0;
+                } else row[i] += l;
+                p = l;
+            }
+            // Remove trailing empty row
+            if (ret.length > 0 && ret[ret.length - 1].length === 1 && ret[ret.length - 1][0] === '') {
+                ret.pop();
+            }
+            return ret;
+        }
+
+        function typeCast(val) {
+            if (!parseTypes.checked) return val;
+            val = val.trim();
+            if (val.toLowerCase() === 'true') return true;
+            if (val.toLowerCase() === 'false') return false;
+            if (val.toLowerCase() === 'null') return null;
+            if (val === '') return val;
+            if (!isNaN(val) && !isNaN(parseFloat(val))) return Number(val);
+            return val;
+        }
+
+        function convertCSVtoJSON() {
+            errorMsg.textContent = '';
+            const text = csvInput.value;
+            if (!text.trim()) {
+                jsonOutput.value = '';
+                updateStats(0, 0, 0);
+                return;
+            }
+
+            try {
+                const data = parseCSV(text);
+                if (data.length === 0) {
+                    jsonOutput.value = '[]';
+                    return;
+                }
+
+                let result;
+                let cols = data[0].length;
+                let rows = data.length;
+
+                if (hasHeader.checked) {
+                    const headers = data[0];
+                    result = [];
+                    for (let i = 1; i < data.length; i++) {
+                        const obj = {};
+                        for (let j = 0; j < headers.length; j++) {
+                            const val = data[i][j] !== undefined ? data[i][j] : '';
+                            obj[headers[j].trim()] = typeCast(val);
+                        }
+                        result.push(obj);
+                    }
+                    rows = data.length - 1; // excluding header
+                } else {
+                    result = data.map(row => row.map(cell => typeCast(cell)));
+                }
+
+                const jsonStr = prettyPrint.checked ? JSON.stringify(result, null, 2) : JSON.stringify(result);
+                jsonOutput.value = jsonStr;
+                
+                updateStats(rows, cols, new Blob([jsonStr]).size);
+            } catch (err) {
+                errorMsg.textContent = 'Error parsing CSV: ' + err.message;
+                console.error(err);
+            }
+        }
+
+        function updateStats(rows, cols, bytes) {
+            rowStats.textContent = `Data Rows: ${rows} | Columns: ${cols}`;
+            
+            let sizeStr = bytes + ' B';
+            if (bytes > 1024 * 1024) sizeStr = (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+            else if (bytes > 1024) sizeStr = (bytes / 1024).toFixed(2) + ' KB';
+            
+            sizeStats.textContent = `Output Size: ${sizeStr}`;
+        }
+
+        convertBtn.addEventListener('click', convertCSVtoJSON);
+        
+        // Optional: auto-convert on small changes, but might be slow for huge files. 
+        // We'll debounce it.
+        let timeout;
+        csvInput.addEventListener('input', () => {
+            clearTimeout(timeout);
+            timeout = setTimeout(convertCSVtoJSON, 500);
+        });
+        
+        hasHeader.addEventListener('change', convertCSVtoJSON);
+        parseTypes.addEventListener('change', convertCSVtoJSON);
+        prettyPrint.addEventListener('change', convertCSVtoJSON);
+
+        clearBtn.addEventListener('click', () => {
+            csvInput.value = '';
+            jsonOutput.value = '';
+            updateStats(0, 0, 0);
+        });
+
+        loadSampleBtn.addEventListener('click', () => {
+            csvInput.value = `id,first_name,last_name,email,gender,ip_address,is_active,score
+1,Jocelyn,Giffard,jgiffard0@abc.net.au,Female,179.167.65.17,true,85.5
+2,Mickie,Creese,mcreese1@google.com,Male,145.47.227.106,false,42.0
+3,Alfonso,"D'Alesco",adalesco2@yandex.ru,Male,245.22.179.227,true,99.9
+4,Lorie,Clement,lclement3@nature.com,Female,20.89.37.195,true,75.25`;
+            hasHeader.checked = true;
+            parseTypes.checked = true;
+            convertCSVtoJSON();
+        });
+
+        document.getElementById('copyCsvBtn').addEventListener('click', () => {
+            navigator.clipboard.writeText(csvInput.value);
+            const btn = document.getElementById('copyCsvBtn');
+            btn.textContent = 'Copied!';
+            setTimeout(() => btn.textContent = 'Copy', 2000);
+        });
+
+        document.getElementById('copyJsonBtn').addEventListener('click', () => {
+            navigator.clipboard.writeText(jsonOutput.value);
+            const btn = document.getElementById('copyJsonBtn');
+            btn.textContent = 'Copied!';
+            setTimeout(() => btn.textContent = 'Copy', 2000);
+        });
+        
+        // Initial load
+        convertCSVtoJSON();
+    </script>
+</div></div></div></div></body>
+</html>

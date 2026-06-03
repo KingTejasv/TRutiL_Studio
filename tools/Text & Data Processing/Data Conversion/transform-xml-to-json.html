@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>XML to JSON Converter — Totil Studio</title>
+<link href="../../../style.css" rel="stylesheet"/>
+
+<link href="../../../custom-tools.css" rel="stylesheet"/>
+    <script src="../../../theme.js"></script>
+</head>
+<body>
+<div class="app-layout" id="app-layout">
+<div class="main-content">
+<div class="page-content"><div id="tool-transform-xml-to-json">
+<div class="app-header" style="text-align: center; margin-bottom: 2rem;">
+<h1 style="margin: 0 0 0.5rem 0; font-size: 2rem;">🔄 XML to JSON Converter</h1>
+<p style="color: var(--text-muted); margin: 0;">Instantly convert XML format to JSON format.</p>
+</div>
+<div class="converter-container">
+<div class="panel">
+<div class="pane-header">
+<h3>XML Input</h3>
+<button class="btn-ghost btn btn-primary" onclick="copyText(this, 'xml-input')">Copy</button>
+</div>
+<div class="pane-body">
+<textarea class="form-input" id="xml-input" placeholder="Paste XML here..." spellcheck="false"></textarea>
+<div class="error-msg" id="xml-error"></div>
+</div>
+</div>
+<div class="panel">
+<div class="pane-header">
+<h3>JSON Output</h3>
+<button class="btn-ghost btn btn-primary" onclick="copyText(this, 'json-output')">Copy</button>
+</div>
+<div class="pane-body">
+<textarea class="form-input" id="json-output" placeholder="Converted JSON will appear here..." readonly="" spellcheck="false"></textarea>
+</div>
+</div>
+</div>
+</div></div>
+</div>
+</div>
+<script>
+const xmlInput = document.getElementById('xml-input');
+const jsonOutput = document.getElementById('json-output');
+const xmlError = document.getElementById('xml-error');
+
+let debounce = null;
+
+function showError(msg) {
+  xmlError.textContent = msg;
+  xmlError.style.display = 'block';
+}
+
+function hideError() {
+  xmlError.style.display = 'none';
+}
+
+// Simple XML to JSON conversion logic
+function xmlToJson(xml) {
+  let obj = {};
+  if (xml.nodeType === 1) { // element
+    if (xml.attributes.length > 0) {
+      obj["@attributes"] = {};
+      for (let j = 0; j < xml.attributes.length; j++) {
+        let attribute = xml.attributes.item(j);
+        obj["@attributes"][attribute.nodeName] = attribute.nodeValue;
+      }
+    }
+  } else if (xml.nodeType === 3) { // text
+    obj = xml.nodeValue;
+  }
+
+  if (xml.hasChildNodes()) {
+    for (let i = 0; i < xml.childNodes.length; i++) {
+      let item = xml.childNodes.item(i);
+      let nodeName = item.nodeName;
+      if (typeof(obj[nodeName]) === "undefined") {
+        let result = xmlToJson(item);
+        // Ignore empty text nodes
+        if (nodeName === "#text" && (!result || !result.trim())) {
+          continue;
+        }
+        obj[nodeName] = result;
+      } else {
+        if (typeof(obj[nodeName].push) === "undefined") {
+          let old = obj[nodeName];
+          obj[nodeName] = [];
+          obj[nodeName].push(old);
+        }
+        let result = xmlToJson(item);
+        if (nodeName === "#text" && (!result || !result.trim())) continue;
+        obj[nodeName].push(result);
+      }
+    }
+  }
+  return obj;
+}
+
+xmlInput.addEventListener('input', () => {
+  clearTimeout(debounce);
+  debounce = setTimeout(() => {
+    hideError();
+    const xmlText = xmlInput.value.trim();
+    if (!xmlText) {
+      jsonOutput.value = '';
+      return;
+    }
+
+    try {
+      const parser = new DOMParser();
+      const xmlDoc = parser.parseFromString(xmlText, "application/xml");
+      
+      const parserError = xmlDoc.getElementsByTagName("parsererror");
+      if (parserError.length > 0) {
+        showError('XML parse error: Invalid XML format.');
+        return;
+      }
+
+      // Convert Document to JSON
+      let json = {};
+      for (let i = 0; i < xmlDoc.childNodes.length; i++) {
+        let child = xmlDoc.childNodes[i];
+        if (child.nodeType === 1) {
+          json[child.nodeName] = xmlToJson(child);
+        }
+      }
+      
+      // Clean up text node wrapping if possible
+      const cleanJson = JSON.parse(JSON.stringify(json).replace(/"#text":\s*"([^"]*)"/g, function(m, p1) {
+          // If the object only had #text, we could flatten it, but a simple replace is risky.
+          // We'll just leave standard parsing.
+          return m;
+      }));
+
+      jsonOutput.value = JSON.stringify(json, null, 2);
+    } catch (e) {
+      showError('Error: ' + e.message);
+    }
+  }, 300);
+});
+
+function copyText(btn, id) {
+  const el = document.getElementById(id);
+  navigator.clipboard.writeText(el.value).then(() => {
+    const orig = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = orig, 2000);
+  }).catch(() => {
+    const orig = btn.textContent;
+    btn.textContent = 'Failed!';
+    setTimeout(() => btn.textContent = orig, 2000);
+  });
+}
+</script>
+</body>
+</html>

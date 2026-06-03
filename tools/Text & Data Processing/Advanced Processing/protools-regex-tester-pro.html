@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>RegEx Tester Pro</title>
+<link href="../../../style.css" rel="stylesheet"/>
+<link href="../../../custom-tools.css" rel="stylesheet"/>
+    <script src="../../../theme.js"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-protools-regex-tester-pro">
+<div class="tool-layout-container">
+<div class="app-header">
+<h1>🔍 RegEx Tester Pro</h1>
+<p>Test and debug regular expressions in real-time.</p>
+</div>
+<div class="grid-split" style="grid-template-columns: 1fr;">
+<div class="card">
+<div class="grid-split" style="gap: 1rem; margin-bottom: 1rem;">
+<div>
+<label>Regular Expression</label>
+<div style="display:flex; align-items:center; background:var(--bg-surface); border:1px solid var(--border); border-radius:8px; padding:0.25rem;">
+<span style="color:var(--text-muted); padding:0 0.5rem; font-family:monospace; font-size:1.2rem;">/</span>
+<input class="form-input" id="regex-input" placeholder="Pattern" style="border:none; margin:0; padding:0.5rem; background:transparent;" type="text" value="[a-z]+"/>
+<span style="color:var(--text-muted); padding:0 0.5rem; font-family:monospace; font-size:1.2rem;">/</span>
+<input class="form-input" id="flags-input" placeholder="flags" style="border:none; margin:0; padding:0.5rem; background:transparent; width: 100%; max-width: 60px" type="text" value="gm"/>
+</div>
+</div>
+</div>
+<label>Test String</label>
+<textarea class="form-input" id="test-string" placeholder="Enter text to test against..." style="min-height: 150px;">This is a test string to match words and numbers like 12345.</textarea>
+</div>
+<div class="card">
+<label>Match Results</label>
+<div class="result-panel" id="result-output" style="font-family: 'Cascadia Code', monospace; line-height: 1.6; min-height: 200px;">
+<!-- Highlighted text will appear here -->
+</div>
+<div class="stats-bar">
+<span id="match-stats">Matches: 0</span>
+<span class="pill" id="match-pill" style="display:none;"></span>
+</div>
+</div>
+</div>
+</div>
+<script>
+    const regexInput = document.getElementById('regex-input');
+    const flagsInput = document.getElementById('flags-input');
+    const testString = document.getElementById('test-string');
+    const resultOutput = document.getElementById('result-output');
+    const matchStats = document.getElementById('match-stats');
+    const matchPill = document.getElementById('match-pill');
+
+    function updateRegex() {
+        const pattern = regexInput.value;
+        const flags = flagsInput.value;
+        const text = testString.value;
+        
+        if (!pattern) {
+            resultOutput.textContent = text;
+            matchStats.textContent = "Matches: 0";
+            matchPill.style.display = 'none';
+            return;
+        }
+
+        try {
+            const re = new RegExp(pattern, flags);
+            
+            let matchCount = 0;
+            let resultHtml = "";
+            let lastIndex = 0;
+            
+            if (flags.includes('g')) {
+                let match;
+                const matches = [];
+                // Re-instantiate to avoid state issues if users type
+                const reGlobal = new RegExp(pattern, flags);
+                while ((match = reGlobal.exec(text)) !== null) {
+                    if(match[0].length === 0) {
+                        reGlobal.lastIndex++;
+                    }
+                    matches.push(match);
+                }
+                
+                matchCount = matches.length;
+                
+                for (const m of matches) {
+                    resultHtml += escapeHtml(text.substring(lastIndex, m.index));
+                    resultHtml += `<span style="background: rgba(6,182,212,0.3); color: #22d3ee; border-radius: 3px; padding: 0 2px;">${escapeHtml(m[0])}</span>`;
+                    lastIndex = m.index + m[0].length;
+                }
+                resultHtml += escapeHtml(text.substring(lastIndex));
+                
+            } else {
+                const match = re.exec(text);
+                if (match) {
+                    matchCount = 1;
+                    resultHtml += escapeHtml(text.substring(0, match.index));
+                    resultHtml += `<span style="background: rgba(6,182,212,0.3); color: #22d3ee; border-radius: 3px; padding: 0 2px;">${escapeHtml(match[0])}</span>`;
+                    resultHtml += escapeHtml(text.substring(match.index + match[0].length));
+                } else {
+                    resultHtml = escapeHtml(text);
+                }
+            }
+            
+            resultOutput.innerHTML = resultHtml.replace(/\n/g, '<br>');
+            matchStats.textContent = `Matches: ${matchCount}`;
+            matchPill.style.display = 'inline-block';
+            matchPill.textContent = matchCount > 0 ? 'Match Found' : 'No Match';
+            matchPill.className = matchCount > 0 ? 'pill' : 'pill error';
+            
+            regexInput.style.color = '';
+            
+        } catch (e) {
+            resultOutput.innerHTML = `<span style="color:#EF4444;">Regex Error: ${e.message}</span>`;
+            matchStats.textContent = `Error`;
+            matchPill.style.display = 'none';
+            regexInput.style.color = '#EF4444';
+        }
+    }
+
+    function escapeHtml(unsafe) {
+        return unsafe
+             .replace(/&/g, "&amp;")
+             .replace(/</g, "&lt;")
+             .replace(/>/g, "&gt;")
+             .replace(/"/g, "&quot;")
+             .replace(/'/g, "&#039;");
+    }
+
+    regexInput.addEventListener('input', updateRegex);
+    flagsInput.addEventListener('input', updateRegex);
+    testString.addEventListener('input', updateRegex);
+    
+    // Initial run
+    updateRegex();
+</script>
+</div></div></div></div></body>
+</html>

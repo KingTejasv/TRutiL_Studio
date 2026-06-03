@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Hex Calculator</title>
+<link href="../../../style.css" rel="stylesheet"/><link href="../../../custom-tools.css" rel="stylesheet"/>
+<script src="../../../theme.js"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-compute-hex-calculator">
+<div class="tool-layout-container">
+<div class="app-header">
+<div class="app-icon" style="background:linear-gradient(135deg, #3b82f6, #1d4ed8);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:24px;">⚙️</div>
+<div>
+<h1>#️⃣ Hex Calculator</h1>
+<p>Perform arithmetic and bitwise operations on Hexadecimal numbers</p>
+</div>
+</div>
+<div class="grid">
+<div class="input-panel">
+<div class="form-group">
+<label>Hex Value 1</label>
+<input class="form-input" id="hex1" placeholder="e.g. 1A" type="text" value="A1B2"/>
+</div>
+<div class="form-group">
+<label>Operation</label>
+<select class="form-input" id="op">
+<option value="+">Add (+)</option>
+<option value="-">Subtract (-)</option>
+<option value="*">Multiply (×)</option>
+<option value="/">Divide (÷)</option>
+<option value="&amp;">Bitwise AND (&amp;)</option>
+<option value="|">Bitwise OR (|)</option>
+<option value="^">Bitwise XOR (^)</option>
+</select>
+</div>
+<div class="form-group">
+<label>Hex Value 2</label>
+<input class="form-input" id="hex2" placeholder="e.g. FF" type="text" value="3F"/>
+</div>
+<button class="action-btn btn btn-primary" onclick="calculate()">⚡ Calculate</button>
+</div>
+<div class="result-panel">
+<div class="result-label">Hex Result</div>
+<div class="result-value" id="res-hex">0</div>
+<div class="result-sub" id="res-dec">Decimal: 0</div>
+<div class="result-sub" id="res-bin">Binary: 0</div>
+</div>
+</div>
+</div>
+<script>
+    function calculate() {
+        let h1 = document.getElementById('hex1').value.trim();
+        let h2 = document.getElementById('hex2').value.trim();
+        const op = document.getElementById('op').value;
+
+        // Strip "0x" if user typed it
+        if(h1.toUpperCase().startsWith('0X')) h1 = h1.substring(2);
+        if(h2.toUpperCase().startsWith('0X')) h2 = h2.substring(2);
+
+        if (!/^[0-9A-Fa-f]+$/.test(h1) || !/^[0-9A-Fa-f]+$/.test(h2)) {
+            return alert("Invalid Hexadecimal input");
+        }
+
+        try {
+            let v1 = BigInt('0x' + h1);
+            let v2 = BigInt('0x' + h2);
+            let res;
+
+            switch(op) {
+                case '+': res = v1 + v2; break;
+                case '-': res = v1 - v2; break;
+                case '*': res = v1 * v2; break;
+                case '/': 
+                    if (v2 === 0n) return alert("Cannot divide by zero");
+                    res = v1 / v2; 
+                    break;
+                case '&': res = v1 & v2; break;
+                case '|': res = v1 | v2; break;
+                case '^': res = v1 ^ v2; break;
+            }
+
+            // Handle negative BigInt for display correctly
+            let hexStr, binStr;
+            if (res < 0n) {
+                let absRes = -res;
+                hexStr = "-" + absRes.toString(16).toUpperCase();
+                binStr = "-" + absRes.toString(2);
+            } else {
+                hexStr = res.toString(16).toUpperCase();
+                binStr = res.toString(2);
+            }
+
+            document.getElementById('res-hex').innerText = "0x" + hexStr;
+            document.getElementById('res-dec').innerText = "Decimal: " + res.toString(10);
+            document.getElementById('res-bin').innerText = "Binary: " + binStr;
+
+        } catch (e) {
+            alert("Calculation error");
+        }
+    }
+
+    calculate();
+</script>
+</div></div></div></div></body>
+</html>

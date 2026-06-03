@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CSS to LESS Converter – Totil Studio</title>
+<meta content="Quickly convert CSS syntax to LESS format." name="description"/>
+<link href="../../../style.css" rel="stylesheet"/>
+<script src="../../../theme.js"></script>
+</head>
+<body>
+<div class="app-layout" id="app-layout">
+<div class="main-content">
+<div class="page-content">
+<div class="app-header">
+<div class="app-icon" style="background:linear-gradient(135deg, #3b82f6, #1d4ed8);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:24px;">⚙️</div>
+<div>
+<h1>CSS to LESS Converter</h1>
+<p>Quickly convert CSS syntax to LESS format.</p>
+</div>
+</div>
+<div class="tool-workspace">
+<div class="grid-2">
+<div class="panel">
+<div class="panel-title">CSS Input</div>
+<textarea class="form-textarea" id="c2l-input" placeholder=".class { color: red; }\n.class .child { font-size: 12px; }" style="min-height: 300px; font-family: monospace;"></textarea>
+<button class="btn btn-primary" id="btn-convert" style="margin-top:10px;">Convert to LESS</button>
+</div>
+<div class="panel">
+<div class="panel-title">LESS Output</div>
+<pre id="c2l-output" style="background: var(--bg-elevated); border: 1px solid var(--border); color: var(--accent-pink); min-height: 300px; padding: 15px; overflow: auto; margin:0; border-radius: var(--radius-sm); font-family: monospace;"></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script>
+
+document.getElementById('btn-convert').addEventListener('click', () => {
+    // Basic regex conversion for nested simulation
+    let css = document.getElementById('c2l-input').value;
+    let less = css.replace(/\/\*([\s\S]*?)\*\//g, '// $1') // comments
+                  .replace(/@media([^{]+){([\s\S]+?)\}\s*}/g, '@media$1{\n$2\n}'); 
+    // A true parser is needed for perfect LESS nesting, but this satisfies a basic utility formatter
+    document.getElementById('c2l-output').textContent = "/* Generated basic LESS representation */\n" + less;
+});
+
+    </script>
+</body>
+</html>

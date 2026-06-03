@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Base64 Codec — Totil Studio</title>
+<meta content="Encode and decode Base64 text and files — URL-safe, line wrap, file download." name="description"/>
+<link href="../../../style.css" rel="stylesheet"/>
+
+<link href="../../../custom-tools.css" rel="stylesheet"/>
+    <script src="../../../theme.js"></script>
+</head>
+<body>
+<div class="app-layout" id="app-layout">
+<div class="main-content">
+<div class="page-content"><div id="tool-base64">
+<div class="app-header">
+<div class="app-icon" style="background:linear-gradient(135deg,#8B5CF6,#6366F1)">🔑</div>
+<div><h1>Base64 Codec</h1><p>Encode &amp; decode text and files — URL-safe mode supported</p></div>
+</div>
+<div class="tabs">
+<button class="tab-btn active btn btn-primary" id="tabEnc" onclick="switchTab('enc')">⬆ Encode</button>
+<button class="tab-btn btn btn-primary" id="tabDec" onclick="switchTab('dec')">⬇ Decode</button>
+</div>
+<!-- ENCODE -->
+<div id="paneEnc">
+<div class="b64-layout">
+<div>
+<div class="form-group">
+<label class="form-label">Input Text</label>
+<textarea class="form-textarea form-input" id="encInput" oninput="encodeB64()" placeholder="Type or paste text to encode..." rows="8" style="font-family:'JetBrains Mono',monospace;font-size:14px;"></textarea>
+</div>
+<div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+<label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;">
+<input id="urlSafe" onchange="encodeB64()" type="checkbox"/> URL-safe mode
+              </label>
+<label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;">
+<input id="lineWrap" onchange="encodeB64()" type="checkbox"/> Line wrap (76 chars)
+              </label>
+</div>
+<div class="form-group">
+<label class="form-label">Or upload a file</label>
+<div id="dropZone" onclick="document.getElementById('encFile').click()" style="border: 2px dashed var(--border); border-radius: 8px; padding: 20px; text-align: center; cursor: pointer; font-size: 13px; color: var(--text-secondary); transition: all 0.2s;">
+                Drop file here or click to browse
+                <input id="encFile" onchange="encodeFile(this)" style="display:none;" type="file"/>
+</div>
+</div>
+</div>
+<div>
+<div class="panel">
+<div style="display:flex;justify-content:space-between;margin-bottom:10px;">
+<span class="panel-title" style="margin:0">Base64 Output</span>
+<button class="copy-btn btn btn-primary" onclick="copy('encOut', this)">Copy</button>
+</div>
+<div id="encOut" style="background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;min-height:160px;color:var(--accent-cyan);overflow-wrap:break-word;">—</div>
+<div class="val-row" style="margin-top:12px;">
+<span>Original</span><strong id="encOrigSize">—</strong>
+</div>
+<div class="val-row">
+<span>Encoded</span><strong id="encSize">—</strong>
+</div>
+<div class="val-row">
+<span>Overhead</span><strong id="encOverhead">—</strong>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- DECODE -->
+<div id="paneDec" style="display:none;">
+<div class="b64-layout">
+<div>
+<div class="form-group">
+<label class="form-label">Base64 Input</label>
+<textarea class="form-textarea form-input" id="decInput" oninput="decodeB64()" placeholder="Paste Base64 encoded string here..." rows="8" style="font-family:'JetBrains Mono',monospace;font-size:14px;"></textarea>
+</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;">
+<button class="btn btn-ghost btn-sm" onclick="clearDec()">🗑 Clear</button>
+</div>
+</div>
+<div>
+<div class="panel">
+<div style="display:flex;justify-content:space-between;margin-bottom:10px;">
+<span class="panel-title" style="margin:0">Decoded Output</span>
+<div style="display:flex;gap:6px;">
+<button class="copy-btn btn btn-primary" onclick="copy('decOut', this)">Copy</button>
+<button class="copy-btn btn btn-primary" id="dlDecBtn" onclick="downloadDec()" style="display:none">Download</button>
+</div>
+</div>
+<div id="decOut" style="background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;min-height:160px;overflow-wrap:break-word;">—</div>
+<div id="decStatus" style="margin-top:10px;font-size:13px;color:var(--text-muted);"></div>
+</div>
+</div>
+</div>
+</div>
+</div></div>
+</div>
+</div>
+<script>
+  function switchTab(t){
+    document.getElementById('paneEnc').style.display = t==='enc'?'block':'none';
+    document.getElementById('paneDec').style.display = t==='dec'?'block':'none';
+    document.getElementById('tabEnc').classList.toggle('active', t==='enc');
+    document.getElementById('tabDec').classList.toggle('active', t==='dec');
+  }
+
+  function encodeB64(){
+    const text = document.getElementById('encInput').value;
+    if(!text){ document.getElementById('encOut').textContent='—'; return; }
+    try {
+      let b64 = btoa(unescape(encodeURIComponent(text)));
+      if(document.getElementById('urlSafe').checked){
+        b64 = b64.replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
+      }
+      if(document.getElementById('lineWrap').checked){
+        b64 = b64.match(/.{1,76}/g).join('\n');
+      }
+      document.getElementById('encOut').textContent = b64;
+      const origBytes = new TextEncoder().encode(text).length;
+      const encBytes = b64.length;
+      document.getElementById('encOrigSize').textContent = origBytes+' bytes';
+      document.getElementById('encSize').textContent = encBytes+' bytes';
+      document.getElementById('encOverhead').textContent = ((encBytes/origBytes-1)*100).toFixed(1)+'%';
+    } catch(e){
+      document.getElementById('encOut').textContent = 'Error: '+e.message;
+    }
+  }
+
+  function encodeFile(input){
+    const file = input.files[0]; if(!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      const b64 = e.target.result.split(',')[1];
+      document.getElementById('encOut').textContent = b64;
+      document.getElementById('encOrigSize').textContent = (file.size/1024).toFixed(2)+' KB';
+      document.getElementById('encSize').textContent = b64.length+' chars';
+      document.getElementById('encOverhead').textContent = '~33%';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function decodeB64(){
+    const input = document.getElementById('decInput').value.trim().replace(/\s/g,'').replace(/-/g,'+').replace(/_/g,'/');
+    if(!input){ document.getElementById('decOut').textContent='—'; return; }
+    try {
+      const decoded = decodeURIComponent(escape(atob(input)));
+      document.getElementById('decOut').textContent = decoded;
+      document.getElementById('decStatus').textContent = '✓ Decoded '+decoded.length+' characters';
+      document.getElementById('decStatus').style.color = 'var(--accent-green)';
+    } catch(e){
+      document.getElementById('decOut').textContent = 'Invalid Base64 input';
+      document.getElementById('decStatus').textContent = '✕ '+e.message;
+      document.getElementById('decStatus').style.color = 'var(--accent-red)';
+    }
+  }
+
+  function clearDec(){
+    document.getElementById('decInput').value='';
+    document.getElementById('decOut').textContent='—';
+    document.getElementById('decStatus').textContent='';
+  }
+
+  function downloadDec(){
+    const text = document.getElementById('decOut').textContent;
+    if(text === '—' || text === 'Invalid Base64 input') return;
+    const blob = new Blob([text], {type: 'text/plain'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'decoded_base64.txt';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function copy(id, btnObj){
+    const text = document.getElementById(id).textContent;
+    navigator.clipboard.writeText(text);
+    if(btnObj) {
+      const origText = btnObj.textContent;
+      btnObj.textContent = 'Copied!';
+      setTimeout(() => btnObj.textContent = origText, 1500);
+    }
+  }
+
+  // Drag and Drop Logic
+  const dropZone = document.getElementById('dropZone');
+  dropZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropZone.style.borderColor = 'var(--accent)';
+    dropZone.style.background = 'rgba(139, 92, 246, 0.1)';
+  });
+  dropZone.addEventListener('dragleave', () => {
+    dropZone.style.borderColor = 'var(--border)';
+    dropZone.style.background = 'transparent';
+  });
+  dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.style.borderColor = 'var(--border)';
+    dropZone.style.background = 'transparent';
+    if(e.dataTransfer.files.length) {
+      document.getElementById('encFile').files = e.dataTransfer.files;
+      encodeFile(document.getElementById('encFile'));
+    }
+  });
+
+  // Init
+  document.getElementById('encInput').value = 'Hello, Totil Studio! 🚀';
+  encodeB64();
+</script>
+</body>
+</html>

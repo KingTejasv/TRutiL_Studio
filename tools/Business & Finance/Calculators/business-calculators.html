@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Business & Startup Calculators - Totil Studio</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link href="../../../style.css" rel="stylesheet"/>
+<link href="../../../custom-tools.css" rel="stylesheet"/>
+<script src="../../../theme.js"></script>
+<style>
+    .panel { display: flex; flex-direction: column; gap: 1rem; }
+    .metrics-bar {
+        display: flex; justify-content: space-between; padding: 1rem;
+        background: linear-gradient(to right, rgba(0,0,0,0.02), transparent);
+        border: 1px solid var(--border); border-radius: var(--radius-sm);
+        margin-top: 1rem; align-items: center;
+    }
+    [data-theme="dark"] .metrics-bar {
+        background: linear-gradient(to right, rgba(255,255,255,0.02), transparent);
+    }
+</style>
+</head>
+<body>
+<div class="app-layout" id="app-layout">
+<div class="main-content">
+<div class="page-content">
+<div class="tool-layout-container">
+    <div class="app-header">
+        <h1>💼 Business & Startup Calculators</h1>
+        <p>Calculate break-even points, cash flows, and business viability.</p>
+    </div>
+    
+    <div class="split-pane">
+        <div class="panel">
+            <div class="pane-header"><div class="pane-title">Break-Even Calculator</div></div>
+            <div class="form-group"><label class="form-label">Fixed Costs ($)</label><input type="number" class="form-input" id="be-fc"></div>
+            <div class="form-group"><label class="form-label">Variable Cost / Unit ($)</label><input type="number" class="form-input" id="be-vc"></div>
+            <div class="form-group"><label class="form-label">Price / Unit ($)</label><input type="number" class="form-input" id="be-p"></div>
+            <button class="btn btn-primary" onclick="calcBE()">Calculate Break-Even</button>
+            <div class="metrics-bar"><span style="font-weight:500;">Units Needed:</span><strong id="be-res" style="font-size:1.25rem;">0</strong></div>
+        </div>
+        <div class="panel">
+            <div class="pane-header"><div class="pane-title">Cash Flow Projection</div></div>
+            <div class="form-group"><label class="form-label">Starting Balance ($)</label><input type="number" class="form-input" id="cf-start"></div>
+            <div class="form-group"><label class="form-label">Cash Inflows ($)</label><input type="number" class="form-input" id="cf-in"></div>
+            <div class="form-group"><label class="form-label">Cash Outflows ($)</label><input type="number" class="form-input" id="cf-out"></div>
+            <button class="btn btn-primary" onclick="calcCF()">Calculate Cash Flow</button>
+            <div class="metrics-bar"><span style="font-weight:500;">Ending Balance:</span><strong id="cf-res" style="font-size:1.25rem;">$0.00</strong></div>
+        </div>
+    </div>
+
+</div>
+</div>
+</div>
+</div>
+
+<script>
+    function calcBE() {
+        const fc = parseFloat(document.getElementById('be-fc').value)||0;
+        const vc = parseFloat(document.getElementById('be-vc').value)||0;
+        const p = parseFloat(document.getElementById('be-p').value)||0;
+        const res = document.getElementById('be-res');
+        if(p > vc) {
+            const units = Math.ceil(fc / (p - vc));
+            res.textContent = units.toLocaleString();
+        } else {
+            res.textContent = "Price must exceed VC";
+        }
+    }
+    function calcCF() {
+        const s = parseFloat(document.getElementById('cf-start').value)||0;
+        const i = parseFloat(document.getElementById('cf-in').value)||0;
+        const o = parseFloat(document.getElementById('cf-out').value)||0;
+        const net = s + i - o;
+        document.getElementById('cf-res').textContent = "$" + net.toFixed(2);
+    }
+</script>
+
+</body>
+</html>

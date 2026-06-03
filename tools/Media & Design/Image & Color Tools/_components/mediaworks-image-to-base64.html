@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Image to Base64</title>
+<link href="../../../../style.css" rel="stylesheet"/><link href="../../../../custom-tools.css" rel="stylesheet"/>
+<script src="../../../../theme.js"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-mediaworks-image-to-base64">
+<div class="app-header">
+<div class="app-icon" style="background:linear-gradient(135deg, #3b82f6, #1d4ed8);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:24px;">🔤</div>
+<div>
+<h1>Image to Base64</h1>
+<p>Convert images to Base64 strings for embedding in HTML or CSS.</p>
+</div>
+</div>
+<div class="tool-layout-container">
+<div class="panel">
+<label class="upload-area" id="drop-zone">
+<div>📁 Upload Image</div>
+<input accept="image/*" id="file-input" type="file"/>
+</label>
+<div class="control-group">
+<label>Output Format</label>
+<select class="form-input" id="format-select">
+<option value="dataurl">Data URL (For src="...")</option>
+<option value="css">CSS Background (url(...))</option>
+<option value="raw">Raw Base64</option>
+</select>
+</div>
+<div style="text-align: center; margin-top: 1rem;">
+<img id="thumb-preview" style="max-width: 200px; max-height: 200px; border-radius: 8px; display: none;"/>
+</div>
+</div>
+<div class="panel">
+<textarea class="form-input" id="output-text" placeholder="Base64 string will appear here..." readonly=""></textarea>
+<div class="stats-bar" id="stats-bar" style="display: none;">
+<span id="stat-info"></span>
+<button class="btn btn-primary" id="copy-btn" style="padding: 4px 12px; font-size: 0.85rem;">📋 Copy</button>
+</div>
+</div>
+</div>
+<script>
+    const fileInput = document.getElementById('file-input');
+    const formatSelect = document.getElementById('format-select');
+    const outputText = document.getElementById('output-text');
+    const copyBtn = document.getElementById('copy-btn');
+    const statsBar = document.getElementById('stats-bar');
+    const statInfo = document.getElementById('stat-info');
+    const thumbPreview = document.getElementById('thumb-preview');
+    
+    let base64Data = "";
+    let mimeType = "";
+
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files.length) processFile(e.target.files[0]);
+    });
+
+    function processFile(file) {
+      mimeType = file.type;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        base64Data = e.target.result;
+        thumbPreview.src = base64Data;
+        thumbPreview.style.display = 'inline-block';
+        updateOutput();
+        statsBar.style.display = 'flex';
+        statInfo.innerHTML = `Chars: <b>${base64Data.length.toLocaleString()}</b>`;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    formatSelect.addEventListener('change', updateOutput);
+
+    function updateOutput() {
+      if (!base64Data) return;
+      let output = "";
+      if (formatSelect.value === 'dataurl') {
+        output = base64Data;
+      } else if (formatSelect.value === 'css') {
+        output = `url('${base64Data}')`;
+      } else if (formatSelect.value === 'raw') {
+        output = base64Data.split(',')[1];
+      }
+      outputText.value = output;
+    }
+
+    copyBtn.addEventListener('click', () => {
+      outputText.select();
+      document.execCommand('copy');
+      const originalText = copyBtn.innerHTML;
+      copyBtn.innerHTML = '✓ Copied!';
+      setTimeout(() => copyBtn.innerHTML = originalText, 2000);
+    });
+  </script>
+</div></div></div></div></body>
+</html>

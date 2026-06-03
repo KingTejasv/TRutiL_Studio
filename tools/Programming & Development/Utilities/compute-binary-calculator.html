@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Binary Calculator</title>
+<link href="../../../style.css" rel="stylesheet"/>
+<link href="../../../custom-tools.css" rel="stylesheet"/>
+<script src="../../../theme.js"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-compute-binary-calculator">
+<div class="tool-layout-container">
+<div class="app-header">
+<div class="app-icon" style="background:linear-gradient(135deg, #3b82f6, #1d4ed8);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:24px;">🔢</div>
+<div>
+<h1>Binary Calculator</h1>
+<p>Perform arithmetic and bitwise operations</p>
+</div>
+</div>
+<div class="panel">
+<div style="margin-bottom: 1.5rem;">
+<label style="color: var(--text-muted); font-size: 0.9rem; margin-right: 1rem;">Input Base:</label>
+<input checked="" id="baseBin" name="base" onchange="clearInputs()" type="radio" value="2"/> <label for="baseBin" style="margin-right: 1rem;">Binary</label>
+<input id="baseDec" name="base" onchange="clearInputs()" type="radio" value="10"/> <label for="baseDec">Decimal</label>
+</div>
+<div class="form-row">
+<div class="form-group">
+<label>Value A</label>
+<input class="form-input" id="valA" placeholder="e.g. 1010" type="text"/>
+</div>
+<div class="form-group operator-col">
+<label>Operation</label>
+<select class="form-input" id="operator">
+<option value="add">+</option>
+<option value="sub">-</option>
+<option value="mul">*</option>
+<option value="div">/</option>
+<option value="and">AND</option>
+<option value="or">OR</option>
+<option value="xor">XOR</option>
+<option value="shl">&lt;&lt; (Left Shift)</option>
+<option value="shr">&gt;&gt; (Right Shift)</option>
+</select>
+</div>
+<div class="form-group">
+<label>Value B</label>
+<input class="form-input" id="valB" placeholder="e.g. 1100" type="text"/>
+</div>
+</div>
+<button class="btn btn-primary" onclick="calculate()">
+<svg fill="none" height="20" stroke="currentColor" viewbox="0 0 24 24" width="20" xmlns="http://www.w3.org/2000/svg"><path d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+                Calculate
+            </button>
+<div class="error-msg" id="errorMsg">Invalid input detected.</div>
+</div>
+<div class="panel">
+<h2 style="margin-top: 0; margin-bottom: 1rem; font-size: 1.25rem; border-bottom: 1px solid var(--border); padding-bottom: 0.75rem;">Results</h2>
+<div class="result-box">
+<div class="result-label">Binary (Base 2)</div>
+<div class="result-value" id="resBin">0</div>
+</div>
+<div class="result-box">
+<div class="result-label">Decimal (Base 10)</div>
+<div class="result-value" id="resDec" style="color: var(--text-primary);">0</div>
+</div>
+<div class="result-box">
+<div class="result-label">Hexadecimal (Base 16)</div>
+<div class="result-value" id="resHex" style="color: var(--text-primary);">0</div>
+</div>
+</div>
+</div>
+<script>
+        function clearInputs() {
+            document.getElementById('valA').value = '';
+            document.getElementById('valB').value = '';
+            document.getElementById('errorMsg').style.display = 'none';
+            document.getElementById('resBin').innerText = '0';
+            document.getElementById('resDec').innerText = '0';
+            document.getElementById('resHex').innerText = '0';
+        }
+
+        function calculate() {
+            const base = document.querySelector('input[name="base"]:checked').value;
+            const strA = document.getElementById('valA').value.trim() || '0';
+            const strB = document.getElementById('valB').value.trim() || '0';
+            const op = document.getElementById('operator').value;
+            const errorMsg = document.getElementById('errorMsg');
+            
+            try {
+                // Ensure correct pattern based on base
+                if (base === '2' && (!/^[01]+$/.test(strA) || !/^[01]+$/.test(strB))) {
+                    throw new Error("Invalid binary input.");
+                }
+                if (base === '10' && (!/^-?\d+$/.test(strA) || !/^-?\d+$/.test(strB))) {
+                    throw new Error("Invalid decimal input.");
+                }
+
+                let a = BigInt(base === '2' ? '0b' + strA : strA);
+                let b = BigInt(base === '2' ? '0b' + strB : strB);
+                let res = 0n;
+
+                switch(op) {
+                    case 'add': res = a + b; break;
+                    case 'sub': res = a - b; break;
+                    case 'mul': res = a * b; break;
+                    case 'div': 
+                        if (b === 0n) throw new Error("Division by zero.");
+                        res = a / b; 
+                        break;
+                    case 'and': res = a & b; break;
+                    case 'or': res = a | b; break;
+                    case 'xor': res = a ^ b; break;
+                    case 'shl': res = a << b; break;
+                    case 'shr': res = a >> b; break;
+                }
+
+                errorMsg.style.display = 'none';
+                
+                let binStr = res.toString(2);
+                if (res < 0n) {
+                    // BigInt toString(2) includes negative sign, we format nicely
+                    binStr = '-' + (-res).toString(2);
+                }
+
+                document.getElementById('resBin').innerText = binStr;
+                document.getElementById('resDec').innerText = res.toString(10);
+                
+                let hexStr = res.toString(16).toUpperCase();
+                if (res < 0n) {
+                    hexStr = '-' + (-res).toString(16).toUpperCase();
+                }
+                document.getElementById('resHex').innerText = hexStr;
+
+            } catch (err) {
+                errorMsg.innerText = err.message || "Invalid input detected.";
+                errorMsg.style.display = 'block';
+                document.getElementById('resBin').innerText = 'Error';
+                document.getElementById('resDec').innerText = 'Error';
+                document.getElementById('resHex').innerText = 'Error';
+            }
+        }
+    </script>
+</div></div></div></div></body>
+</html>

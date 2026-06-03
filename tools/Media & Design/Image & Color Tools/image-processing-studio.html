@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Image Processing Studio — Totil Studio</title>
+<link href="../../../style.css" rel="stylesheet"/>
+<link href="../../../custom-tools.css" rel="stylesheet"/>
+<script src="../../../theme.js"></script>
+</head>
+<body>
+<div class="app-layout" id="app-layout">
+<div class="main-content">
+<div class="page-content">
+
+    <div class="app-header" style="margin-bottom: 2rem; display: flex; align-items: center; gap: 1.5rem;">
+        <div class="app-icon" style="background:linear-gradient(135deg,#8B5CF6,#6366F1); width: 64px; height: 64px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 32px; color: white;">🖼</div>
+        <div>
+            <h1 style="margin:0;font-size:2.5rem;font-weight:800;letter-spacing:-0.5px;">Image Processing Studio</h1>
+            <p style="margin:8px 0 0 0;color:var(--text-muted);font-size:1.1rem;max-width:600px;">A complete collection of tools to convert, resize, crop, and manipulate images right in your browser.</p>
+        </div>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
+        
+        <a href="_components/image.html" style="text-decoration: none; color: inherit;">
+            <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; height: 100%; display: flex; flex-direction: column; gap: 10px;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 10px 25px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='none'; this.style.boxShadow='none';">
+                <div style="font-size: 2rem;">🖼️</div>
+                <h3 style="margin: 0; font-size: 1.2rem; color: var(--text-primary);">Image Converter</h3>
+                <p style="margin: 0; color: var(--text-muted); font-size: 0.9rem;">Convert images between PNG, JPEG, WEBP, etc.</p>
+            </div>
+        </a>
+        
+        <a href="_components/compressor.html" style="text-decoration: none; color: inherit;">
+            <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; height: 100%; display: flex; flex-direction: column; gap: 10px;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 10px 25px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='none'; this.style.boxShadow='none';">
+                <div style="font-size: 2rem;">🗜️</div>
+                <h3 style="margin: 0; font-size: 1.2rem; color: var(--text-primary);">Image Compressor</h3>
+                <p style="margin: 0; color: var(--text-muted); font-size: 0.9rem;">Compress images to reduce file size without losing quality.</p>
+            </div>
+        </a>
+        
+        <a href="_components/mediaworks-image-resizer.html" style="text-decoration: none; color: inherit;">
+            <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; height: 100%; display: flex; flex-direction: column; gap: 10px;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 10px 25px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='none'; this.style.boxShadow='none';">
+                <div style="font-size: 2rem;">📏</div>
+                <h3 style="margin: 0; font-size: 1.2rem; color: var(--text-primary);">Image Resizer</h3>
+                <p style="margin: 0; color: var(--text-muted); font-size: 0.9rem;">Resize images to exact dimensions.</p>
+            </div>
+        </a>
+        
+        <a href="_components/mediaworks-image-cropper.html" style="text-decoration: none; color: inherit;">
+            <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; height: 100%; display: flex; flex-direction: column; gap: 10px;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 10px 25px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='none'; this.style.boxShadow='none';">
+                <div style="font-size: 2rem;">✂️</div>
+                <h3 style="margin: 0; font-size: 1.2rem; color: var(--text-primary);">Image Cropper</h3>
+                <p style="margin: 0; color: var(--text-muted); font-size: 0.9rem;">Crop images to remove unwanted areas.</p>
+            </div>
+        </a>
+        
+        <a href="_components/mediaworks-image-upscaler.html" style="text-decoration: none; color: inherit;">
+            <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; height: 100%; display: flex; flex-direction: column; gap: 10px;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 10px 25px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='none'; this.style.boxShadow='none';">
+                <div style="font-size: 2rem;">✨</div>
+                <h3 style="margin: 0; font-size: 1.2rem; color: var(--text-primary);">Image Upscaler</h3>
+                <p style="margin: 0; color: var(--text-muted); font-size: 0.9rem;">Upscale low-resolution images seamlessly.</p>
+            </div>
+        </a>
+        
+        <a href="_components/mediaworks-image-watermark.html" style="text-decoration: none; color: inherit;">
+            <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; height: 100%; display: flex; flex-direction: column; gap: 10px;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 10px 25px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='none'; this.style.boxShadow='none';">
+                <div style="font-size: 2rem;">©️</div>
+                <h3 style="margin: 0; font-size: 1.2rem; color: var(--text-primary);">Image Watermark</h3>
+                <p style="margin: 0; color: var(--text-muted); font-size: 0.9rem;">Add text or logo watermarks to your images.</p>
+            </div>
+        </a>
+        
+        <a href="_components/mediaworks-background-remover.html" style="text-decoration: none; color: inherit;">
+            <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; height: 100%; display: flex; flex-direction: column; gap: 10px;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 10px 25px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='none'; this.style.boxShadow='none';">
+                <div style="font-size: 2rem;">🪄</div>
+                <h3 style="margin: 0; font-size: 1.2rem; color: var(--text-primary);">Background Remover</h3>
+                <p style="margin: 0; color: var(--text-muted); font-size: 0.9rem;">Remove background from images instantly.</p>
+            </div>
+        </a>
+        
+        <a href="_components/mediaworks-webp-converter.html" style="text-decoration: none; color: inherit;">
+            <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; height: 100%; display: flex; flex-direction: column; gap: 10px;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 10px 25px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='none'; this.style.boxShadow='none';">
+                <div style="font-size: 2rem;">🚀</div>
+                <h3 style="margin: 0; font-size: 1.2rem; color: var(--text-primary);">WEBP Converter</h3>
+                <p style="margin: 0; color: var(--text-muted); font-size: 0.9rem;">Convert to next-gen WEBP format.</p>
+            </div>
+        </a>
+        
+        <a href="_components/mediaworks-heic-converter.html" style="text-decoration: none; color: inherit;">
+            <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; height: 100%; display: flex; flex-direction: column; gap: 10px;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 10px 25px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='none'; this.style.boxShadow='none';">
+                <div style="font-size: 2rem;">📱</div>
+                <h3 style="margin: 0; font-size: 1.2rem; color: var(--text-primary);">HEIC Converter</h3>
+                <p style="margin: 0; color: var(--text-muted); font-size: 0.9rem;">Convert iPhone HEIC photos to standard formats.</p>
+            </div>
+        </a>
+        
+        <a href="_components/mediaworks-base64-to-image.html" style="text-decoration: none; color: inherit;">
+            <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; height: 100%; display: flex; flex-direction: column; gap: 10px;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 10px 25px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='none'; this.style.boxShadow='none';">
+                <div style="font-size: 2rem;">🔢</div>
+                <h3 style="margin: 0; font-size: 1.2rem; color: var(--text-primary);">Base64 to Image</h3>
+                <p style="margin: 0; color: var(--text-muted); font-size: 0.9rem;">Decode Base64 strings to images.</p>
+            </div>
+        </a>
+        
+        <a href="_components/mediaworks-image-to-base64.html" style="text-decoration: none; color: inherit;">
+            <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; height: 100%; display: flex; flex-direction: column; gap: 10px;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 10px 25px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='none'; this.style.boxShadow='none';">
+                <div style="font-size: 2rem;">🔄</div>
+                <h3 style="margin: 0; font-size: 1.2rem; color: var(--text-primary);">Image to Base64</h3>
+                <p style="margin: 0; color: var(--text-muted); font-size: 0.9rem;">Encode images to Base64 strings.</p>
+            </div>
+        </a>
+        
+        <a href="_components/mediaworks-exif-editor.html" style="text-decoration: none; color: inherit;">
+            <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; height: 100%; display: flex; flex-direction: column; gap: 10px;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 10px 25px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='none'; this.style.boxShadow='none';">
+                <div style="font-size: 2rem;">📸</div>
+                <h3 style="margin: 0; font-size: 1.2rem; color: var(--text-primary);">EXIF Editor</h3>
+                <p style="margin: 0; color: var(--text-muted); font-size: 0.9rem;">View and edit image EXIF metadata.</p>
+            </div>
+        </a>
+        
+        <a href="_components/mediaworks-exif-remover.html" style="text-decoration: none; color: inherit;">
+            <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; height: 100%; display: flex; flex-direction: column; gap: 10px;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 10px 25px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='none'; this.style.boxShadow='none';">
+                <div style="font-size: 2rem;">🧹</div>
+                <h3 style="margin: 0; font-size: 1.2rem; color: var(--text-primary);">EXIF Remover</h3>
+                <p style="margin: 0; color: var(--text-muted); font-size: 0.9rem;">Strip EXIF data to protect your privacy.</p>
+            </div>
+        </a>
+        
+        <a href="_components/mediaworks-exif-viewer.html" style="text-decoration: none; color: inherit;">
+            <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; height: 100%; display: flex; flex-direction: column; gap: 10px;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 10px 25px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='none'; this.style.boxShadow='none';">
+                <div style="font-size: 2rem;">🔍</div>
+                <h3 style="margin: 0; font-size: 1.2rem; color: var(--text-primary);">EXIF Viewer</h3>
+                <p style="margin: 0; color: var(--text-muted); font-size: 0.9rem;">Analyze hidden EXIF metadata in photos.</p>
+            </div>
+        </a>
+        
+    </div>
+
+</div>
+</div>
+</div>
+</body>
+</html>

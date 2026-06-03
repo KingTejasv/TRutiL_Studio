@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Typing Speed Test — Totil Studio</title>
+<link href="../../../style.css" rel="stylesheet"/>
+<link href="../../../custom-tools.css" rel="stylesheet"/>
+<script src="../../../theme.js"></script>
+<style>
+  .text-display {
+    font-size: 1.5rem;
+    line-height: 2;
+    font-family: 'Consolas', 'Courier New', monospace;
+    user-select: none;
+    padding: 20px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    margin-bottom: 20px;
+    position: relative;
+    cursor: text;
+    text-align: left;
+  }
+  .char {
+    position: relative;
+    color: var(--text-muted);
+    transition: color 0.1s;
+  }
+  .char.correct {
+    color: var(--accent-green);
+  }
+  .char.incorrect {
+    color: #ef4444; /* red */
+    background: rgba(239, 68, 68, 0.2);
+    border-radius: 3px;
+  }
+  .char.caret::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 3px;
+    background-color: var(--accent-blue);
+    animation: blink 1s infinite;
+  }
+  @keyframes blink {
+    50% { opacity: 0; }
+  }
+  #hidden-input {
+    position: absolute;
+    opacity: 0;
+    z-index: -1;
+  }
+</style>
+</head>
+<body>
+<div class="app-layout" id="app-layout">
+<div class="main-content">
+<div class="page-content">
+<div id="tool-typing">
+<div class="app-header">
+<div class="app-icon" style="background:linear-gradient(135deg,#8B5CF6,#6D28D9);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:24px;">⌨️</div>
+<div>
+<h1>Typing Speed Test</h1>
+<p>Rapid typing tutor style. Type directly to begin the 60-second challenge.</p>
+</div>
+</div>
+<div id="game-area">
+<div class="stats-board">
+<div class="stat-item">Time Left: <span id="time">60</span>s</div>
+<div class="stat-item">WPM: <span id="wpm">0</span></div>
+<div class="stat-item">Accuracy: <span id="accuracy">100</span>%</div>
+</div>
+<div class="text-display" id="text-display" tabindex="0">
+<!-- Characters will be injected here -->
+</div>
+<input type="text" id="hidden-input" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+</div>
+<div class="results" id="results" style="display:none; text-align:center; padding:40px; background:var(--bg-card); border-radius:8px; border:1px solid var(--border-color);">
+<h2>Time's Up!</h2>
+<div class="final-stats" style="display:flex; justify-content:center; gap:30px; margin:20px 0; font-size:1.5rem;">
+<div>WPM: <span id="final-wpm" style="font-weight:bold; color:var(--accent-blue);">0</span></div>
+<div>Accuracy: <span id="final-accuracy" style="font-weight:bold; color:var(--accent-green);">0</span>%</div>
+</div>
+<button class="btn btn-primary btn-restart" id="btn-restart">Try Again</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script>
+const PASSAGES = [
+  `The quick brown fox jumps over the lazy dog. Technology is evolving at a rapid pace, changing the way we interact with the world. Learning to type efficiently is a valuable skill in the digital age. Practice makes perfect, and consistent effort yields the best results. Focus on accuracy first, and speed will naturally follow over time.`,
+  `Software development requires both logical thinking and creative problem-solving abilities. Front-end engineering bridges the gap between design and interactive functionality. Always keep exploring new ideas and challenging yourself to improve every single day. Success is not final, failure is not fatal: it is the courage to continue that counts.`,
+  `A journey of a thousand miles begins with a single step. To be or not to be, that is the question. All that glitters is not gold. Actions speak louder than words. A picture is worth a thousand words. The early bird catches the worm. Knowledge is power, but enthusiasm pulls the switch.`,
+  `Believe you can and you are halfway there. Do not watch the clock; do what it does, keep going. Everything you have ever wanted is on the other side of fear. The best time to plant a tree was twenty years ago. The second best time is now. Strive not to be a success, but rather to be of value.`,
+  `In the middle of every difficulty lies opportunity. It does not matter how slowly you go as long as you do not stop. Our greatest glory is not in never falling, but in rising every time we fall. You miss one hundred percent of the shots you never take. Dream big and dare to fail.`,
+  `Coding is not just about writing programs; it is about solving problems in elegant and efficient ways. Clean code reads like well-written prose. Refactoring is the art of improving design without changing behavior. Always leave the codebase better than you found it, and document your intentions clearly.`
+];
+
+let chars = [];
+let charSpans = [];
+let currentIndex = 0;
+let errors = 0;
+let totalTyped = 0;
+let correctTyped = 0;
+let timer = null;
+let startTime = null;
+let isPlaying = false;
+
+const textDisplay = document.getElementById('text-display');
+const hiddenInput = document.getElementById('hidden-input');
+const timeEl = document.getElementById('time');
+const wpmEl = document.getElementById('wpm');
+const accuracyEl = document.getElementById('accuracy');
+const gameArea = document.getElementById('game-area');
+const resultsArea = document.getElementById('results');
+const finalWpmEl = document.getElementById('final-wpm');
+const finalAccuracyEl = document.getElementById('final-accuracy');
+const btnRestart = document.getElementById('btn-restart');
+
+function initGame() {
+  const passage = PASSAGES[Math.floor(Math.random() * PASSAGES.length)].trim();
+  chars = passage.split('');
+  charSpans = [];
+  currentIndex = 0;
+  errors = 0;
+  totalTyped = 0;
+  correctTyped = 0;
+  startTime = null;
+  isPlaying = false;
+
+  textDisplay.innerHTML = '';
+  chars.forEach((c) => {
+    const span = document.createElement('span');
+    span.textContent = c;
+    span.className = 'char';
+    textDisplay.appendChild(span);
+    charSpans.push(span);
+  });
+
+  if (charSpans.length > 0) charSpans[0].classList.add('caret');
+
+  timeEl.textContent = '60';
+  wpmEl.textContent = '0';
+  accuracyEl.textContent = '100';
+
+  gameArea.style.display = 'block';
+  resultsArea.style.display = 'none';
+
+  hiddenInput.value = '';
+  // Refocus text display
+  textDisplay.focus();
+  if (timer) clearInterval(timer);
+}
+
+function startGame() {
+  if (isPlaying) return;
+  isPlaying = true;
+  startTime = Date.now();
+
+  timer = setInterval(() => {
+    const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+    const timeLeft = 60 - elapsedSeconds;
+
+    if (timeLeft <= 0) {
+      timeEl.textContent = '0';
+      endGame();
+    } else {
+      timeEl.textContent = timeLeft;
+      updateStats();
+    }
+  }, 1000);
+}
+
+function updateStats() {
+  if (!startTime) return;
+  const elapsedMinutes = (Date.now() - startTime) / 60000;
+
+  let wpm = 0;
+  if (elapsedMinutes > 0) {
+    // Standard WPM calculation: (total correct chars / 5) / elapsed minutes
+    wpm = Math.round((correctTyped / 5) / elapsedMinutes);
+  }
+
+  let accuracy = 100;
+  if (totalTyped > 0) {
+    accuracy = Math.round((correctTyped / totalTyped) * 100);
+  }
+
+  wpmEl.textContent = wpm;
+  accuracyEl.textContent = accuracy;
+}
+
+function endGame() {
+  clearInterval(timer);
+  isPlaying = false;
+  hiddenInput.blur();
+  
+  updateStats();
+
+  gameArea.style.display = 'none';
+  resultsArea.style.display = 'block';
+
+  finalWpmEl.textContent = wpmEl.textContent;
+  finalAccuracyEl.textContent = accuracyEl.textContent;
+}
+
+// Keep focus on the typing interaction
+textDisplay.addEventListener('click', () => hiddenInput.focus());
+
+hiddenInput.addEventListener('input', (e) => {
+  if (gameArea.style.display === 'none') return;
+  
+  // Mobile devices might send whole words, so we handle input value changes.
+  // Instead of keydown, processing the input value is more robust for mobile keyboards.
+  const val = hiddenInput.value;
+  if (val.length === 0) return; // handled by backspace in keydown if necessary, but input can be messy.
+});
+
+document.addEventListener('keydown', (e) => {
+  if (gameArea.style.display === 'none') return;
+
+  // Prevent default scrolling for space
+  if (e.key === ' ' && e.target === document.body) {
+    e.preventDefault();
+  }
+
+  if (e.key === 'Backspace') {
+    if (currentIndex > 0) {
+      charSpans[currentIndex].classList.remove('caret');
+      currentIndex--;
+      const span = charSpans[currentIndex];
+      if (span.classList.contains('correct')) correctTyped--;
+      span.classList.remove('correct', 'incorrect');
+      span.classList.add('caret');
+      
+      // We don't decrement totalTyped so accuracy reflects all attempts, 
+      // but it's up to preference. We'll leave totalTyped alone.
+    }
+    return;
+  }
+
+  // Handle printable characters
+  if (e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
+    if (!isPlaying) startGame();
+
+    if (currentIndex < chars.length) {
+      const typedChar = e.key;
+      const expectedChar = chars[currentIndex];
+
+      charSpans[currentIndex].classList.remove('caret');
+
+      totalTyped++;
+      if (typedChar === expectedChar) {
+        charSpans[currentIndex].classList.add('correct');
+        correctTyped++;
+      } else {
+        charSpans[currentIndex].classList.add('incorrect');
+        errors++;
+      }
+
+      currentIndex++;
+
+      if (currentIndex < chars.length) {
+        charSpans[currentIndex].classList.add('caret');
+      } else {
+        endGame();
+      }
+      
+      updateStats();
+    }
+  }
+});
+
+btnRestart.addEventListener('click', initGame);
+
+// Initialize
+initGame();
+</script>
+</body>
+</html>

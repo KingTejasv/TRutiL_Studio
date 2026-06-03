@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>REM to PX Converter – Totil Studio</title>
+<meta content="Convert between CSS REM units and Pixels." name="description"/>
+<link href="../../../style.css" rel="stylesheet"/>
+<script src="../../../theme.js"></script>
+</head>
+<body>
+<div class="app-layout" id="app-layout">
+<div class="main-content">
+<div class="page-content">
+<div class="app-header">
+<div class="app-icon" style="background:linear-gradient(135deg, #3b82f6, #1d4ed8);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:24px;">⚙️</div>
+<div>
+<h1>REM to PX Converter</h1>
+<p>Convert between CSS REM units and Pixels.</p>
+</div>
+</div>
+<div class="tool-workspace">
+<div class="grid-2">
+<div class="panel">
+<div class="panel-title">Base Font Size</div>
+<div class="form-group">
+<input class="form-input" id="base-px" placeholder="Usually 16px" type="number" value="16"/>
+<div style="font-size: 11px; color: var(--text-muted); margin-top:5px;">px</div>
+</div>
+<div style="border-top: 1px solid var(--border); margin: 20px 0;"></div>
+<div class="form-group">
+<label class="form-label">Pixels (PX)</label>
+<input class="form-input" id="val-px" placeholder="e.g. 24" type="number"/>
+</div>
+<div class="form-group">
+<label class="form-label">REM</label>
+<input class="form-input" id="val-rem" placeholder="e.g. 1.5" type="number"/>
+</div>
+</div>
+<div class="panel">
+<div class="panel-title">Quick Reference (16px base)</div>
+<div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; font-family:monospace; color:var(--text-secondary);">
+<div>12px = 0.75rem</div>
+<div>14px = 0.875rem</div>
+<div>16px = 1rem</div>
+<div>18px = 1.125rem</div>
+<div>20px = 1.25rem</div>
+<div>24px = 1.5rem</div>
+<div>32px = 2rem</div>
+<div>64px = 4rem</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script>
+
+const base = document.getElementById('base-px');
+const p = document.getElementById('val-px');
+const r = document.getElementById('val-rem');
+
+p.addEventListener('input', () => {
+    let b = parseFloat(base.value) || 16;
+    let v = parseFloat(p.value);
+    if(!isNaN(v)) r.value = v / b;
+});
+
+r.addEventListener('input', () => {
+    let b = parseFloat(base.value) || 16;
+    let v = parseFloat(r.value);
+    if(!isNaN(v)) p.value = v * b;
+});
+
+    </script>
+</body>
+</html>

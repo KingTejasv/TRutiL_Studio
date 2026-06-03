@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Angle Converter</title>
+
+<link href="../../../style.css" rel="stylesheet"/><link href="../../../custom-tools.css" rel="stylesheet"/>
+    <script src="../../../theme.js"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-transform-angle-conv">
+<div class="app-header">
+<h1>📐 Angle Converter</h1>
+<p>Convert between different units of angle measurement</p>
+</div>
+<div class="tool-layout-container">
+<div class="input-group">
+<input class="form-input" id="inputVal" step="any" type="number" value="180"/>
+<select class="form-input" id="inputUnit">
+<option value="degree">Degrees (°)</option>
+<option value="radian">Radians (rad)</option>
+<option value="gradian">Gradians (gon)</option>
+<option value="turn">Turns (tr)</option>
+<option value="arcminute">Arcminutes (')</option>
+<option value="arcsecond">Arcseconds (")</option>
+</select>
+</div>
+<button class="swap-btn btn btn-primary" id="swapBtn" title="Swap Units">
+<svg fill="none" height="20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="20">
+<path d="M7 10v12"></path>
+<path d="M15 5.88 14 5l-4 4"></path>
+<path d="m11 14 4-4 4 4"></path>
+<path d="M17 14V2"></path>
+<path d="M10 18.12 11 19l4-4"></path>
+<path d="M13 10 9 14 5 10"></path>
+</svg>
+</button>
+<div class="input-group">
+<input class="form-input" id="outputVal" readonly="" step="any" type="number"/>
+<select class="form-input" id="outputUnit">
+<option value="degree">Degrees (°)</option>
+<option selected="" value="radian">Radians (rad)</option>
+<option value="gradian">Gradians (gon)</option>
+<option value="turn">Turns (tr)</option>
+<option value="arcminute">Arcminutes (')</option>
+<option value="arcsecond">Arcseconds (")</option>
+</select>
+</div>
+<div class="formula" id="formulaDisplay">180 Degrees = 3.14159 Radians</div>
+</div>
+<script>
+        const inputVal = document.getElementById('inputVal');
+        const outputVal = document.getElementById('outputVal');
+        const inputUnit = document.getElementById('inputUnit');
+        const outputUnit = document.getElementById('outputUnit');
+        const swapBtn = document.getElementById('swapBtn');
+        const formulaDisplay = document.getElementById('formulaDisplay');
+
+        // Conversion rates to Degrees
+        const toDegree = {
+            degree: 1,
+            radian: 180 / Math.PI,
+            gradian: 0.9,
+            turn: 360,
+            arcminute: 1 / 60,
+            arcsecond: 1 / 3600
+        };
+
+        function convert() {
+            const val = parseFloat(inputVal.value);
+            if (isNaN(val)) {
+                outputVal.value = '';
+                formulaDisplay.textContent = '';
+                return;
+            }
+
+            const from = inputUnit.value;
+            const to = outputUnit.value;
+
+            // Convert input to degrees
+            const degrees = val * toDegree[from];
+            
+            // Convert degrees to output unit
+            const result = degrees / toDegree[to];
+
+            outputVal.value = Number.isInteger(result) ? result : parseFloat(result.toFixed(8));
+
+            // Update formula text
+            const fromText = inputUnit.options[inputUnit.selectedIndex].text.split(' ')[0];
+            const toText = outputUnit.options[outputUnit.selectedIndex].text.split(' ')[0];
+            formulaDisplay.textContent = `${val} ${fromText} = ${outputVal.value} ${toText}`;
+        }
+
+        inputVal.addEventListener('input', convert);
+        inputUnit.addEventListener('change', convert);
+        outputUnit.addEventListener('change', convert);
+
+        swapBtn.addEventListener('click', () => {
+            const tempUnit = inputUnit.value;
+            inputUnit.value = outputUnit.value;
+            outputUnit.value = tempUnit;
+            
+            // Swap values too to make it seamless
+            const tempVal = inputVal.value;
+            inputVal.value = outputVal.value;
+            
+            convert();
+        });
+
+        // Initial conversion
+        convert();
+    </script>
+</div></div></div></div></body>
+</html>

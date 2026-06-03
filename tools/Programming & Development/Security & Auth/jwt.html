@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>JWT Decoder — Totil Studio</title>
+<link href="../../../style.css" rel="stylesheet"/>
+
+<link href="../../../custom-tools.css" rel="stylesheet"/>
+    <script src="../../../theme.js"></script>
+</head>
+<body>
+<div class="app-layout" id="app-layout">
+<div class="main-content">
+<div class="page-content"><div id="tool-jwt">
+<div class="app-header">
+<div class="app-icon" style="background:linear-gradient(135deg,#8B5CF6,#6D28D9)">
+<svg fill="none" height="24" stroke="white" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+<rect height="11" rx="2" ry="2" width="18" x="3" y="11"></rect>
+<path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+</svg>
+</div>
+<div>
+<h1>JWT Decoder</h1>
+<p>Decode JSON Web Tokens to view the header, payload, and signature.</p>
+</div>
+</div>
+<div class="form-group">
+<label class="form-label" for="jwt-input">JSON Web Token</label>
+<textarea class="form-input" id="jwt-input" placeholder="Paste your JWT here (ey...)" rows="6" style="font-family: monospace; resize: vertical;"></textarea>
+<div class="input-actions">
+<button class="btn btn-outline btn-sm" id="clear-btn" onclick="clearAll()">🗑️ Clear</button>
+</div>
+<div class="error-msg" id="error-message" style="display: none;"></div>
+</div>
+<div class="output-section" id="output-section" style="display: none;">
+<div>
+<div class="section-header">
+<div class="badge">HEADER</div>
+<button class="copy-btn btn btn-primary" id="copy-header-btn" onclick="copySection('header-output', 'copy-header-btn')">Copy</button>
+</div>
+<pre class="json-output" id="header-output"></pre>
+</div>
+<div>
+<div class="section-header">
+<div class="badge">PAYLOAD</div>
+<button class="copy-btn btn btn-primary" id="copy-payload-btn" onclick="copySection('payload-output', 'copy-payload-btn')">Copy</button>
+</div>
+<pre class="json-output" id="payload-output"></pre>
+<div id="ts-annotations" style="margin-top: 8px; display: flex; flex-direction: column; gap: 4px;"></div>
+</div>
+<div>
+<div class="badge">SIGNATURE</div>
+<div class="json-output signature-output" id="signature-output"></div>
+<div class="signature-info">
+<svg fill="none" height="16" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="16" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10"></circle><line x1="12" x2="12" y1="8" y2="12"></line><line x1="12" x2="12.01" y1="16" y2="16"></line></svg>
+            Signature is present but not verified (client-side decoding only).
+          </div>
+</div>
+</div>
+</div></div>
+</div>
+</div>
+<script>
+  const jwtInput = document.getElementById('jwt-input');
+  const outputSection = document.getElementById('output-section');
+  const headerOutput = document.getElementById('header-output');
+  const payloadOutput = document.getElementById('payload-output');
+  const signatureOutput = document.getElementById('signature-output');
+  const errorMessage = document.getElementById('error-message');
+  const tsAnnotations = document.getElementById('ts-annotations');
+
+  // ── Helpers ────────────────────────────────────────────────────────────────
+
+  function decodeBase64Url(str) {
+    let base64 = str.replace(/-/g, '+').replace(/_/g, '/');
+    while (base64.length % 4) base64 += '=';
+    // Handle utf-8 properly
+    return decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+  }
+
+  function showError(type, detail) {
+    errorMessage.innerHTML = `<span class="error-type">[${type}]</span>${detail}`;
+    errorMessage.style.display = 'block';
+    outputSection.style.display = 'none';
+  }
+
+  // Copy section text to clipboard
+  function copySection(outputId, btnId) {
+    const text = document.getElementById(outputId).textContent;
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = document.getElementById(btnId);
+      btn.textContent = '✓ Copied';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1800);
+    }).catch(() => {
+      // Fallback for non-secure contexts
+      const ta = document.createElement('textarea');
+      ta.value = text; document.body.appendChild(ta);
+      ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+    });
+  }
+
+  // Clear / reset everything
+  function clearAll() {
+    jwtInput.value = '';
+    outputSection.style.display = 'none';
+    errorMessage.style.display = 'none';
+    tsAnnotations.innerHTML = '';
+  }
+
+  // Build timestamp annotation rows for exp / iat / nbf
+  const TS_FIELDS = { exp: 'Expires', iat: 'Issued At', nbf: 'Not Before' };
+
+  function renderTimestamps(payloadObj) {
+    const now = Math.floor(Date.now() / 1000);
+    const rows = [];
+    for (const [key, label] of Object.entries(TS_FIELDS)) {
+      if (typeof payloadObj[key] === 'number') {
+        const date = new Date(payloadObj[key] * 1000).toLocaleString();
+        const isExp = key === 'exp' && payloadObj[key] < now;
+        rows.push(
+          `<div style="font-size:0.8rem; color:var(--text-muted); font-family:monospace;">`
+          + `<strong>${key}</strong> (${label}): ${date}`
+          + (isExp ? ' <span class="ts-expired">EXPIRED</span>' : '')
+          + `</div>`
+        );
+      }
+    }
+    tsAnnotations.innerHTML = rows.join('');
+  }
+
+  // ── Main decode ────────────────────────────────────────────────────────────
+
+  jwtInput.addEventListener('input', () => {
+    const token = jwtInput.value.trim();
+
+    if (!token) {
+      outputSection.style.display = 'none';
+      errorMessage.style.display = 'none';
+      tsAnnotations.innerHTML = '';
+      return;
+    }
+
+    // Bug fix 4: Specific error — invalid JWT format
+    const parts = token.split('.');
+    if (parts.length !== 3) {
+      showError('Invalid Format', 'A valid JWT must have exactly 3 parts separated by dots (header.payload.signature).');
+      return;
+    }
+
+    errorMessage.style.display = 'none';
+
+    // Bug fix 4: Distinguish base64 errors from JSON parse errors
+    let headerStr, payloadStr;
+    try {
+      headerStr = decodeBase64Url(parts[0]);
+    } catch (e) {
+      showError('Invalid Base64', 'The header segment contains invalid Base64URL encoding.');
+      return;
+    }
+    try {
+      payloadStr = decodeBase64Url(parts[1]);
+    } catch (e) {
+      showError('Invalid Base64', 'The payload segment contains invalid Base64URL encoding.');
+      return;
+    }
+
+    let headerObj, payloadObj;
+    try {
+      headerObj = JSON.parse(headerStr);
+    } catch (e) {
+      showError('Invalid JSON', `Header is not valid JSON: ${e.message}`);
+      return;
+    }
+    try {
+      payloadObj = JSON.parse(payloadStr);
+    } catch (e) {
+      showError('Invalid JSON', `Payload is not valid JSON: ${e.message}`);
+      return;
+    }
+
+    headerOutput.textContent = JSON.stringify(headerObj, null, 2);
+    payloadOutput.textContent = JSON.stringify(payloadObj, null, 2);
+    signatureOutput.textContent = parts[2];
+
+    // Bug fix 1: Show timestamp annotations
+    renderTimestamps(payloadObj);
+
+    outputSection.style.display = 'flex';
+  });
+</script>
+</body>
+</html>

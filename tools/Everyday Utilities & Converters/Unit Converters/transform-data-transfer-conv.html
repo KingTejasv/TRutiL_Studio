@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Data Transfer Converter</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Fira+Code&amp;display=swap" rel="stylesheet"/>
+
+<link href="../../../style.css" rel="stylesheet"/><link href="../../../custom-tools.css" rel="stylesheet"/>
+    <script src="../../../theme.js"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-transform-data-transfer-conv">
+<div class="app-header">
+<h1><span>⚡</span> Data Transfer Converter</h1>
+<p>Convert between transfer rates like Mbps, MB/s, Gbps, etc.</p>
+</div>
+<div class="tool-layout-container">
+<div class="converter-grid">
+<div class="input-group">
+<label for="inputVal">From</label>
+<input class="form-input" id="inputVal" placeholder="Enter rate" step="any" type="number" value="1"/>
+<select class="form-input" id="inputUnit"></select>
+</div>
+<button class="swap-btn btn btn-primary" id="swapBtn" title="Swap Units">
+<svg viewbox="0 0 24 24">
+<path d="M8 7L20 7M20 7L16 3M20 7L16 11M16 17L4 17M4 17L8 21M4 17L8 13"></path>
+</svg>
+</button>
+<div class="input-group">
+<label for="outputVal">To</label>
+<input class="form-input" id="outputVal" placeholder="Result" readonly="" step="any" type="number"/>
+<select class="form-input" id="outputUnit"></select>
+</div>
+</div>
+<div class="stats-bar">
+<span id="conversionText"></span>
+<span class="formula-pill" id="formulaPill"></span>
+</div>
+</div>
+<script>
+    const units = {
+        'bps': { name: 'Bit per second (bps)', value: 1/8 },
+        'Bps': { name: 'Byte per second (B/s)', value: 1 },
+        'Kbps': { name: 'Kilobit per second (Kbps)', value: 1000/8 },
+        'KBps': { name: 'Kilobyte per second (KB/s)', value: 1000 },
+        'Mbps': { name: 'Megabit per second (Mbps)', value: 1000**2 / 8 },
+        'MBps': { name: 'Megabyte per second (MB/s)', value: 1000**2 },
+        'Gbps': { name: 'Gigabit per second (Gbps)', value: 1000**3 / 8 },
+        'GBps': { name: 'Gigabyte per second (GB/s)', value: 1000**3 },
+        'Tbps': { name: 'Terabit per second (Tbps)', value: 1000**4 / 8 },
+        'TBps': { name: 'Terabyte per second (TB/s)', value: 1000**4 }
+    };
+
+    const inputVal = document.getElementById('inputVal');
+    const outputVal = document.getElementById('outputVal');
+    const inputUnit = document.getElementById('inputUnit');
+    const outputUnit = document.getElementById('outputUnit');
+    const swapBtn = document.getElementById('swapBtn');
+    const conversionText = document.getElementById('conversionText');
+    const formulaPill = document.getElementById('formulaPill');
+
+    for (const [key, data] of Object.entries(units)) {
+        inputUnit.add(new Option(data.name, key));
+        outputUnit.add(new Option(data.name, key));
+    }
+    
+    inputUnit.value = 'Mbps';
+    outputUnit.value = 'MBps';
+
+    function formatNumber(num) {
+        if (num === 0) return "0";
+        if (Math.abs(num) < 1e-10 || Math.abs(num) >= 1e15) {
+            return num.toExponential(6).replace(/\.?0+e/, 'e');
+        }
+        return Number(num.toPrecision(10)).toString();
+    }
+
+    function getShortName(name) {
+        const match = name.match(/\(([^)]+)\)/);
+        return match ? match[1] : name.split(' ')[0];
+    }
+
+    function updateConversion() {
+        const val = parseFloat(inputVal.value);
+        if (isNaN(val)) {
+            outputVal.value = '';
+            conversionText.textContent = 'Invalid input';
+            formulaPill.textContent = '-';
+            return;
+        }
+
+        const from = units[inputUnit.value];
+        const to = units[outputUnit.value];
+        
+        const baseVal = val * from.value;
+        const result = baseVal / to.value;
+        
+        outputVal.value = formatNumber(result);
+
+        const ratio = from.value / to.value;
+        const fromName = getShortName(from.name);
+        const toName = getShortName(to.name);
+        
+        conversionText.textContent = \`1 \${fromName} ≈ \${formatNumber(ratio)} \${toName}\`;
+        
+        if (ratio > 1) {
+            formulaPill.textContent = \`Multiply by \${formatNumber(ratio)}\`;
+        } else if (ratio < 1) {
+            formulaPill.textContent = \`Divide by \${formatNumber(1/ratio)}\`;
+        } else {
+            formulaPill.textContent = \`Equal value\`;
+        }
+    }
+
+    inputVal.addEventListener('input', updateConversion);
+    inputUnit.addEventListener('change', updateConversion);
+    outputUnit.addEventListener('change', updateConversion);
+    
+    swapBtn.addEventListener('click', () => {
+        const temp = inputUnit.value;
+        inputUnit.value = outputUnit.value;
+        outputUnit.value = temp;
+        updateConversion();
+    });
+
+    updateConversion();
+</script>
+</div></div></div></div></body>
+</html>

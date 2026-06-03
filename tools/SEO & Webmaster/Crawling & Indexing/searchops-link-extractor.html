@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Link Extractor</title>
+<link href="../../../style.css" rel="stylesheet"/><link href="../../../custom-tools.css" rel="stylesheet"/>
+<script src="../../../theme.js"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-searchops-link-extractor">
+<div class="app-header">
+<div class="app-icon" style="background:linear-gradient(135deg, #3b82f6, #1d4ed8);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:24px;">🔗</div>
+<div>
+<h1>Link Extractor</h1>
+<p>Extract all URLs from HTML code or plain text.</p>
+</div>
+</div>
+<div class="tool-layout-container">
+<div class="panel">
+<div class="pane-header">Input Content</div>
+<div class="pane-body">
+<textarea class="form-input" id="inputContent" placeholder="Paste HTML code or plain text containing links..."></textarea>
+<div style="display:flex; justify-content:space-between; align-items:center;">
+<label style="color:var(--text-muted); font-size:0.875rem;"><input checked="" id="uniqueOnly" type="checkbox"/> Unique URLs only</label>
+<button class="btn btn-primary" id="btnExtract">⚡ Extract Links</button>
+</div>
+</div>
+</div>
+<div class="panel">
+<div class="pane-header">Extracted Links <button class="btn btn-primary" id="btnCopy" style="padding:4px 8px; font-size:0.75rem;">📋 Copy All</button></div>
+<div class="pane-body">
+<textarea class="form-input" id="outputLinks" placeholder="Extracted links will appear here..." readonly=""></textarea>
+</div>
+</div>
+</div>
+<div class="stats-bar">
+<div class="stat-item"><span class="stat-label">Total Links Found</span><span class="stat-num" id="totalLinks">0</span></div>
+</div>
+<script>
+        document.getElementById('btnExtract').addEventListener('click', () => {
+            const content = document.getElementById('inputContent').value;
+            const uniqueOnly = document.getElementById('uniqueOnly').checked;
+            if(!content.trim()) return;
+
+            let links = [];
+
+            // Regex to catch URLs in text or href/src attributes
+            const regex = /(?:href|src)=["']?(https?:\/\/[^"'\s>]+)["']?|https?:\/\/[a-zA-Z0-9.\-_~:/?#[\]@!$&'()*+,;=]+/ig;
+            
+            let match;
+            while ((match = regex.exec(content)) !== null) {
+                // If group 1 exists, it's an attribute capture, otherwise full match
+                let url = match[1] || match[0];
+                links.push(url);
+            }
+
+            if(uniqueOnly) {
+                links = [...new Set(links)];
+            }
+
+            document.getElementById('outputLinks').value = links.join('\n');
+            document.getElementById('totalLinks').textContent = links.length;
+        });
+
+        document.getElementById('btnCopy').addEventListener('click', () => {
+            const out = document.getElementById('outputLinks');
+            out.select();
+            document.execCommand('copy');
+            const orig = document.getElementById('btnCopy').innerHTML;
+            document.getElementById('btnCopy').innerHTML = '✅ Copied!';
+            setTimeout(() => document.getElementById('btnCopy').innerHTML = orig, 1500);
+        });
+    </script>
+</div></div></div></div></body>
+</html>

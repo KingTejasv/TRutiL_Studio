@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Canonical Tag Checker | SearchOps</title>
+<link href="../../../style.css" rel="stylesheet"/><link href="../../../custom-tools.css" rel="stylesheet"/>
+<script src="../../../theme.js"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-searchops-canonical-tag-checker">
+<div class="tool-layout-container">
+<div class="app-header">
+<div class="app-icon" style="background:linear-gradient(135deg, #3b82f6, #1d4ed8);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:24px;">🔎</div>
+<div>
+<h1>Canonical Tag Checker</h1>
+<p>Bulk check canonical tags to identify self-referencing, mismatched, or missing tags.</p>
+</div>
+</div>
+<div class="grid">
+<div class="panel">
+<label for="urlsInput">URLs to Check (One per line)</label>
+<textarea class="form-input" id="urlsInput" placeholder="https://example.com/page-1
+https://example.com/page-2?sort=desc">https://example.com/product-a
+https://example.com/product-a?sort=price
+https://example.com/category/shoes
+https://example.com/broken-page</textarea>
+<button class="btn btn-primary" id="actionBtn">
+<svg fill="none" height="20" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="20"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                    Check Canonicals
+                </button>
+</div>
+<div class="panel" id="resultsCard">
+<div class="empty-state">
+<svg fill="none" stroke="currentColor" stroke-width="1.5" viewbox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+<p>Enter URLs and click check to view canonical tags.</p>
+</div>
+</div>
+</div>
+</div>
+<script>
+        document.getElementById('actionBtn').addEventListener('click', function() {
+            const urlsText = document.getElementById('urlsInput').value;
+            const urls = urlsText.split('\n').map(u => u.trim()).filter(u => u);
+            if(urls.length === 0) return;
+
+            const btn = this;
+            const resultsCard = document.getElementById('resultsCard');
+            
+            btn.innerHTML = '<svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" class="animate-spin"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg> Checking...';
+            btn.disabled = true;
+
+            setTimeout(() => {
+                btn.innerHTML = '<svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg> Check Canonicals';
+                btn.disabled = false;
+
+                let tableRows = '';
+                urls.forEach((url, index) => {
+                    // Simulate different scenarios
+                    let canonical = url;
+                    let statusClass = 'status-success';
+                    let statusText = 'Self-Referencing';
+                    let icon = '✓';
+
+                    if (url.includes('?')) {
+                        canonical = url.split('?')[0];
+                        statusClass = 'status-warning';
+                        statusText = 'Canonicalized';
+                        icon = '⚠️';
+                    } else if (url.includes('broken')) {
+                        canonical = 'Missing';
+                        statusClass = 'status-error';
+                        statusText = 'No Canonical';
+                        icon = '✕';
+                    } else if (index % 4 === 3) {
+                        canonical = url + '/mismatch';
+                        statusClass = 'status-error';
+                        statusText = 'Mismatch';
+                        icon = '✕';
+                    }
+
+                    tableRows += `
+                        <tr>
+                            <td style="color: var(--text-muted);">${url}</td>
+                            <td>${canonical !== 'Missing' ? '<span style="color: var(--accent);">' + canonical + '</span>' : '<span style="color: #666;">-</span>'}</td>
+                            <td><span class="status-pill ${statusClass}">${icon} ${statusText}</span></td>
+                        </tr>
+                    `;
+                });
+
+                resultsCard.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h3 style="margin: 0;">Results (${urls.length})</h3>
+                        <span class="status-pill" style="background: rgba(255,255,255,0.1);">Simulated Front-end Data</span>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Inspected URL</th>
+                                    <th>Found Canonical URL</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${tableRows}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            }, 1500);
+        });
+    </script>
+</div></div></div></div></body>
+</html>

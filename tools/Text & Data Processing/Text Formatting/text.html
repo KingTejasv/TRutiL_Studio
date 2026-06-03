@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Text Tools — Totil Studio</title>
+<meta content="Word count, case converter, clean text, lorem ipsum, line diff." name="description"/>
+<link href="../../../style.css" rel="stylesheet"/>
+<link href="../../../custom-tools.css" rel="stylesheet"/>
+<script src="../../../theme.js"></script>
+</head>
+<body>
+<div class="app-layout" id="app-layout">
+<div class="main-content">
+<div class="page-content"><div id="tool-text">
+<div class="app-header">
+<div class="app-icon" style="background:linear-gradient(135deg, #3b82f6, #1d4ed8);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:24px;">⚙️</div>
+<div>
+<h1>Text Tools</h1>
+<p>Case convert · Clean · Lorem ipsum · Diff</p>
+</div>
+</div>
+<!-- Main textarea -->
+<div class="form-group">
+<label class="form-label">Your Text</label>
+<textarea class="form-textarea form-input" id="mainText" oninput="updateStats()" placeholder="Type or paste text here..." rows="6" style="font-size:14px;"></textarea>
+</div>
+<!-- Stats -->
+<div class="stats-chips" id="statsChips">
+<div class="stat-chip"><div class="sc-val" id="sWords">0</div><div class="sc-lbl">Words</div></div>
+<div class="stat-chip"><div class="sc-val" id="sChars">0</div><div class="sc-lbl">Chars</div></div>
+<div class="stat-chip"><div class="sc-val" id="sNoSp">0</div><div class="sc-lbl">No Spaces</div></div>
+<div class="stat-chip"><div class="sc-val" id="sLines">0</div><div class="sc-lbl">Lines</div></div>
+<div class="stat-chip"><div class="sc-val" id="sSent">0</div><div class="sc-lbl">Sentences</div></div>
+<div class="stat-chip"><div class="sc-val" id="sParas">0</div><div class="sc-lbl">Paragraphs</div></div>
+<div class="stat-chip"><div class="sc-val" id="sUniq">0</div><div class="sc-lbl">Unique Words</div></div>
+<div class="stat-chip"><div class="sc-val" id="sRead">0</div><div class="sc-lbl">Min Read</div></div>
+</div>
+<!-- Tabs -->
+<div class="tabs">
+<button class="tab-btn active btn btn-primary" id="t1" onclick="showTab(1)">Aa Case</button>
+<button class="tab-btn btn btn-primary" id="t2" onclick="showTab(2)">🧹 Clean</button>
+<button class="tab-btn btn btn-primary" id="t3" onclick="showTab(3)">📄 Lorem</button>
+<button class="tab-btn btn btn-primary" id="t4" onclick="showTab(4)">⚖️ Diff</button>
+</div>
+<!-- Tab 1: Case Convert -->
+<div id="tab1">
+<div class="action-grid">
+<button class="action-btn btn btn-primary" onclick="transform('upper')">UPPERCASE</button>
+<button class="action-btn btn btn-primary" onclick="transform('lower')">lowercase</button>
+<button class="action-btn btn btn-primary" onclick="transform('title')">Title Case</button>
+<button class="action-btn btn btn-primary" onclick="transform('sentence')">Sentence case</button>
+<button class="action-btn btn btn-primary" onclick="transform('camel')">camelCase</button>
+<button class="action-btn btn btn-primary" onclick="transform('pascal')">PascalCase</button>
+<button class="action-btn btn btn-primary" onclick="transform('kebab')">kebab-case</button>
+<button class="action-btn btn btn-primary" onclick="transform('snake')">snake_case</button>
+<button class="action-btn btn btn-primary" onclick="transform('reverse')">esreveR</button>
+<button class="action-btn btn btn-primary" onclick="transform('alternating')">aLtErNaTiNg</button>
+</div>
+<div style="display:flex;gap:8px;">
+<button class="btn btn-ghost btn-sm btn-primary" onclick="copyMain()">📋 Copy Result</button>
+<button class="btn btn-ghost btn-sm btn-primary" onclick="document.getElementById('mainText').value='';updateStats()">🗑 Clear</button>
+</div>
+</div>
+<!-- Tab 2: Clean Text -->
+<div id="tab2" style="display:none;">
+<div class="action-grid">
+<button class="action-btn btn btn-primary" onclick="clean('extraSpaces')">Remove extra spaces</button>
+<button class="action-btn btn btn-primary" onclick="clean('emptyLines')">Remove empty lines</button>
+<button class="action-btn btn btn-primary" onclick="clean('trimLines')">Trim each line</button>
+<button class="action-btn btn btn-primary" onclick="clean('htmlTags')">Strip HTML tags</button>
+<button class="action-btn btn btn-primary" onclick="clean('sortAZ')">Sort lines A→Z</button>
+<button class="action-btn btn btn-primary" onclick="clean('sortZA')">Sort lines Z→A</button>
+<button class="action-btn btn btn-primary" onclick="clean('reverseLines')">Reverse line order</button>
+<button class="action-btn btn btn-primary" onclick="clean('removeDups')">Remove duplicates</button>
+<button class="action-btn btn btn-primary" onclick="clean('encodeHtml')">Encode HTML entities</button>
+<button class="action-btn btn btn-primary" onclick="clean('decodeHtml')">Decode HTML entities</button>
+<button class="action-btn btn btn-primary" onclick="clean('lineNumbers')">Add line numbers</button>
+<button class="action-btn btn btn-primary" onclick="clean('shuffle')">Shuffle lines</button>
+</div>
+<div style="display:flex;gap:8px;margin-top:4px;">
+<button class="btn btn-ghost btn-sm btn-primary" onclick="copyMain()">📋 Copy</button>
+<button class="btn btn-ghost btn-sm btn-primary" onclick="document.getElementById('mainText').value='';updateStats()">🗑 Clear</button>
+</div>
+</div>
+<!-- Tab 3: Lorem Ipsum -->
+<div id="tab3" style="display:none;">
+<div class="lorem-controls">
+<select class="form-select form-input" id="loremType" style="width:auto;">
+<option value="paragraphs">Paragraphs</option>
+<option value="sentences">Sentences</option>
+<option value="words">Words</option>
+</select>
+<input class="form-input" id="loremCount" max="50" min="1" style="width: 100%; max-width: 80px" type="number" value="3"/>
+<button class="btn btn-primary btn-sm" onclick="genLorem()">Generate</button>
+<button class="btn btn-ghost btn-sm btn-primary" onclick="copyMain()">📋 Copy</button>
+</div>
+<div style="font-size:13px;color:var(--text-muted);">Generates into the text area above. Use the count and type selectors to customize output.</div>
+</div>
+<!-- Tab 4: Diff -->
+<div id="tab4" style="display:none;">
+<div class="diff-layout">
+<div class="form-group">
+<label class="form-label">Before</label>
+<textarea class="form-textarea form-input" id="diffA" oninput="runDiff()" placeholder="Original text..." rows="6" style="font-size:13px;"></textarea>
+</div>
+<div class="form-group">
+<label class="form-label">After</label>
+<textarea class="form-textarea form-input" id="diffB" oninput="runDiff()" placeholder="Modified text..." rows="6" style="font-size:13px;"></textarea>
+</div>
+</div>
+<div class="panel" style="margin-top:12px;">
+<div class="panel-title">Diff Output</div>
+<div id="diffOut" style="font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.7;">Enter text in both fields above to see changes.</div>
+</div>
+</div>
+</div></div>
+</div>
+</div>
+<script>
+  const LOREM_WORDS = 'lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua enim ad minim veniam quis nostrud exercitation ullamco laboris nisi aliquip ex ea commodo consequat duis aute irure dolor reprehenderit voluptate velit esse cillum dolore fugiat nulla pariatur excepteur sint occaecat cupidatat non proident sunt culpa qui officia deserunt mollit anim id est laborum curabitur pretium tincidunt lacus nulla gravida orci lobortis elementum nullam volutpat'.split(' ');
+
+  function getEl(id){ return document.getElementById(id); }
+
+  function updateStats(){
+    const t = getEl('mainText').value;
+    const words = t.trim() ? t.trim().split(/\s+/).length : 0;
+    getEl('sWords').textContent = words;
+    getEl('sChars').textContent = t.length;
+    getEl('sNoSp').textContent = t.replace(/\s/g,'').length;
+    getEl('sLines').textContent = t ? t.split('\n').length : 0;
+    getEl('sSent').textContent  = (t.match(/[.!?]+/g)||[]).length;
+    getEl('sParas').textContent = t.trim() ? t.trim().split(/\n\s*\n/).length : 0;
+    getEl('sUniq').textContent  = words ? new Set(t.toLowerCase().match(/\b\w+\b/g)).size : 0;
+    getEl('sRead').textContent  = Math.max(1, Math.round(words/200));
+  }
+
+  function setMain(val){ getEl('mainText').value=val; updateStats(); }
+
+  function transform(type){
+    const t = getEl('mainText').value;
+    if(!t) return;
+    let r = t;
+    if(type==='upper') r=t.toUpperCase();
+    else if(type==='lower') r=t.toLowerCase();
+    else if(type==='title') r=t.replace(/\b\w/g,c=>c.toUpperCase());
+    else if(type==='sentence') r=t.toLowerCase().replace(/(^\s*\w|[.!?]\s*\w)/g,c=>c.toUpperCase());
+    else if(type==='camel') r=t.replace(/[^a-zA-Z0-9]+(.)/g,(_,c)=>c.toUpperCase()).replace(/^./,c=>c.toLowerCase());
+    else if(type==='pascal') r=t.replace(/[^a-zA-Z0-9]+(.)/g,(_,c)=>c.toUpperCase()).replace(/^./,c=>c.toUpperCase());
+    else if(type==='kebab') r=t.trim().toLowerCase().replace(/[^a-z0-9]+/g,'-');
+    else if(type==='snake') r=t.trim().toLowerCase().replace(/[^a-z0-9]+/g,'_');
+    else if(type==='reverse') r=t.split('').reverse().join('');
+    else if(type==='alternating') r=[...t].map((c,i)=>i%2===0?c.toLowerCase():c.toUpperCase()).join('');
+    setMain(r);
+  }
+
+  function clean(type){
+    let t = getEl('mainText').value;
+    const lines = t.split('\n');
+    if(type==='extraSpaces') t=t.replace(/\s{2,}/g,' ').trim();
+    else if(type==='emptyLines') t=lines.filter(l=>l.trim()).join('\n');
+    else if(type==='trimLines') t=lines.map(l=>l.trim()).join('\n');
+    else if(type==='htmlTags') t=t.replace(/<[^>]*>/g,'');
+    else if(type==='sortAZ') t=[...lines].sort((a,b)=>a.localeCompare(b)).join('\n');
+    else if(type==='sortZA') t=[...lines].sort((a,b)=>b.localeCompare(a)).join('\n');
+    else if(type==='reverseLines') t=[...lines].reverse().join('\n');
+    else if(type==='removeDups') t=[...new Set(lines)].join('\n');
+    else if(type==='encodeHtml') t=t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    else if(type==='decodeHtml'){ const d=document.createElement('div'); d.innerHTML=t; t=d.textContent; }
+    else if(type==='lineNumbers') t=lines.map((l,i)=>`${i+1}. ${l}`).join('\n');
+    else if(type==='shuffle') t=[...lines].sort(()=>Math.random()-.5).join('\n');
+    setMain(t);
+  }
+
+  function genLorem(){
+    const type = getEl('loremType').value;
+    const count = parseInt(getEl('loremCount').value)||3;
+    let result='';
+    if(type==='words'){
+      const arr=[]; for(let i=0;i<count;i++) arr.push(LOREM_WORDS[Math.floor(Math.random()*LOREM_WORDS.length)]);
+      result=arr.join(' ');
+    } else if(type==='sentences'){
+      for(let i=0;i<count;i++){
+        const len=8+Math.floor(Math.random()*8);
+        const words=[]; for(let j=0;j<len;j++) words.push(LOREM_WORDS[Math.floor(Math.random()*LOREM_WORDS.length)]);
+        result+=(words[0][0].toUpperCase()+words[0].slice(1)+' '+words.slice(1).join(' ')+'. ');
+      }
+    } else {
+      for(let i=0;i<count;i++){
+        const sentCount=3+Math.floor(Math.random()*3);
+        const sents=[];
+        for(let s=0;s<sentCount;s++){
+          const len=8+Math.floor(Math.random()*8);
+          const words=[]; for(let j=0;j<len;j++) words.push(LOREM_WORDS[Math.floor(Math.random()*LOREM_WORDS.length)]);
+          sents.push(words[0][0].toUpperCase()+words[0].slice(1)+' '+words.slice(1).join(' ')+'.');
+        }
+        result+=sents.join(' ')+'\n\n';
+      }
+    }
+    setMain(result.trim());
+  }
+
+  function runDiff(){
+    const a = getEl('diffA').value.split('\n');
+    const b = getEl('diffB').value.split('\n');
+    const added   = new Set(b.filter(l=>!a.includes(l)));
+    const removed = new Set(a.filter(l=>!b.includes(l)));
+    if(!added.size && !removed.size){ getEl('diffOut').innerHTML='<span style="color:var(--accent-green)">✓ No differences found</span>'; return; }
+    let html='';
+    const all = [...new Set([...a,...b])];
+    b.forEach(line=>{
+      if(added.has(line)) html+=`<div class="diff-line diff-add">+ ${line||'(empty line)'}</div>`;
+      else html+=`<div class="diff-line" style="color:var(--text-secondary)">  ${line}</div>`;
+    });
+    a.forEach(line=>{ if(removed.has(line)) html+=`<div class="diff-line diff-del">- ${line||'(empty line)'}</div>`; });
+    getEl('diffOut').innerHTML=html||'No changes.';
+  }
+
+  function copyMain(){
+    navigator.clipboard.writeText(getEl('mainText').value);
+  }
+
+  function showTab(n){
+    [1,2,3,4].forEach(i=>{
+      getEl('tab'+i).style.display=i===n?'block':'none';
+      getEl('t'+i).classList.toggle('active',i===n);
+    });
+  }
+
+  // Init with sample text
+  getEl('mainText').value='The quick brown fox jumps over the lazy dog.\nThis is a second sentence with more words.\n\nA new paragraph starts here with different content.';
+  updateStats();
+</script>
+</body>
+</html>

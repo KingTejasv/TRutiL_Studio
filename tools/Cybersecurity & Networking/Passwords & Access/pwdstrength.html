@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Password Strength Checker — Totil Studio</title>
+<link href="../../../style.css" rel="stylesheet"/>
+
+<link href="../../../custom-tools.css" rel="stylesheet"/>
+    <script src="../../../theme.js"></script>
+</head>
+<body>
+<div class="app-layout" id="app-layout">
+<div class="main-content">
+<div class="page-content"><div id="tool-pwdstrength">
+<div class="app-header">
+<div class="app-icon" style="background:linear-gradient(135deg,#10b981,#047857)">🔒</div>
+<div>
+<h1>Password Strength</h1>
+<p>Evaluate your password's entropy and estimated time to crack.</p>
+</div>
+</div>
+<div class="form-group" style="margin-bottom: 5px;">
+<label class="form-label">Enter Password</label>
+<div class="input-container">
+<input class="form-input" id="password-input" placeholder="Type your password here..." type="password"/>
+<button class="toggle-visibility btn btn-primary" id="toggle-visibility" type="button">Show</button>
+</div>
+</div>
+<div class="strength-meter">
+<div class="strength-meter-bar" id="strength-bar"></div>
+</div>
+<div class="time-to-crack" id="time-to-crack">Time to crack: <span>Instantly</span></div>
+<ul class="criteria-list">
+<li class="criteria-item" id="req-length"><span class="criteria-icon">✗</span> 8+ characters</li>
+<li class="criteria-item" id="req-lower"><span class="criteria-icon">✗</span> Lowercase letter</li>
+<li class="criteria-item" id="req-upper"><span class="criteria-icon">✗</span> Uppercase letter</li>
+<li class="criteria-item" id="req-number"><span class="criteria-icon">✗</span> Number</li>
+<li class="criteria-item" id="req-symbol"><span class="criteria-icon">✗</span> Symbol</li>
+</ul>
+</div></div>
+</div>
+</div>
+<script>
+    const passwordInput = document.getElementById('password-input');
+    const toggleVisibility = document.getElementById('toggle-visibility');
+    const strengthBar = document.getElementById('strength-bar');
+    const timeToCrackEl = document.querySelector('#time-to-crack span');
+
+    const reqLength = document.getElementById('req-length');
+    const reqLower = document.getElementById('req-lower');
+    const reqUpper = document.getElementById('req-upper');
+    const reqNumber = document.getElementById('req-number');
+    const reqSymbol = document.getElementById('req-symbol');
+
+    toggleVisibility.addEventListener('click', () => {
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            toggleVisibility.textContent = 'Hide';
+        } else {
+            passwordInput.type = 'password';
+            toggleVisibility.textContent = 'Show';
+        }
+    });
+
+    passwordInput.addEventListener('input', () => {
+        const pwd = passwordInput.value;
+        
+        const hasLength = pwd.length >= 8;
+        const hasLower = /[a-z]/.test(pwd);
+        const hasUpper = /[A-Z]/.test(pwd);
+        const hasNumber = /[0-9]/.test(pwd);
+        const hasSymbol = /[^a-zA-Z0-9]/.test(pwd);
+        
+        updateCriteria(reqLength, hasLength);
+        updateCriteria(reqLower, hasLower);
+        updateCriteria(reqUpper, hasUpper);
+        updateCriteria(reqNumber, hasNumber);
+        updateCriteria(reqSymbol, hasSymbol);
+        
+        let charsetSize = 0;
+        if (hasLower) charsetSize += 26;
+        if (hasUpper) charsetSize += 26;
+        if (hasNumber) charsetSize += 10;
+        if (hasSymbol) charsetSize += 32; 
+        
+        const entropy = pwd.length > 0 ? pwd.length * Math.log2(charsetSize || 1) : 0;
+        
+        let strengthPct = Math.min(100, (entropy / 100) * 100);
+        if (pwd.length === 0) strengthPct = 0;
+        
+        strengthBar.style.width = strengthPct + '%';
+        
+        if (entropy < 35) {
+            strengthBar.style.backgroundColor = '#ef4444'; // red
+        } else if (entropy < 60) {
+            strengthBar.style.backgroundColor = '#f59e0b'; // yellow
+        } else if (entropy < 90) {
+            strengthBar.style.backgroundColor = '#10b981'; // green
+        } else {
+            strengthBar.style.backgroundColor = '#8b5cf6'; // violet
+        }
+        
+        // Time to crack estimation
+        // Assuming ~100 billion guesses per second for a fast offline hash attack
+        const guessesPerSecond = 1e11;
+        let timeToCrackStr = 'Instantly';
+        
+        if (pwd.length > 0) {
+            const totalGuesses = Math.pow(charsetSize || 1, pwd.length);
+            const seconds = totalGuesses / guessesPerSecond;
+            timeToCrackStr = formatTime(seconds);
+        }
+        
+        timeToCrackEl.textContent = pwd.length === 0 ? 'Instantly' : timeToCrackStr;
+        timeToCrackEl.style.color = pwd.length === 0 ? 'var(--text-muted)' : strengthBar.style.backgroundColor;
+    });
+
+    function updateCriteria(element, isValid) {
+        if (isValid) {
+            element.classList.add('valid');
+            element.querySelector('.criteria-icon').textContent = '✓';
+        } else {
+            element.classList.remove('valid');
+            element.querySelector('.criteria-icon').textContent = '✗';
+        }
+    }
+
+    function formatTime(seconds) {
+        if (seconds < 1) return 'Instantly';
+        if (seconds < 60) return Math.round(seconds) + ' seconds';
+        if (seconds < 3600) return Math.round(seconds / 60) + ' minutes';
+        if (seconds < 86400) return Math.round(seconds / 3600) + ' hours';
+        if (seconds < 31536000) return Math.round(seconds / 86400) + ' days';
+        if (seconds < 31536000 * 1000) return Math.round(seconds / 31536000) + ' years';
+        return 'Centuries';
+    }
+</script>
+</body>
+</html>

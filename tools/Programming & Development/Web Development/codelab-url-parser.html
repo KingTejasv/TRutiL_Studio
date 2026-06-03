@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>URL Parser</title>
+<link href="../../../style.css" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Cascadia+Code&amp;display=swap" rel="stylesheet"/>
+<link href="../../../custom-tools.css" rel="stylesheet"/>
+<script src="../../../theme.js"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-codelab-url-parser">
+<div class="app-header">
+<div class="app-icon" style="background:linear-gradient(135deg, #3b82f6, #1d4ed8);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:24px;">🔗</div>
+<div>
+<h1>URL Parser</h1>
+<p>Break down URLs into their component parts and query parameters.</p>
+</div>
+</div>
+<div class="tool-layout-container">
+<div class="input-group">
+<label for="urlInput">Enter URL</label>
+<textarea class="form-input" id="urlInput" placeholder="https://example.com:8080/path/to/page?user=123&amp;sort=asc#section1" rows="3">https://example.com:8080/path/to/page?user=123&amp;sort=asc#section1</textarea>
+</div>
+<button class="btn btn-primary" onclick="parseUrl()">⚡ Parse URL</button>
+<div class="error" id="errorMsg">Invalid URL format. Please include the protocol (e.g., https://).</div>
+<div class="output-card" id="outputCard" style="display: none;">
+<div class="grid-info">
+<div class="info-box">
+<span>Protocol</span>
+<div id="out-protocol">-</div>
+</div>
+<div class="info-box">
+<span>Host</span>
+<div id="out-host">-</div>
+</div>
+<div class="info-box">
+<span>Port</span>
+<div id="out-port">-</div>
+</div>
+<div class="info-box">
+<span>Pathname</span>
+<div id="out-pathname">-</div>
+</div>
+<div class="info-box">
+<span>Hash</span>
+<div id="out-hash">-</div>
+</div>
+</div>
+<div style="margin-top: 2rem;">
+<label>Query Parameters</label>
+<div style="overflow-x: auto; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 8px; padding: 0.5rem; margin-top: 0.5rem;">
+<table id="queryParamsTable">
+<thead>
+<tr>
+<th>Key</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<!-- Query params will be injected here -->
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+<script>
+        function parseUrl() {
+            const urlInput = document.getElementById('urlInput').value.trim();
+            const outputCard = document.getElementById('outputCard');
+            const errorMsg = document.getElementById('errorMsg');
+            const tbody = document.querySelector('#queryParamsTable tbody');
+
+            errorMsg.style.display = 'none';
+            outputCard.style.display = 'none';
+            tbody.innerHTML = '';
+
+            if (!urlInput) return;
+
+            try {
+                const url = new URL(urlInput);
+
+                document.getElementById('out-protocol').textContent = url.protocol || '-';
+                document.getElementById('out-host').textContent = url.hostname || '-';
+                document.getElementById('out-port').textContent = url.port || (url.protocol === 'https:' ? '443 (default)' : url.protocol === 'http:' ? '80 (default)' : '-');
+                document.getElementById('out-pathname').textContent = url.pathname || '-';
+                document.getElementById('out-hash').textContent = url.hash || '-';
+
+                const searchParams = url.searchParams;
+                let hasParams = false;
+                for (const [key, value] of searchParams.entries()) {
+                    hasParams = true;
+                    const tr = document.createElement('tr');
+                    const tdKey = document.createElement('td');
+                    const tdValue = document.createElement('td');
+                    tdKey.textContent = key;
+                    tdValue.textContent = value;
+                    tr.appendChild(tdKey);
+                    tr.appendChild(tdValue);
+                    tbody.appendChild(tr);
+                }
+
+                if (!hasParams) {
+                    const tr = document.createElement('tr');
+                    const td = document.createElement('td');
+                    td.colSpan = 2;
+                    td.textContent = "No query parameters found.";
+                    td.style.color = "var(--text-muted)";
+                    td.style.textAlign = "center";
+                    tr.appendChild(td);
+                    tbody.appendChild(tr);
+                }
+
+                outputCard.style.display = 'block';
+            } catch (e) {
+                errorMsg.style.display = 'block';
+                errorMsg.textContent = 'Invalid URL format. Make sure it includes a valid protocol like http:// or https://';
+            }
+        }
+
+        // Auto-parse on load if value exists
+        window.onload = parseUrl;
+    </script>
+</div></div></div></div></body>
+</html>

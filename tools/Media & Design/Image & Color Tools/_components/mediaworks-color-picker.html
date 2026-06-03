@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Color Picker</title>
+<link href="../../../../style.css" rel="stylesheet"/>
+<link href="../../../../custom-tools.css" rel="stylesheet"/>
+<script src="../../../../theme.js"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-mediaworks-color-picker">
+<div class="tool-layout-container">
+<div class="app-header">
+<div class="app-icon" style="background:linear-gradient(135deg, #ec4899, #e11d48);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:24px;">🔍</div>
+<div>
+<h1>Image Color Picker</h1>
+<p>Extract precise colors from any image.</p>
+</div>
+</div>
+<div class="split-pane">
+<!-- Main Image Area -->
+<div class="panel">
+<div class="file-input-wrapper">
+<div class="file-input-btn" id="upload-btn-text">📸 Choose an Image</div>
+<input accept="image/*" id="image-upload" type="file"/>
+</div>
+<div class="canvas-container" id="canvas-container">
+<div class="magnifier" id="magnifier"></div>
+<canvas id="image-canvas"></canvas>
+</div>
+<p class="instruction">Hover over the image to preview colors. Click to save a color.</p>
+</div>
+<!-- Sidebar Area -->
+<div class="panel">
+<h3>Current Color</h3>
+<div class="current-color-preview" id="current-color">#000000</div>
+<h3>Saved Colors</h3>
+<div class="saved-colors" id="saved-colors-list">
+<!-- Saved colors will appear here -->
+<p style="color: var(--text-muted); text-align: center; font-size: 0.9rem;">No colors saved yet.</p>
+</div>
+</div>
+</div>
+</div>
+<script>
+    const imageUpload = document.getElementById('image-upload');
+    const uploadBtnText = document.getElementById('upload-btn-text');
+    const canvas = document.getElementById('image-canvas');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    const canvasContainer = document.getElementById('canvas-container');
+    const magnifier = document.getElementById('magnifier');
+    const currentColorPreview = document.getElementById('current-color');
+    const savedColorsList = document.getElementById('saved-colors-list');
+
+    let imageObj = new Image();
+    let hasImage = false;
+
+    // Convert RGB to HEX
+    function rgbToHex(r, g, b) {
+        return "#" + (1 << 24 | r << 16 | g << 8 | b).toString(16).slice(1).toUpperCase();
+    }
+
+    imageUpload.addEventListener('change', function(e) {
+        if(e.target.files && e.target.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                imageObj.onload = function() {
+                    canvas.width = imageObj.width;
+                    canvas.height = imageObj.height;
+                    ctx.drawImage(imageObj, 0, 0);
+                    hasImage = true;
+                    uploadBtnText.textContent = e.target.files[0].name;
+                }
+                imageObj.src = event.target.result;
+            }
+            reader.readAsDataURL(e.target.files[0]);
+        }
+    });
+
+    function getPixelColor(x, y) {
+        if(!hasImage) return null;
+        const pixel = ctx.getImageData(x, y, 1, 1).data;
+        return {
+            r: pixel[0],
+            g: pixel[1],
+            b: pixel[2],
+            hex: rgbToHex(pixel[0], pixel[1], pixel[2])
+        };
+    }
+
+    canvasContainer.addEventListener('mousemove', function(e) {
+        if(!hasImage) return;
+
+        const rect = canvas.getBoundingClientRect();
+        
+        // Calculate the scale factors
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+
+        // Get coordinates relative to the canvas display size
+        const clientX = e.clientX - rect.left;
+        const clientY = e.clientY - rect.top;
+
+        // Scale to actual image coordinates
+        const x = Math.floor(clientX * scaleX);
+        const y = Math.floor(clientY * scaleY);
+
+        const color = getPixelColor(x, y);
+        
+        if(color) {
+            // Update Magnifier
+            magnifier.style.display = 'block';
+            magnifier.style.left = (e.clientX - canvasContainer.getBoundingClientRect().left - 40) + 'px';
+            magnifier.style.top = (e.clientY - canvasContainer.getBoundingClientRect().top - 40) + 'px';
+            magnifier.style.backgroundColor = color.hex;
+
+            // Update Current Color Preview
+            currentColorPreview.style.backgroundColor = color.hex;
+            currentColorPreview.textContent = color.hex;
+            
+            // Adjust text color based on brightness
+            const brightness = (color.r * 299 + color.g * 587 + color.b * 114) / 1000;
+            currentColorPreview.style.color = brightness > 125 ? '#000' : '#FFF';
+        }
+    });
+
+    canvasContainer.addEventListener('mouseleave', function() {
+        magnifier.style.display = 'none';
+    });
+
+    canvasContainer.addEventListener('click', function(e) {
+        if(!hasImage) return;
+
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+
+        const x = Math.floor((e.clientX - rect.left) * scaleX);
+        const y = Math.floor((e.clientY - rect.top) * scaleY);
+
+        const color = getPixelColor(x, y);
+        if(color) {
+            saveColor(color.hex);
+        }
+    });
+
+    function saveColor(hex) {
+        // Remove empty state message if it exists
+        if(savedColorsList.children.length === 1 && savedColorsList.children[0].tagName === 'P') {
+            savedColorsList.innerHTML = '';
+        }
+
+        const item = document.createElement('div');
+        item.className = 'saved-color-item';
+        
+        const leftSide = document.createElement('div');
+        leftSide.style.display = 'flex';
+        leftSide.style.alignItems = 'center';
+        leftSide.style.gap = '1rem';
+
+        const swatch = document.createElement('div');
+        swatch.className = 'color-swatch-small';
+        swatch.style.backgroundColor = hex;
+
+        const info = document.createElement('div');
+        info.className = 'color-info';
+        info.textContent = hex;
+
+        leftSide.appendChild(swatch);
+        leftSide.appendChild(info);
+
+        const copyBtn = document.createElement('button');
+        copyBtn.className = 'copy-btn';
+        copyBtn.innerHTML = '📋';
+        copyBtn.title = 'Copy Hex';
+        copyBtn.onclick = () => {
+            navigator.clipboard.writeText(hex);
+            copyBtn.innerHTML = '✔️';
+            setTimeout(() => copyBtn.innerHTML = '📋', 1500);
+        };
+
+        item.appendChild(leftSide);
+        item.appendChild(copyBtn);
+
+        savedColorsList.prepend(item);
+    }
+</script>
+</div></div></div></div></body>
+</html>

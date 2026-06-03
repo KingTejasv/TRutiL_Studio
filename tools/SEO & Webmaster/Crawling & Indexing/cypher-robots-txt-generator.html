@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Robots.txt Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Fira+Code&amp;display=swap" rel="stylesheet"/>
+
+<link href="../../../style.css" rel="stylesheet"/><link href="../../../custom-tools.css" rel="stylesheet"/>
+    <script src="../../../theme.js"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-cypher-robots-txt-generator">
+<div class="tool-layout-container">
+<div class="app-header">
+<h1>🤖 Robots.txt Generator</h1>
+<p>Quickly generate a robots.txt file to control web crawlers.</p>
+</div>
+<div class="grid">
+<div class="panel">
+<div class="panel-title">Configuration</div>
+<div style="background: var(--bg-surface); padding: 1.5rem; border-radius: 8px; border: 1px solid var(--border);">
+<div class="form-group">
+<label>User-Agent (Target Bot)</label>
+<input class="form-input" id="userAgent" placeholder="e.g. *, Googlebot, Bingbot" type="text" value="*"/>
+<div class="hint">Use * to target all bots.</div>
+</div>
+<div class="form-group">
+<label>Allow Paths (comma separated)</label>
+<input class="form-input" id="allowPaths" placeholder="/public/, /assets/" type="text"/>
+</div>
+<div class="form-group">
+<label>Disallow Paths (comma separated)</label>
+<input class="form-input" id="disallowPaths" placeholder="/admin/, /private/, /tmp/" type="text"/>
+</div>
+<div class="form-group">
+<label>Crawl-delay (seconds)</label>
+<input class="form-input" id="crawlDelay" min="1" placeholder="e.g. 5 (Optional)" type="number"/>
+<div class="hint">Rate limits bots (not supported by all).</div>
+</div>
+<div class="form-group">
+<label>Sitemap URL</label>
+<input class="form-input" id="sitemapUrl" placeholder="https://example.com/sitemap.xml" type="url"/>
+</div>
+<div class="toolbar">
+<button class="btn btn-primary" id="generateBtn">⚡ Generate</button>
+<button class="btn btn-primary" id="clearBtn" style="background: rgba(239,68,68,0.15); border-color: #EF4444; color: #EF4444;">🗑️ Clear</button>
+</div>
+</div>
+</div>
+<div class="panel">
+<div class="panel-title">
+                    Output File
+                    <div style="display: flex; gap: 0.5rem;">
+<button class="btn btn-primary" id="copyBtn" style="padding: 4px 8px; font-size: 0.8rem;">📋 Copy</button>
+<button class="btn btn-primary" id="downloadBtn" style="padding: 4px 8px; font-size: 0.8rem;">💾 Download</button>
+</div>
+</div>
+<textarea class="form-input" id="output" placeholder="Your generated robots.txt will appear here..." readonly=""></textarea>
+</div>
+</div>
+</div>
+<script>
+        const userAgentInput = document.getElementById('userAgent');
+        const allowPathsInput = document.getElementById('allowPaths');
+        const disallowPathsInput = document.getElementById('disallowPaths');
+        const crawlDelayInput = document.getElementById('crawlDelay');
+        const sitemapUrlInput = document.getElementById('sitemapUrl');
+        const outputArea = document.getElementById('output');
+
+        function generateRobots() {
+            const ua = userAgentInput.value.trim() || '*';
+            const allowStr = allowPathsInput.value;
+            const disallowStr = disallowPathsInput.value;
+            const delay = crawlDelayInput.value;
+            const sitemap = sitemapUrlInput.value.trim();
+
+            let txt = `User-agent: ${ua}\n`;
+            
+            if (delay) {
+                txt += `Crawl-delay: ${delay}\n`;
+            }
+
+            const allows = allowStr.split(',').map(s => s.trim()).filter(s => s);
+            allows.forEach(p => {
+                if(!p.startsWith('/')) p = '/' + p;
+                txt += `Allow: ${p}\n`;
+            });
+
+            const disallows = disallowStr.split(',').map(s => s.trim()).filter(s => s);
+            if (disallows.length === 0 && allows.length === 0) {
+                txt += `Disallow: \n`; // allow everything by default if nothing specified
+            } else {
+                disallows.forEach(p => {
+                    if(!p.startsWith('/')) p = '/' + p;
+                    txt += `Disallow: ${p}\n`;
+                });
+            }
+
+            if (sitemap) {
+                txt += `\nSitemap: ${sitemap}\n`;
+            }
+
+            outputArea.value = txt;
+        }
+
+        // Live update
+        [userAgentInput, allowPathsInput, disallowPathsInput, crawlDelayInput, sitemapUrlInput].forEach(el => {
+            el.addEventListener('input', generateRobots);
+        });
+
+        document.getElementById('generateBtn').addEventListener('click', generateRobots);
+
+        document.getElementById('clearBtn').addEventListener('click', () => {
+            userAgentInput.value = '*';
+            allowPathsInput.value = '';
+            disallowPathsInput.value = '';
+            crawlDelayInput.value = '';
+            sitemapUrlInput.value = '';
+            outputArea.value = '';
+        });
+
+        document.getElementById('copyBtn').addEventListener('click', () => {
+            if(outputArea.value) {
+                navigator.clipboard.writeText(outputArea.value);
+                const btn = document.getElementById('copyBtn');
+                btn.innerHTML = '✅ Copied';
+                setTimeout(() => btn.innerHTML = '📋 Copy', 2000);
+            }
+        });
+
+        document.getElementById('downloadBtn').addEventListener('click', () => {
+            if(outputArea.value) {
+                const blob = new Blob([outputArea.value], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'robots.txt';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+        });
+
+        // Initialize with default empty state
+        generateRobots();
+    </script>
+</div></div></div></div></body>
+</html>

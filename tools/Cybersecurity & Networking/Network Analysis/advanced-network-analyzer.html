@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Advanced Network Analyzer — Totil Studio</title>
+<link href="../../../style.css" rel="stylesheet"/>
+<link href="../../../custom-tools.css" rel="stylesheet"/>
+<script src="../../../theme.js"></script>
+<style>
+    .panel { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px; margin-bottom: 20px; }
+    .input-group { display: flex; gap: 10px; margin-bottom: 20px; }
+    .input-group input { flex: 1; padding: 12px 16px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg-input); color: var(--text-primary); font-size: 1rem; }
+    
+    .tabs { display: flex; gap: 10px; border-bottom: 1px solid var(--border); margin-bottom: 20px; overflow-x: auto; }
+    .tab { padding: 10px 20px; cursor: pointer; border-bottom: 2px solid transparent; color: var(--text-muted); font-weight: 500; white-space: nowrap; transition: all 0.2s; }
+    .tab:hover { color: var(--text-primary); }
+    .tab.active { border-bottom-color: var(--primary-color); color: var(--primary-color); }
+    
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    
+    pre { background: var(--bg-input); padding: 15px; border-radius: var(--radius-sm); border: 1px solid var(--border); overflow-x: auto; color: var(--text-primary); font-family: 'Fira Code', monospace; font-size: 0.9rem; }
+    
+    .grid-info { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; }
+    .info-card { background: rgba(0,0,0,0.02); padding: 15px; border-radius: var(--radius-sm); border: 1px solid var(--border); }
+    [data-theme="dark"] .info-card { background: rgba(255,255,255,0.02); }
+    .info-label { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 5px; }
+    .info-value { font-size: 1.1rem; font-weight: 600; color: var(--text-primary); word-break: break-all; }
+    
+    .port-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
+    .port-item { padding: 10px; border-radius: var(--radius-sm); text-align: center; font-weight: 600; border: 1px solid var(--border); }
+    .port-open { background: rgba(16, 185, 129, 0.1); border-color: #10b981; color: #10b981; }
+    .port-closed { background: rgba(239, 68, 68, 0.1); border-color: #ef4444; color: #ef4444; }
+    .port-checking { background: rgba(245, 158, 11, 0.1); border-color: #f59e0b; color: #f59e0b; }
+</style>
+</head>
+<body>
+<div class="app-layout" id="app-layout">
+<div class="main-content">
+<div class="page-content">
+    <div class="app-header">
+        <div class="app-icon" style="background:linear-gradient(135deg,#0ea5e9,#0369a1);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:24px;">🌐</div>
+        <div>
+            <h1>Advanced Network Analyzer</h1>
+            <p>Comprehensive networking toolkit: DNS, WHOIS (RDAP), IP Geolocation, and Port Scanning in one unified dashboard.</p>
+        </div>
+    </div>
+    
+    <div class="panel">
+        <div class="input-group">
+            <input type="text" id="target-input" placeholder="Enter Domain (e.g., example.com) or IP Address (e.g., 8.8.8.8)...">
+            <button class="btn btn-primary" onclick="analyzeAll()">Analyze Target</button>
+        </div>
+        
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('dns')">DNS Records</div>
+            <div class="tab" onclick="switchTab('ip')">IP Geolocation</div>
+            <div class="tab" onclick="switchTab('whois')">WHOIS (RDAP)</div>
+            <div class="tab" onclick="switchTab('ports')">Port Scan</div>
+        </div>
+        
+        <!-- DNS Tab -->
+        <div class="tab-content active" id="tab-dns">
+            <div style="margin-bottom: 10px;">
+                <select id="dns-type" class="form-input" style="width: 150px; padding: 6px; margin-bottom: 10px;" onchange="fetchDNS()">
+                    <option value="A">A Record</option>
+                    <option value="AAAA">AAAA Record</option>
+                    <option value="MX">MX Record</option>
+                    <option value="TXT">TXT Record</option>
+                    <option value="CNAME">CNAME Record</option>
+                    <option value="NS">NS Record</option>
+                </select>
+            </div>
+            <pre id="dns-output">Enter a target and click Analyze.</pre>
+        </div>
+        
+        <!-- IP Geolocation Tab -->
+        <div class="tab-content" id="tab-ip">
+            <div class="grid-info" id="ip-output">
+                <div style="color: var(--text-muted);">Enter an IP address to see geolocation data.</div>
+            </div>
+        </div>
+        
+        <!-- WHOIS Tab -->
+        <div class="tab-content" id="tab-whois">
+            <pre id="whois-output">Enter a domain to fetch RDAP registration data.</pre>
+        </div>
+        
+        <!-- Port Scan Tab -->
+        <div class="tab-content" id="tab-ports">
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 15px;">Scanning common web and service ports from your browser natively. Some networks or CORS policies may block accurate results.</p>
+            <div class="port-grid" id="port-output">
+                <!-- Ports go here -->
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+</div>
+
+<script>
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        
+        event.target.classList.add('active');
+        document.getElementById('tab-' + tabId).classList.add('active');
+    }
+
+    async function analyzeAll() {
+        const target = document.getElementById('target-input').value.trim();
+        if(!target) return alert('Please enter a domain or IP');
+        
+        fetchDNS();
+        fetchIP(target);
+        fetchWHOIS(target);
+        scanPorts(target);
+    }
+    
+    // DNS Lookup (dns.google API)
+    async function fetchDNS() {
+        const target = document.getElementById('target-input').value.trim();
+        if(!target) return;
+        const type = document.getElementById('dns-type').value;
+        const output = document.getElementById('dns-output');
+        output.textContent = "Fetching DNS...";
+        try {
+            const res = await fetch(`https://dns.google/resolve?name=${target}&type=${type}`);
+            const data = await res.json();
+            output.textContent = JSON.stringify(data.Answer || data.Authority || data, null, 2);
+        } catch(e) {
+            output.textContent = "Error fetching DNS: " + e.message;
+        }
+    }
+    
+    // IP Geolocation (ipinfo.io API)
+    async function fetchIP(target) {
+        const output = document.getElementById('ip-output');
+        output.innerHTML = "Fetching IP info...";
+        try {
+            // Very basic IP regex
+            const isIp = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(target);
+            const query = isIp ? target : ''; // If domain, fetch client IP or resolve first? IPinfo resolves if passed IP, but requires token for some. Let's just pass target.
+            const res = await fetch(`https://ipapi.co/${target}/json/`);
+            const data = await res.json();
+            
+            if(data.error) throw new Error(data.reason);
+            
+            output.innerHTML = `
+                <div class="info-card"><div class="info-label">IP Address</div><div class="info-value">${data.ip}</div></div>
+                <div class="info-card"><div class="info-label">City</div><div class="info-value">${data.city || 'N/A'}</div></div>
+                <div class="info-card"><div class="info-label">Region</div><div class="info-value">${data.region || 'N/A'}</div></div>
+                <div class="info-card"><div class="info-label">Country</div><div class="info-value">${data.country_name || 'N/A'}</div></div>
+                <div class="info-card"><div class="info-label">ISP / ASN</div><div class="info-value">${data.org || 'N/A'}</div></div>
+            `;
+        } catch(e) {
+            output.innerHTML = `<div style="color: #ef4444;">Could not fetch IP info (Note: free APIs may rate limit or require exact IPs). Error: ${e.message}</div>`;
+        }
+    }
+    
+    // WHOIS / RDAP
+    async function fetchWHOIS(target) {
+        const output = document.getElementById('whois-output');
+        output.textContent = "Fetching RDAP data...";
+        try {
+            const isIp = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(target);
+            const endpoint = isIp ? `https://rdap.arin.net/registry/ip/${target}` : `https://rdap.org/domain/${target}`;
+            const res = await fetch(endpoint, { headers: { 'Accept': 'application/rdap+json' } });
+            if(!res.ok) throw new Error("RDAP record not found or CORS blocked");
+            const data = await res.json();
+            output.textContent = JSON.stringify(data, null, 2);
+        } catch(e) {
+            output.textContent = "Error fetching WHOIS/RDAP: " + e.message;
+        }
+    }
+    
+    // Port Scanner (Browser Based Heuristics)
+    function scanPorts(target) {
+        const output = document.getElementById('port-output');
+        const ports = [21, 22, 23, 25, 53, 80, 110, 143, 443, 465, 587, 993, 995, 3306, 3389, 5432, 8080, 8443];
+        output.innerHTML = '';
+        
+        ports.forEach(port => {
+            const el = document.createElement('div');
+            el.className = 'port-item port-checking';
+            el.id = `port-${port}`;
+            el.textContent = `${port} : SCANNING`;
+            output.appendChild(el);
+            
+            // Image tag timing attack approach for port scanning from browser
+            const img = new Image();
+            let start = Date.now();
+            let isDone = false;
+            
+            const finalize = (status) => {
+                if(isDone) return;
+                isDone = true;
+                const pEl = document.getElementById(`port-${port}`);
+                if(!pEl) return;
+                pEl.className = 'port-item ' + (status === 'open' ? 'port-open' : 'port-closed');
+                pEl.textContent = `${port} : ${status.toUpperCase()}`;
+            };
+            
+            img.onload = () => finalize('open'); // Opened and returned valid img
+            img.onerror = () => {
+                // If it errors quickly, it rejected connection (closed) or returned non-image (open web server)
+                const time = Date.now() - start;
+                if(time < 1500) {
+                    // Usually if it's open but not an image, it errors fast. 
+                    // If it's closed/filtered, browser usually hangs or timeouts.
+                    finalize('open/filtered'); // Heuristic
+                } else {
+                    finalize('closed');
+                }
+            };
+            
+            // Set timeout
+            setTimeout(() => finalize('timeout/closed'), 3000);
+            
+            img.src = `http://${target}:${port}/favicon.ico?r=${Math.random()}`;
+        });
+    }
+</script>
+</body>
+</html>

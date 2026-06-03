@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>JWT Builder - Codelab</title>
+<link href="../../../style.css" rel="stylesheet"/>
+
+<link href="../../../custom-tools.css" rel="stylesheet"/>
+    <script src="../../../theme.js"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-codelab-jwt-builder">
+<div class="app-header">
+<h1>🔐 JWT Builder</h1>
+<p>Encode and sign JSON Web Tokens easily.</p>
+</div>
+<div class="toolbar">
+<button class="btn btn-primary" onclick="buildJWT()">⚡ Build Token</button>
+<button class="btn btn-primary" onclick="copyResult()">📋 Copy JWT</button>
+</div>
+<div class="split-pane">
+<div class="panel">
+<div class="pane-header">Token Payload &amp; Settings</div>
+<div class="form-content">
+<div class="form-group">
+<label>Header (JSON)</label>
+<textarea class="form-input" id="header-input">{
+  "alg": "HS256",
+  "typ": "JWT"
+}</textarea>
+</div>
+<div class="form-group">
+<label>Payload (JSON)</label>
+<textarea class="form-input" id="payload-input">{
+  "sub": "1234567890",
+  "name": "John Doe",
+  "iat": 1516239022
+}</textarea>
+</div>
+<div class="form-group">
+<label>Secret Key (for HS256 Signature)</label>
+<input class="form-input" id="secret-input" placeholder="your-256-bit-secret" type="text" value="secret"/>
+</div>
+</div>
+</div>
+<div class="panel">
+<div class="pane-header">Encoded JWT</div>
+<div class="jwt-output-container" id="jwt-output">
+<!-- Generated JWT will appear here -->
+</div>
+</div>
+</div>
+<div class="toast" id="toast">Copied to clipboard!</div>
+<script>
+        function utf8_to_b64url(str) {
+            return btoa(unescape(encodeURIComponent(str)))
+                .replace(/\+/g, "-")
+                .replace(/\//g, "_")
+                .replace(/=+$/, "");
+        }
+
+        function base64url(bytes) {
+            let str = "";
+            for (let i = 0; i < bytes.byteLength; i++) {
+                str += String.fromCharCode(bytes[i]);
+            }
+            return btoa(str).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+        }
+
+        async function generateSignature(headerB64, payloadB64, secret) {
+            if (!secret) return "";
+            const enc = new TextEncoder();
+            const keyData = enc.encode(secret);
+            try {
+                const key = await crypto.subtle.importKey(
+                    "raw", keyData, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]
+                );
+                const dataToSign = enc.encode(`${headerB64}.${payloadB64}`);
+                const signatureBuffer = await crypto.subtle.sign("HMAC", key, dataToSign);
+                return base64url(new Uint8Array(signatureBuffer));
+            } catch (e) {
+                console.error("Signature generation failed:", e);
+                return "";
+            }
+        }
+
+        async function buildJWT() {
+            try {
+                const headerStr = document.getElementById('header-input').value;
+                const payloadStr = document.getElementById('payload-input').value;
+                const secret = document.getElementById('secret-input').value;
+
+                // Validate JSON
+                JSON.parse(headerStr);
+                JSON.parse(payloadStr);
+
+                const headerB64 = utf8_to_b64url(headerStr);
+                const payloadB64 = utf8_to_b64url(payloadStr);
+                const signatureB64 = await generateSignature(headerB64, payloadB64, secret);
+
+                const outputContainer = document.getElementById('jwt-output');
+                outputContainer.innerHTML = `
+                    <span class="jwt-header-part">${headerB64}</span><span class="jwt-dot">.</span><span class="jwt-payload-part">${payloadB64}</span><span class="jwt-dot">.</span><span class="jwt-signature-part">${signatureB64}</span>
+                `;
+            } catch (e) {
+                // Ignore silent errors while typing
+            }
+        }
+
+        function copyResult() {
+            const container = document.getElementById('jwt-output');
+            const jwt = container.innerText.trim();
+            if (!jwt) return;
+            navigator.clipboard.writeText(jwt).then(() => {
+                const toast = document.getElementById('toast');
+                toast.classList.add('show');
+                setTimeout(() => toast.classList.remove('show'), 3000);
+            });
+        }
+        
+        // Auto-build on input changes
+        document.getElementById('header-input').addEventListener('input', buildJWT);
+        document.getElementById('payload-input').addEventListener('input', buildJWT);
+        document.getElementById('secret-input').addEventListener('input', buildJWT);
+        
+        // Initial build
+        buildJWT();
+    </script>
+</div></div></div></div></body>
+</html>

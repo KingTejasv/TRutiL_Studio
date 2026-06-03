@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>EMI Calculator — Totil Studio</title>
+<meta content="Calculate your EMI, total interest, and get a full amortization schedule." name="description"/>
+<link href="../../../style.css" rel="stylesheet"/>
+<link href="../../../custom-tools.css" rel="stylesheet"/>
+<script src="../../../theme.js"></script>
+</head>
+<body>
+<div class="app-layout" id="app-layout">
+<div class="main-content">
+<div class="page-content"><div id="tool-emi">
+<div class="app-header">
+<div class="app-icon" style="background:linear-gradient(135deg, #3b82f6, #1d4ed8);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:24px;">⚙️</div>
+<div>
+<h1>EMI / Loan Calculator</h1>
+<p>Calculate monthly installments &amp; amortization schedule</p>
+</div>
+</div>
+<div class="emi-layout">
+<!-- LEFT: Inputs -->
+<div>
+<div style="background:var(--bg-elevated); border:1px solid var(--border); border-radius:var(--radius); padding:24px;">
+<h2 style="font-size:16px; font-weight:700; margin-bottom:20px;">Loan Details</h2>
+<div class="form-group">
+<label class="form-label">Loan Amount (₹)</label>
+<input class="form-input" id="principal" min="1000" oninput="syncValues('principal','principalSlider')" type="number" value="500000"/>
+<div class="slider-wrap">
+<input id="principalSlider" max="100000000" min="100000" oninput="syncValues('principalSlider','principal')" step="100000" type="range" value="500000"/>
+<div class="range-labels"><span>₹1L</span><span>₹10Cr</span></div>
+</div>
+</div>
+<div class="form-group">
+<label class="form-label">Annual Interest Rate (%)</label>
+<input class="form-input" id="rate" max="36" min="0.1" oninput="syncValues('rate','rateSlider')" step="0.1" type="number" value="8.5"/>
+<div class="slider-wrap">
+<input id="rateSlider" max="36" min="0.1" oninput="syncValues('rate','rateSlider')" step="0.1" type="range" value="8.5"/>
+<div class="range-labels"><span>0.1%</span><span>36%</span></div>
+</div>
+</div>
+<div class="form-group">
+<label class="form-label">Loan Tenure (Years)</label>
+<input class="form-input" id="tenure" max="30" min="1" oninput="syncValues('tenure','tenureSlider')" type="number" value="20"/>
+<div class="slider-wrap">
+<input id="tenureSlider" max="30" min="1" oninput="syncValues('tenureSlider','tenure')" step="1" type="range" value="20"/>
+<div class="range-labels"><span>1 yr</span><span>30 yrs</span></div>
+</div>
+</div>
+</div>
+</div>
+<!-- RIGHT: Results -->
+<div>
+<div class="result-card">
+<div class="rc-label">Monthly EMI</div>
+<div class="rc-val" id="emiResult">₹0</div>
+<div class="rc-sub" id="emiSub">per month for 0 months</div>
+</div>
+<div class="breakdown-grid">
+<div class="breakdown-item">
+<div class="bi-val" id="totalAmt" style="color:var(--accent-secondary);">₹0</div>
+<div class="bi-label">Total Amount</div>
+</div>
+<div class="breakdown-item">
+<div class="bi-val" id="totalInt" style="color:var(--accent-pink);">₹0</div>
+<div class="bi-label">Total Interest</div>
+</div>
+<div class="breakdown-item">
+<div class="bi-val" id="intPercent" style="color:var(--accent-orange);">0%</div>
+<div class="bi-label">Interest %</div>
+</div>
+</div>
+<div style="background:var(--bg-elevated); border:1px solid var(--border); border-radius:var(--radius-sm); padding:20px; margin-bottom:16px;">
+<div class="pie-wrap">
+<canvas height="140" id="pieChart" width="140"></canvas>
+<div class="pie-legend">
+<div class="pie-legend-item">
+<div class="pie-dot" style="background:var(--accent-primary)"></div>
+<div><div style="font-weight:600; font-size:14px;">Principal</div><div class="text-muted text-sm" id="legendPrincipal"></div></div>
+</div>
+<div class="pie-legend-item">
+<div class="pie-dot" style="background:var(--accent-pink)"></div>
+<div><div style="font-weight:600; font-size:14px;">Interest</div><div class="text-muted text-sm" id="legendInterest"></div></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Amortization Table -->
+<div style="margin-top:24px;">
+<div class="section-header">
+<h2>📊 Yearly Amortization Schedule</h2>
+</div>
+<div class="table-scroll">
+<div class="table-responsive"><table class="amort-table" id="amortTable">
+<thead><tr>
+<th>Year</th>
+<th>Principal Paid</th>
+<th>Interest Paid</th>
+<th>Total Paid</th>
+<th>Balance</th>
+</tr></thead>
+<tbody id="amortBody"></tbody>
+</table></div>
+</div>
+</div>
+</div></div>
+</div>
+</div>
+<script>
+  function fmt(n) {
+    return '₹' + Math.round(n).toLocaleString('en-IN');
+  }
+
+  function syncValues(sourceId, targetId) {
+    document.getElementById(targetId).value = document.getElementById(sourceId).value;
+    calc();
+  }
+
+  function calc() {
+    const P = parseFloat(document.getElementById('principal').value) || 0;
+    const annualR = parseFloat(document.getElementById('rate').value) || 0;
+    const years = parseFloat(document.getElementById('tenure').value) || 0;
+    const n = years * 12;
+    const r = annualR / 12 / 100;
+
+    let emi = 0;
+    if (r === 0) { emi = P / n; }
+    else { emi = P * r * Math.pow(1+r,n) / (Math.pow(1+r,n)-1); }
+
+    const totalAmt = emi * n;
+    const totalInt = totalAmt - P;
+    const intPct   = P > 0 ? ((totalInt / totalAmt)*100).toFixed(1) : 0;
+
+    document.getElementById('emiResult').textContent = fmt(emi);
+    document.getElementById('emiSub').textContent = `per month for ${n} months`;
+    document.getElementById('totalAmt').textContent = fmt(totalAmt);
+    document.getElementById('totalInt').textContent = fmt(totalInt);
+    document.getElementById('intPercent').textContent = intPct + '%';
+    document.getElementById('legendPrincipal').textContent = fmt(P);
+    document.getElementById('legendInterest').textContent = fmt(totalInt);
+
+    drawPie(P, totalInt);
+    buildAmortTable(P, r, emi, n, years);
+  }
+
+  function drawPie(principal, interest) {
+    const canvas = document.getElementById('pieChart');
+    const ctx = canvas.getContext('2d');
+    const total = principal + interest;
+    canvas.width = 140; canvas.height = 140;
+    ctx.clearRect(0,0,140,140);
+    if (total === 0) return;
+
+    const pAngle = (principal / total) * 2 * Math.PI;
+    const cx = 70, cy = 70, r = 56;
+
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, r, -Math.PI/2, -Math.PI/2 + pAngle);
+    ctx.closePath();
+    ctx.fillStyle = '#7c3aed';
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, r, -Math.PI/2 + pAngle, -Math.PI/2 + 2*Math.PI);
+    ctx.closePath();
+    ctx.fillStyle = '#ec4899';
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.arc(cx, cy, 30, 0, 2*Math.PI);
+    ctx.fillStyle = '#161626';
+    ctx.fill();
+  }
+
+  function buildAmortTable(P, r, emi, n, years) {
+    const tbody = document.getElementById('amortBody');
+    tbody.innerHTML = '';
+    let balance = P;
+
+    for (let y = 1; y <= years; y++) {
+      let yearPrincipal = 0, yearInterest = 0;
+      for (let m = 0; m < 12 && (y-1)*12+m < n; m++) {
+        const int = balance * r;
+        const prin = emi - int;
+        yearInterest += int;
+        yearPrincipal += prin;
+        balance = Math.max(0, balance - prin);
+      }
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>Year ${y}</td><td>${fmt(yearPrincipal)}</td><td>${fmt(yearInterest)}</td><td>${fmt(yearPrincipal+yearInterest)}</td><td>${fmt(balance)}</td>`;
+      tbody.appendChild(tr);
+    }
+  }
+
+  calc();
+</script>
+</body>
+</html>

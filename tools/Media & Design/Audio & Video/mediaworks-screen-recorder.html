@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Screen Recorder – Totil Studio</title>
+<meta content="Capture your screen or window with audio." name="description"/>
+<link href="../../../style.css" rel="stylesheet"/>
+<script src="../../../theme.js"></script>
+</head>
+<body>
+<div class="app-layout" id="app-layout">
+<div class="main-content">
+<div class="page-content">
+<div class="app-header">
+<div class="app-icon" style="background:linear-gradient(135deg, #3b82f6, #1d4ed8);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:24px;">⚙️</div>
+<div>
+<h1>Screen Recorder</h1>
+<p>Capture your screen or window with audio.</p>
+</div>
+</div>
+<div class="tool-workspace">
+<div class="panel" style="text-align:center;">
+<button class="btn btn-primary" id="btn-record-screen" style="font-size: 18px; padding: 15px 30px;">🖥️ Start Screen Recording</button>
+<div id="sr-status" style="margin-top: 15px; color: var(--accent-red); font-weight: bold; display: none;">Recording Screen... Click button again to stop.</div>
+<div style="margin-top: 30px;">
+<video controls="" id="screen-playback" style="width: 100%; max-height: 400px; background: #000; border-radius: 8px; display: none;"></video>
+</div>
+<button class="btn btn-success btn-primary" id="btn-download-video" style="margin-top: 20px; display: none;">Download Video</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script>
+
+let screenRecorder;
+let videoChunks = [];
+const btnRecordSr = document.getElementById('btn-record-screen');
+const statusSr = document.getElementById('sr-status');
+const playbackSr = document.getElementById('screen-playback');
+const downloadSr = document.getElementById('btn-download-video');
+let isRecordingSr = false;
+
+btnRecordSr.addEventListener('click', async () => {
+    if(!isRecordingSr) {
+        try {
+            const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+            screenRecorder = new MediaRecorder(stream);
+            screenRecorder.ondataavailable = e => { if(e.data.size > 0) videoChunks.push(e.data); };
+            screenRecorder.onstop = () => {
+                const blob = new Blob(videoChunks, { type: 'video/webm' });
+                const url = URL.createObjectURL(blob);
+                playbackSr.src = url;
+                playbackSr.style.display = 'block';
+                downloadSr.style.display = 'inline-block';
+                downloadSr.onclick = () => {
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'screen-recording.webm';
+                    a.click();
+                };
+                videoChunks = [];
+            };
+            screenRecorder.start();
+            isRecordingSr = true;
+            btnRecordSr.innerHTML = '⏹️ Stop Recording';
+            btnRecordSr.style.background = 'var(--accent-red)';
+            statusSr.style.display = 'block';
+            playbackSr.style.display = 'none';
+            downloadSr.style.display = 'none';
+            
+            stream.getVideoTracks()[0].onended = () => {
+                if(isRecordingSr) btnRecordSr.click();
+            };
+        } catch(err) {
+            alert("Error accessing screen. " + err);
+        }
+    } else {
+        screenRecorder.stop();
+        screenRecorder.stream.getTracks().forEach(t => t.stop());
+        isRecordingSr = false;
+        btnRecordSr.innerHTML = '🖥️ Start Screen Recording';
+        btnRecordSr.style.background = 'var(--accent)';
+        statusSr.style.display = 'none';
+    }
+});
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Credit Card Validator Pro</title>
+<link href="../../../style.css" rel="stylesheet"/>
+
+<link href="../../../custom-tools.css" rel="stylesheet"/>
+    <script src="../../../theme.js"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-protools-credit-card-val">
+<div class="tool-layout-container">
+<div class="app-header">
+<h1>💳 Credit Card Validator Pro</h1>
+<p>Instantly validate credit card numbers and identify the issuing network.</p>
+</div>
+<div class="card" style="max-width: 600px; margin: 0 auto;">
+<label for="cc-input">Credit Card Number</label>
+<input class="form-input" id="cc-input" placeholder="Enter card number (spaces &amp; dashes allowed)..." type="text"/>
+<div class="toolbar">
+<button class="btn btn-primary" id="validate-btn">⚡ Validate Card</button>
+<button class="btn btn-primary" id="clear-btn" style="background: transparent; border-color: var(--text-muted); color: var(--text-muted);">Clear</button>
+</div>
+<div class="result-panel" id="result" style="display:none; margin-top:1rem;">
+<div id="validity" style="font-size: 1.2rem; margin-bottom: 1rem;"></div>
+<div style="display:flex; justify-content:space-between; margin-bottom: 0.5rem;">
+<span style="color:var(--text-muted);">Card Network:</span>
+<strong id="network"></strong>
+</div>
+<div style="display:flex; justify-content:space-between; margin-bottom: 0.5rem;">
+<span style="color:var(--text-muted);">Length:</span>
+<strong id="length"></strong>
+</div>
+<div style="display:flex; justify-content:space-between;">
+<span style="color:var(--text-muted);">Luhn Checksum:</span>
+<strong id="luhn"></strong>
+</div>
+</div>
+<div class="stats-bar">
+<span id="status-text">Ready to validate</span>
+<span class="pill" id="status-pill" style="display:none;"></span>
+</div>
+</div>
+</div>
+<script>
+    const input = document.getElementById('cc-input');
+    const validateBtn = document.getElementById('validate-btn');
+    const clearBtn = document.getElementById('clear-btn');
+    const resultPanel = document.getElementById('result');
+    
+    function getCardNetwork(number) {
+        if (/^4[0-9]{12}(?:[0-9]{3})?$/.test(number)) return "Visa";
+        if (/^5[1-5][0-9]{14}$/.test(number) || /^2(2[2-9][0-9]{2}|[3-6][0-9]{3}|7[01][0-9]{2}|720)[0-9]{10}$/.test(number)) return "MasterCard";
+        if (/^3[47][0-9]{13}$/.test(number)) return "American Express";
+        if (/^6(?:011|5[0-9]{2})[0-9]{12}$/.test(number)) return "Discover";
+        if (/^3(?:0[0-5]|[68][0-9])[0-9]{11}$/.test(number)) return "Diners Club";
+        if (/^(?:2131|1800|35\d{3})\d{11}$/.test(number)) return "JCB";
+        return "Unknown";
+    }
+
+    function luhnCheck(number) {
+        let sum = 0;
+        let isEven = false;
+        for (let i = number.length - 1; i >= 0; i--) {
+            let digit = parseInt(number.charAt(i), 10);
+            if (isEven) {
+                digit *= 2;
+                if (digit > 9) digit -= 9;
+            }
+            sum += digit;
+            isEven = !isEven;
+        }
+        return (sum % 10) === 0;
+    }
+
+    function validate() {
+        const val = input.value.replace(/[\s-]/g, '');
+        if (!val) return;
+        
+        const isNum = /^\d+$/.test(val);
+        const luhn = isNum ? luhnCheck(val) : false;
+        const network = getCardNetwork(val);
+        const isValid = isNum && luhn && network !== "Unknown";
+
+        resultPanel.style.display = 'block';
+        document.getElementById('length').textContent = val.length + ' digits';
+        document.getElementById('luhn').textContent = luhn ? 'Passed' : 'Failed';
+        document.getElementById('network').textContent = network;
+        
+        const validityEl = document.getElementById('validity');
+        const pill = document.getElementById('status-pill');
+        pill.style.display = 'inline-block';
+        
+        if (isValid) {
+            validityEl.innerHTML = '✅ <span style="color:#10B981;">Valid Card Number</span>';
+            pill.textContent = 'Valid';
+            pill.className = 'pill';
+        } else {
+            validityEl.innerHTML = '❌ <span style="color:#EF4444;">Invalid Card Number</span>';
+            pill.textContent = 'Invalid';
+            pill.className = 'pill error';
+        }
+        document.getElementById('status-text').textContent = 'Validation complete';
+    }
+
+    validateBtn.addEventListener('click', validate);
+    input.addEventListener('keypress', e => { if(e.key === 'Enter') validate(); });
+    
+    clearBtn.addEventListener('click', () => {
+        input.value = '';
+        resultPanel.style.display = 'none';
+        document.getElementById('status-text').textContent = 'Ready to validate';
+        document.getElementById('status-pill').style.display = 'none';
+    });
+</script>
+</div></div></div></div></body>
+</html>

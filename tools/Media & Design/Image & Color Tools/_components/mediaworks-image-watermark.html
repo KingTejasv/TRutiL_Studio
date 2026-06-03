@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Image Watermark</title>
+<link href="../../../../style.css" rel="stylesheet"/><link href="../../../../custom-tools.css" rel="stylesheet"/>
+<script src="../../../../theme.js"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-mediaworks-image-watermark">
+<div class="app-header">
+<div class="app-icon" style="background:linear-gradient(135deg, #3b82f6, #1d4ed8);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:24px;">⚙️</div>
+<div>
+<h1>©️ Image Watermark</h1>
+<p>Add custom text watermarks to your images to protect your work.</p>
+</div>
+</div>
+<div class="tool-layout-container">
+<div class="panel">
+<label class="upload-area" id="drop-zone">
+<div>📁 Upload Base Image</div>
+<input accept="image/*" id="file-input" type="file"/>
+</label>
+<div class="control-group">
+<label>Watermark Text</label>
+<input class="form-input" id="wm-text" placeholder="Enter watermark text" type="text" value="© Copyright"/>
+</div>
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+<div class="control-group">
+<label>Position</label>
+<select class="form-input" id="wm-pos">
+<option value="center">Center</option>
+<option selected="" value="bottom-right">Bottom Right</option>
+<option value="bottom-left">Bottom Left</option>
+<option value="top-right">Top Right</option>
+<option value="top-left">Top Left</option>
+</select>
+</div>
+<div class="control-group">
+<label>Color</label>
+<input id="wm-color" type="color" value="#ffffff"/>
+</div>
+</div>
+<div class="control-group">
+<label>Size (relative to image)</label>
+<input id="wm-size" max="20" min="1" type="range" value="5"/>
+</div>
+<div class="control-group">
+<label>Opacity</label>
+<input id="wm-opacity" max="100" min="0" type="range" value="50"/>
+</div>
+</div>
+<div class="panel">
+<div class="preview-area" id="preview-container">
+<span style="color: var(--text-muted)">Preview will appear here</span>
+</div>
+<a class="btn btn-primary" id="download-btn" style="display: none;">💾 Download Image</a>
+</div>
+</div>
+<script>
+    const fileInput = document.getElementById('file-input');
+    const wmText = document.getElementById('wm-text');
+    const wmPos = document.getElementById('wm-pos');
+    const wmColor = document.getElementById('wm-color');
+    const wmSize = document.getElementById('wm-size');
+    const wmOpacity = document.getElementById('wm-opacity');
+    const previewContainer = document.getElementById('preview-container');
+    const downloadBtn = document.getElementById('download-btn');
+    
+    let sourceImg = new Image();
+    let currentFileName = "watermarked_image.png";
+
+    const controls = [wmText, wmPos, wmColor, wmSize, wmOpacity];
+    controls.forEach(c => c.addEventListener('input', drawPreview));
+
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files.length) {
+        const file = e.target.files[0];
+        currentFileName = "wm_" + file.name;
+        document.getElementById('drop-zone').innerHTML = `<div style="color:var(--accent);">✓ ${file.name}</div>`;
+        const url = URL.createObjectURL(file);
+        sourceImg.src = url;
+        sourceImg.onload = drawPreview;
+      }
+    });
+
+    function drawPreview() {
+      if (!sourceImg.src || !sourceImg.complete) return;
+      
+      const canvas = document.createElement('canvas');
+      canvas.width = sourceImg.naturalWidth;
+      canvas.height = sourceImg.naturalHeight;
+      const ctx = canvas.getContext('2d');
+      
+      ctx.drawImage(sourceImg, 0, 0);
+      
+      const text = wmText.value;
+      if (text) {
+        const sizeRatio = parseInt(wmSize.value) / 100;
+        const fontSize = Math.max(12, Math.floor(canvas.width * sizeRatio));
+        ctx.font = `bold ${fontSize}px Inter, sans-serif`;
+        
+        ctx.fillStyle = wmColor.value;
+        ctx.globalAlpha = parseInt(wmOpacity.value) / 100;
+        
+        const metrics = ctx.measureText(text);
+        const textWidth = metrics.width;
+        const padding = fontSize * 0.5;
+        
+        let x, y;
+        const pos = wmPos.value;
+        if (pos === 'center') {
+          x = (canvas.width - textWidth) / 2;
+          y = (canvas.height + fontSize) / 2;
+        } else if (pos === 'bottom-right') {
+          x = canvas.width - textWidth - padding;
+          y = canvas.height - padding;
+        } else if (pos === 'bottom-left') {
+          x = padding;
+          y = canvas.height - padding;
+        } else if (pos === 'top-right') {
+          x = canvas.width - textWidth - padding;
+          y = fontSize + padding;
+        } else if (pos === 'top-left') {
+          x = padding;
+          y = fontSize + padding;
+        }
+        
+        // Add subtle shadow for readability
+        ctx.shadowColor = 'rgba(0,0,0,0.5)';
+        ctx.shadowBlur = 4;
+        ctx.shadowOffsetX = 2;
+        ctx.shadowOffsetY = 2;
+        
+        ctx.fillText(text, x, y);
+      }
+      
+      previewContainer.innerHTML = '';
+      previewContainer.appendChild(canvas);
+      
+      downloadBtn.href = canvas.toDataURL('image/jpeg', 0.9);
+      downloadBtn.download = currentFileName;
+      downloadBtn.style.display = 'inline-flex';
+    }
+  </script>
+</div></div></div></div></body>
+</html>

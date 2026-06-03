@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>JSON Escape/Unescape – Totil Studio</title>
+<meta content="Easily escape or unescape JSON strings." name="description"/>
+<link href="../../../style.css" rel="stylesheet"/>
+<script src="../../../theme.js"></script>
+</head>
+<body>
+<div class="app-layout" id="app-layout">
+<div class="main-content">
+<div class="page-content">
+<div class="app-header">
+<div class="app-icon" style="background:linear-gradient(135deg, #3b82f6, #1d4ed8);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:24px;">⚙️</div>
+<div>
+<h1>JSON Escape/Unescape</h1>
+<p>Easily escape or unescape JSON strings.</p>
+</div>
+</div>
+<div class="tool-workspace">
+<div class="grid-2">
+<div class="panel">
+<div class="panel-title">Input JSON/String</div>
+<textarea class="form-textarea" id="jeu-input" placeholder="Enter text to escape or unescape..." style="min-height: 200px; font-family: monospace;"></textarea>
+<div style="margin-top:10px; display:flex; gap:10px;">
+<button class="btn btn-primary" id="btn-esc">Escape</button>
+<button class="btn btn-ghost btn-primary" id="btn-unesc">Unescape</button>
+</div>
+</div>
+<div class="panel">
+<div class="panel-title">Result</div>
+<textarea class="form-textarea" id="jeu-output" readonly="" style="min-height: 200px; font-family: monospace;"></textarea>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script>
+
+document.getElementById('btn-esc').addEventListener('click', () => {
+    let text = document.getElementById('jeu-input').value;
+    document.getElementById('jeu-output').value = JSON.stringify(text);
+});
+document.getElementById('btn-unesc').addEventListener('click', () => {
+    let text = document.getElementById('jeu-input').value;
+    try {
+        let res = JSON.parse(text);
+        document.getElementById('jeu-output').value = (typeof res === 'string') ? res : JSON.stringify(res, null, 2);
+    } catch(e) {
+        document.getElementById('jeu-output').value = "Error: Input is not a valid escaped JSON string.";
+    }
+});
+
+    </script>
+</body>
+</html>

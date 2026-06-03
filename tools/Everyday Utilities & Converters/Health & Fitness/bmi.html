@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BMI Calculator — Totil Studio</title>
+<meta content="Calculate your BMI, ideal weight, and health status." name="description"/>
+<link href="../../../style.css" rel="stylesheet"/>
+<link href="../../../custom-tools.css" rel="stylesheet"/>
+    <script src="../../../theme.js"></script>
+</head>
+<body>
+<div class="app-layout" id="app-layout">
+<div class="main-content">
+<div class="page-content"><div id="tool-bmi">
+<div class="app-header">
+<div class="app-icon" style="background:linear-gradient(135deg,#10b981,#06b6d4)">⚖️</div>
+<div>
+<h1>BMI &amp; Health Calculator</h1>
+<p>Body Mass Index, ideal weight &amp; health assessment</p>
+</div>
+</div>
+<div style="margin-bottom:16px;">
+<div class="tabs">
+<button class="tab-btn active btn btn-primary" id="tabMetric" onclick="setUnit('metric')">Metric (kg/cm)</button>
+<button class="tab-btn btn btn-primary" id="tabImperial" onclick="setUnit('imperial')">Imperial (lb/in)</button>
+</div>
+</div>
+<div class="bmi-layout">
+<!-- Inputs -->
+<div style="background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
+<div class="form-group">
+<label class="form-label" id="weightLabel">Weight (kg)</label>
+<input class="form-input" id="weight" min="1" oninput="calcBMI()" type="number" value="70"/>
+<input id="weightSlider" max="200" min="30" oninput="document.getElementById('weight').value=this.value;calcBMI()" step="0.5" type="range" value="70"/>
+</div>
+<div class="form-group">
+<label class="form-label" id="heightLabel">Height (cm)</label>
+<input class="form-input" id="height" min="50" oninput="calcBMI()" type="number" value="170"/>
+<input id="heightSlider" max="230" min="100" oninput="document.getElementById('height').value=this.value;calcBMI()" step="1" type="range" value="170"/>
+</div>
+<div class="form-group">
+<label class="form-label">Age (years)</label>
+<input class="form-input" id="age" max="120" min="2" oninput="calcBMI()" type="number" value="25"/>
+</div>
+<div class="form-group">
+<label class="form-label">Gender</label>
+<select class="form-select form-input" id="gender" onchange="calcBMI()">
+<option value="male">Male</option>
+<option value="female">Female</option>
+</select>
+</div>
+</div>
+<!-- Results -->
+<div style="background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius);padding:24px;">
+<div class="bmi-gauge-wrap">
+<div class="text-muted text-sm" style="font-weight:600;text-transform:uppercase;letter-spacing:1px;">Your BMI</div>
+<div class="bmi-value-big" id="bmiVal" style="background:var(--grad-main);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">22.1</div>
+<div>
+<span class="bmi-category" id="bmiCat" style="background:rgba(16,185,129,0.15);color:#10b981;">Normal Weight</span>
+</div>
+<div class="bmi-bar-wrap">
+<div class="bmi-bar">
+<div class="bmi-pointer" id="bmiPointer" style="left:35%;"></div>
+</div>
+<div class="bmi-scale">
+<span>Under<br/>weight</span>
+<span>Normal</span>
+<span>Over<br/>weight</span>
+<span>Obese I</span>
+<span>Obese II</span>
+</div>
+</div>
+</div>
+<div class="metric-row">
+<div class="metric-box">
+<div class="m-val" id="idealWeight" style="color:var(--accent-secondary);">-</div>
+<div class="m-lbl">Ideal Weight Range</div>
+</div>
+<div class="metric-box">
+<div class="m-val" id="weightToLose" style="color:var(--accent-orange);">-</div>
+<div class="m-lbl">Weight to Normal</div>
+</div>
+<div class="metric-box">
+<div class="m-val" id="bmi2" style="color:var(--accent-primary);">-</div>
+<div class="m-lbl">BMI Category</div>
+</div>
+<div class="metric-box">
+<div class="m-val" id="bodyFat" style="color:var(--accent-pink);">-</div>
+<div class="m-lbl">Est. Body Fat %</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Category Reference -->
+<div style="margin-top:24px; background:var(--bg-elevated); border:1px solid var(--border); border-radius:var(--radius); padding:20px;">
+<h2 style="font-size:16px; font-weight:700; margin-bottom:14px;">BMI Categories Reference</h2>
+<div class="table-responsive"><table class="category-table">
+<thead><tr><th>Category</th><th>BMI Range</th><th>Health Risk</th></tr></thead>
+<tbody>
+<tr><td style="color:#06b6d4;">Underweight</td><td>&lt; 18.5</td><td>Moderate (nutritional deficiency)</td></tr>
+<tr id="normalRow"><td style="color:#10b981;">Normal Weight</td><td>18.5 – 24.9</td><td>Low</td></tr>
+<tr><td style="color:#f59e0b;">Overweight</td><td>25.0 – 29.9</td><td>Moderate</td></tr>
+<tr><td style="color:#ef4444;">Obese Class I</td><td>30.0 – 34.9</td><td>High</td></tr>
+<tr><td style="color:#7c3aed;">Obese Class II+</td><td>≥ 35.0</td><td>Very High</td></tr>
+</tbody>
+</table></div>
+</div>
+</div></div>
+</div>
+</div>
+<script>
+  let unit = 'metric';
+
+  function setUnit(u) {
+    unit = u;
+    document.getElementById('tabMetric').classList.toggle('active', u==='metric');
+    document.getElementById('tabImperial').classList.toggle('active', u==='imperial');
+    document.getElementById('weightLabel').textContent = u==='metric' ? 'Weight (kg)' : 'Weight (lbs)';
+    document.getElementById('heightLabel').textContent = u==='metric' ? 'Height (cm)' : 'Height (inches)';
+    let currentWeight = parseFloat(document.getElementById('weight').value) || 0;
+    let currentHeight = parseFloat(document.getElementById('height').value) || 0;
+
+    if(u==='metric'){
+      document.getElementById('weightSlider').min=30;
+      document.getElementById('weightSlider').max=200;
+      document.getElementById('weightSlider').step=0.5;
+      document.getElementById('heightSlider').min=100;
+      document.getElementById('heightSlider').max=230;
+      document.getElementById('heightSlider').step=1;
+      
+      let newW = (currentWeight / 2.20462).toFixed(1);
+      let newH = (currentHeight / 0.393701).toFixed(0);
+      document.getElementById('weight').value = newW;
+      document.getElementById('weightSlider').value = newW;
+      document.getElementById('height').value = newH;
+      document.getElementById('heightSlider').value = newH;
+    } else {
+      document.getElementById('weightSlider').min=66;
+      document.getElementById('weightSlider').max=440;
+      document.getElementById('weightSlider').step=1;
+      document.getElementById('heightSlider').min=39;
+      document.getElementById('heightSlider').max=90;
+      document.getElementById('heightSlider').step=1;
+      
+      let newW = (currentWeight * 2.20462).toFixed(1);
+      let newH = (currentHeight * 0.393701).toFixed(0);
+      document.getElementById('weight').value = newW;
+      document.getElementById('weightSlider').value = newW;
+      document.getElementById('height').value = newH;
+      document.getElementById('heightSlider').value = newH;
+    }
+    calcBMI();
+  }
+
+  function calcBMI(){
+    let w = parseFloat(document.getElementById('weight').value)||0;
+    let h = parseFloat(document.getElementById('height').value)||0;
+    const age = parseInt(document.getElementById('age').value)||25;
+    const gender = document.getElementById('gender').value;
+
+    if(unit==='imperial'){
+      w = w * 0.453592;
+      h = h * 2.54;
+    }
+
+    if(!w||!h) return;
+    const hm = h/100;
+    const bmi = w/(hm*hm);
+    const bmiFixed = bmi.toFixed(1);
+
+    document.getElementById('bmiVal').textContent = bmiFixed;
+    document.getElementById('bmi2').textContent = bmiFixed;
+
+    let cat, catColor, catBg;
+    if(bmi<18.5){cat='Underweight';catColor='#06b6d4';catBg='rgba(6,182,212,0.15)';}
+    else if(bmi<25){cat='Normal';catColor='#10b981';catBg='rgba(16,185,129,0.15)';}
+    else if(bmi<30){cat='Overweight';catColor='#f59e0b';catBg='rgba(245,158,11,0.15)';}
+    else if(bmi<35){cat='Obese I';catColor='#ef4444';catBg='rgba(239,68,68,0.15)';}
+    else{cat='Obese II+';catColor='#7c3aed';catBg='rgba(124,58,237,0.15)';}
+
+    const catEl = document.getElementById('bmiCat');
+    catEl.textContent = cat;
+    catEl.style.background = catBg;
+    catEl.style.color = catColor;
+
+    // Pointer: map bmi (10-45) to 0-100%
+    const pct = Math.min(100, Math.max(0, ((bmi-10)/35)*100));
+    document.getElementById('bmiPointer').style.left = pct+'%';
+
+    // Ideal weight (BMI 18.5-24.9)
+    const idealMin = 18.5 * hm * hm;
+    const idealMax = 24.9 * hm * hm;
+    const dispMin = unit==='imperial' ? (idealMin*2.20462).toFixed(1)+' lb' : idealMin.toFixed(1)+' kg';
+    const dispMax = unit==='imperial' ? (idealMax*2.20462).toFixed(1)+' lb' : idealMax.toFixed(1)+' kg';
+    document.getElementById('idealWeight').textContent = dispMin+' – '+dispMax;
+
+    const diff = w - idealMax;
+    const diffDisp = unit==='imperial' ? Math.abs(diff*2.20462).toFixed(1)+' lb' : Math.abs(diff).toFixed(1)+' kg';
+    document.getElementById('weightToLose').textContent = diff>0 ? '-'+diffDisp : diff<-1 ? '+'+diffDisp : 'In Range ✔';
+
+    // Estimated body fat (Deurenberg formula)
+    const bf = (1.2*bmi) + (0.23*age) - (10.8*(gender==='male'?1:0)) - 5.4;
+    document.getElementById('bodyFat').textContent = bf.toFixed(1)+'%';
+  }
+
+  calcBMI();
+</script>
+</body>
+</html>

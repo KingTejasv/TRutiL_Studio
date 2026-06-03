@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Retail & Tax Calculators – Totil Studio</title>
+    <meta content="Calculate discounts, sales tax, VAT, and tips." name="description"/>
+    <link href="../../../style.css" rel="stylesheet"/>
+    <link href="../../../custom-tools.css" rel="stylesheet"/>
+    <script src="../../../theme.js"></script>
+</head>
+<body>
+    <div class="app-layout" id="app-layout">
+        <div class="main-content">
+            <div class="page-content">
+                <div class="app-header">
+                    <div class="app-icon">🏷️</div>
+                    <div>
+                        <h1>Retail & Tax Calculators</h1>
+                        <p>Calculate discounts, sales tax, VAT, and tips.</p>
+                    </div>
+                </div>
+                <div class="tool-workspace">
+                    
+<div class="grid-2">
+    <!-- Discount & Sale -->
+    <div class="panel">
+        <div class="panel-title">Discount Calculator</div>
+        <div class="form-group">
+            <label class="form-label">Original Price</label>
+            <input type="number" class="form-input" id="disc-price" placeholder="e.g. 100">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Discount (%)</label>
+            <input type="number" class="form-input" id="disc-perc" placeholder="e.g. 20">
+        </div>
+        <button class="btn btn-primary" id="btn-calc-disc">Calculate Savings</button>
+        
+        <div class="result-card" style="margin-top:20px; background: var(--accent-pink);">
+            <div style="font-size: 14px; opacity: 0.9;">Final Sale Price</div>
+            <div id="res-disc-final" class="result-big" style="-webkit-text-fill-color:#fff;">0.00</div>
+            <div style="margin-top: 10px; font-size: 14px; opacity: 0.8;">You Save: <span id="res-disc-saved" style="font-weight:bold;">0.00</span></div>
+        </div>
+    </div>
+
+    <!-- Tip & Tax -->
+    <div class="panel">
+        <div class="panel-title">Tip & Bill Split Calculator</div>
+        <div class="form-group">
+            <label class="form-label">Total Bill Amount</label>
+            <input type="number" class="form-input" id="tip-bill" placeholder="e.g. 85.50">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Tip Percentage (%)</label>
+            <input type="number" class="form-input" id="tip-perc" placeholder="e.g. 15" value="15">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Split Between (People)</label>
+            <input type="number" class="form-input" id="tip-split" placeholder="e.g. 2" value="1">
+        </div>
+        <button class="btn btn-primary" id="btn-calc-tip">Calculate Bill</button>
+
+        <div class="grid-2" style="margin-top:20px;">
+            <div class="result-card">
+                <div style="font-size: 12px; opacity: 0.8;">Total Tip</div>
+                <div id="res-tip-total" style="font-size: 1.25rem; font-weight:bold;">0.00</div>
+            </div>
+            <div class="result-card">
+                <div style="font-size: 12px; opacity: 0.8;">Total Bill</div>
+                <div id="res-tip-grand" style="font-size: 1.25rem; font-weight:bold;">0.00</div>
+            </div>
+            <div class="result-card" style="grid-column: 1/-1; background: var(--bg-hover);">
+                <div style="font-size: 12px; opacity: 0.8; text-align:center;">Amount Per Person</div>
+                <div id="res-tip-person" style="font-size: 1.75rem; font-weight:bold; text-align:center; color: var(--accent-blue);">0.00</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+
+document.getElementById('btn-calc-disc').addEventListener('click', () => {
+    let p = parseFloat(document.getElementById('disc-price').value) || 0;
+    let d = parseFloat(document.getElementById('disc-perc').value) || 0;
+    let saved = p * (d/100);
+    let final = p - saved;
+    document.getElementById('res-disc-final').textContent = final.toFixed(2);
+    document.getElementById('res-disc-saved').textContent = saved.toFixed(2);
+});
+
+document.getElementById('btn-calc-tip').addEventListener('click', () => {
+    let bill = parseFloat(document.getElementById('tip-bill').value) || 0;
+    let tipP = parseFloat(document.getElementById('tip-perc').value) || 0;
+    let split = parseInt(document.getElementById('tip-split').value) || 1;
+    
+    let tipTotal = bill * (tipP/100);
+    let grandTotal = bill + tipTotal;
+    let perPerson = grandTotal / split;
+    
+    document.getElementById('res-tip-total').textContent = tipTotal.toFixed(2);
+    document.getElementById('res-tip-grand').textContent = grandTotal.toFixed(2);
+    document.getElementById('res-tip-person').textContent = perPerson.toFixed(2);
+});
+
+    </script>
+</body>
+</html>

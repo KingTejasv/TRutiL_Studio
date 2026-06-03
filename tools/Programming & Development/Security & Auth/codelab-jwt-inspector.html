@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>JWT Inspector – Totil Studio</title>
+    <meta content="Visually inspect and decode JSON Web Tokens." name="description"/>
+    <link href="../../../style.css" rel="stylesheet"/>
+    
+
+    <script src="../../../theme.js"></script>
+</head>
+<body>
+    <div class="app-layout" id="app-layout">
+        <div class="main-content">
+            <div class="page-content">
+                <div class="app-header">
+                    <div class="app-icon">👨‍💻</div>
+                    <div>
+                        <h1>JWT Inspector</h1>
+                        <p>Visually inspect and decode JSON Web Tokens.</p>
+                    </div>
+                </div>
+                <div class="tool-workspace">
+                    
+<div class="grid-2">
+    <div class="panel">
+        <div class="panel-title">Encoded JWT</div>
+        <textarea class="form-textarea" id="jwt-input" placeholder="Paste your JWT token here (ey...)" style="min-height: 200px; font-family: monospace;"></textarea>
+        <button class="btn btn-primary" id="btn-decode" style="margin-top:10px;">Decode Token</button>
+    </div>
+    <div class="panel">
+        <div class="panel-title">Decoded Payload</div>
+        <div class="result-card" style="background: var(--bg-elevated); border: 1px solid var(--border); color: var(--text-primary); min-height:200px; padding:15px; font-family: monospace; white-space: pre-wrap; overflow-x: auto;" id="jwt-output">
+            Awaiting token...
+        </div>
+    </div>
+</div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+
+document.getElementById('btn-decode').addEventListener('click', () => {
+    let token = document.getElementById('jwt-input').value.trim();
+    let parts = token.split('.');
+    if(parts.length !== 3) {
+        document.getElementById('jwt-output').innerHTML = '<span style="color: var(--accent-red)">Invalid JWT Format. Ensure it has 3 parts separated by dots.</span>';
+        return;
+    }
+    try {
+        let header = JSON.parse(atob(parts[0]));
+        let payload = JSON.parse(atob(parts[1]));
+        document.getElementById('jwt-output').innerHTML = `<strong style="color:var(--accent-pink);">HEADER:</strong><br>${JSON.stringify(header, null, 2)}<br><br><strong style="color:var(--accent-cyan);">PAYLOAD:</strong><br>${JSON.stringify(payload, null, 2)}`;
+    } catch(e) {
+        document.getElementById('jwt-output').innerHTML = '<span style="color: var(--accent-red)">Failed to decode token. Invalid base64.</span>';
+    }
+});
+
+    </script>
+</body>
+</html>

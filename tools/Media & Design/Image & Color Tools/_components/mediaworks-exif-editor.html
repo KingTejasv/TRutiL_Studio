@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>EXIF Editor — Totil Studio</title>
+<link href="../../../../style.css" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/piexifjs/1.0.6/piexif.min.js"></script>
+<link href="../../../../custom-tools.css" rel="stylesheet"/>
+<script src="../../../../theme.js"></script>
+</head>
+<body>
+<div class="app-layout" id="app-layout">
+<div class="main-content">
+<div class="page-content"><div id="tool-mediaworks-exif-editor">
+<div class="app-header">
+<div class="app-icon" style="background:linear-gradient(135deg, #3b82f6, #1d4ed8);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:24px;">⚙️</div>
+<div>
+<h1>EXIF Editor</h1>
+<p>Read, modify, and strip EXIF metadata from JPEG images securely in your browser.</p>
+</div>
+</div>
+<div class="" style=" max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px;">
+<!-- Sidebar -->
+<div class="drop-zone" id="uploadArea">
+<div style="font-size: 3rem; margin-bottom: 1rem;">📷</div>
+<h3 style="margin-bottom: 0.5rem; font-size: 1.25rem; font-weight: 600;">Select JPEG Image</h3>
+<p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.95rem;">Drag and drop an image here to view and edit its metadata.</p>
+<button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">Select Image</button>
+<input accept="image/jpeg, image/jpg" id="fileInput" style="display:none;" type="file"/>
+</div>
+<div class="panel hidden" id="controlsPanel">
+<div class="panel-title">📸 Image Info</div>
+<div class="preview-box">
+<img alt="Preview" id="imgPreview" src=""/>
+</div>
+<div class="file-info" id="fileInfoTxt">image.jpg (2.4 MB)</div>
+<button class="btn btn-primary btn-block" id="saveBtn">💾 Save Changes</button>
+<button class="btn btn-outline btn-block btn-danger btn-primary" id="clearBtn">🗑️ Clear All EXIF Data</button>
+<button class="btn btn-outline btn-block btn-primary" onclick="document.getElementById('fileInput').click()" style="margin-top: 1rem;">Change Image</button>
+</div>
+<!-- Main Workspace -->
+<div class="workspace hidden" id="workspace">
+<div class="banner">
+<i style="font-size: 1.2rem;">⚠️</i>
+<div>
+<strong>Note:</strong> EXIF data is only fully supported on JPEG images. Saving will generate a new JPEG file with the modified EXIF headers.
+            </div>
+</div>
+<div class="section-title">0th IFD (Main Image Data)</div>
+<div class="form-group">
+<label class="form-label">Make (Camera Manufacturer)</label>
+<input class="form-input" id="exifMake" placeholder="e.g. Canon, Nikon, Apple" type="text"/>
+</div>
+<div class="form-group">
+<label class="form-label">Model (Camera Model)</label>
+<input class="form-input" id="exifModel" placeholder="e.g. iPhone 13 Pro" type="text"/>
+</div>
+<div class="form-group">
+<label class="form-label">Software</label>
+<input class="form-input" id="exifSoftware" placeholder="Software used to create/edit" type="text"/>
+</div>
+<div class="grid-2">
+<div class="form-group">
+<label class="form-label">Artist (Creator)</label>
+<input class="form-input" id="exifArtist" placeholder="Author name" type="text"/>
+</div>
+<div class="form-group">
+<label class="form-label">Copyright</label>
+<input class="form-input" id="exifCopyright" placeholder="Copyright details" type="text"/>
+</div>
+</div>
+<div class="section-title">EXIF SubIFD (Photography Data)</div>
+<div class="grid-2">
+<div class="form-group">
+<label class="form-label">DateTime Original</label>
+<input class="form-input" id="exifDate" placeholder="YYYY:MM:DD HH:MM:SS" type="text"/>
+</div>
+<div class="form-group">
+<label class="form-label">Lens Make</label>
+<input class="form-input" id="exifLensMake" placeholder="Lens Manufacturer" type="text"/>
+</div>
+</div>
+<div class="section-title">GPS Info</div>
+<p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+            Coordinates are stored in degrees, minutes, seconds format. Edit as raw arrays if you know the format, or clear the entire EXIF to remove location data.
+          </p>
+<div class="grid-2">
+<div class="form-group">
+<label class="form-label">GPS Latitude Ref (N/S)</label>
+<input class="form-input" id="exifLatRef" placeholder="N or S" type="text"/>
+</div>
+<div class="form-group">
+<label class="form-label">GPS Longitude Ref (E/W)</label>
+<input class="form-input" id="exifLngRef" placeholder="E or W" type="text"/>
+</div>
+</div>
+</div>
+</div>
+</div></div>
+</div>
+</div>
+<script>
+  const uploadArea = document.getElementById('uploadArea');
+  const fileInput = document.getElementById('fileInput');
+  const controlsPanel = document.getElementById('controlsPanel');
+  const workspace = document.getElementById('workspace');
+  const imgPreview = document.getElementById('imgPreview');
+  const fileInfoTxt = document.getElementById('fileInfoTxt');
+  
+  const saveBtn = document.getElementById('saveBtn');
+  const clearBtn = document.getElementById('clearBtn');
+  
+  // Inputs
+  const exifMake = document.getElementById('exifMake');
+  const exifModel = document.getElementById('exifModel');
+  const exifSoftware = document.getElementById('exifSoftware');
+  const exifArtist = document.getElementById('exifArtist');
+  const exifCopyright = document.getElementById('exifCopyright');
+  const exifDate = document.getElementById('exifDate');
+  const exifLensMake = document.getElementById('exifLensMake');
+  const exifLatRef = document.getElementById('exifLatRef');
+  const exifLngRef = document.getElementById('exifLngRef');
+
+  let currentFile = null;
+  let base64Img = null;
+  let exifObj = null;
+
+  function formatBytes(bytes) {
+    if (bytes === 0) return '0 B';
+    const k = 1024, sizes = ['B', 'KB', 'MB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
+
+  // File Handling
+  fileInput.addEventListener('change', (e) => {
+    if (e.target.files.length) handleFile(e.target.files[0]);
+  });
+  uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.classList.add('dragover'); });
+  uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
+  uploadArea.addEventListener('drop', e => {
+    e.preventDefault();
+    uploadArea.classList.remove('dragover');
+    if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+  });
+
+  function handleFile(file) {
+    if (!file.type.match(/image\/jpeg/)) {
+      alert('EXIF Editor currently supports only JPEG (.jpg) files.');
+      return;
+    }
+    
+    currentFile = file;
+    fileInfoTxt.textContent = `${file.name} (${formatBytes(file.size)})`;
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      base64Img = e.target.result;
+      imgPreview.src = base64Img;
+      
+      try {
+        exifObj = piexif.load(base64Img);
+        populateForm();
+        
+        uploadArea.classList.add('hidden');
+        controlsPanel.classList.remove('hidden');
+        workspace.classList.remove('hidden');
+      } catch (err) {
+        console.error(err);
+        alert("Could not read EXIF data. The file might not have any or is corrupted.");
+        // We still allow them to add data
+        exifObj = {"0th":{}, "Exif":{}, "GPS":{}, "Interop":{}, "1st":{}, "thumbnail":null};
+        populateForm();
+        
+        uploadArea.classList.add('hidden');
+        controlsPanel.classList.remove('hidden');
+        workspace.classList.remove('hidden');
+      }
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function populateForm() {
+    // Clear inputs
+    document.querySelectorAll('.form-input').forEach(el => el.value = '');
+    
+    if (!exifObj) return;
+
+    // 0th
+    if (exifObj["0th"][piexif.ImageIFD.Make]) exifMake.value = exifObj["0th"][piexif.ImageIFD.Make];
+    if (exifObj["0th"][piexif.ImageIFD.Model]) exifModel.value = exifObj["0th"][piexif.ImageIFD.Model];
+    if (exifObj["0th"][piexif.ImageIFD.Software]) exifSoftware.value = exifObj["0th"][piexif.ImageIFD.Software];
+    if (exifObj["0th"][piexif.ImageIFD.Artist]) exifArtist.value = exifObj["0th"][piexif.ImageIFD.Artist];
+    if (exifObj["0th"][piexif.ImageIFD.Copyright]) exifCopyright.value = exifObj["0th"][piexif.ImageIFD.Copyright];
+
+    // Exif
+    if (exifObj["Exif"][piexif.ExifIFD.DateTimeOriginal]) exifDate.value = exifObj["Exif"][piexif.ExifIFD.DateTimeOriginal];
+    if (exifObj["Exif"][piexif.ExifIFD.LensMake]) exifLensMake.value = exifObj["Exif"][piexif.ExifIFD.LensMake];
+
+    // GPS
+    if (exifObj["GPS"][piexif.GPSIFD.GPSLatitudeRef]) exifLatRef.value = exifObj["GPS"][piexif.GPSIFD.GPSLatitudeRef];
+    if (exifObj["GPS"][piexif.GPSIFD.GPSLongitudeRef]) exifLngRef.value = exifObj["GPS"][piexif.GPSIFD.GPSLongitudeRef];
+  }
+
+  function gatherForm() {
+    if (!exifObj) exifObj = {"0th":{}, "Exif":{}, "GPS":{}, "Interop":{}, "1st":{}, "thumbnail":null};
+
+    // Helper to safely set string fields
+    const setStr = (ifd, tag, val) => {
+      if (val.trim() !== '') {
+        exifObj[ifd][tag] = val.trim();
+      } else {
+        delete exifObj[ifd][tag];
+      }
+    };
+
+    setStr("0th", piexif.ImageIFD.Make, exifMake.value);
+    setStr("0th", piexif.ImageIFD.Model, exifModel.value);
+    setStr("0th", piexif.ImageIFD.Software, exifSoftware.value);
+    setStr("0th", piexif.ImageIFD.Artist, exifArtist.value);
+    setStr("0th", piexif.ImageIFD.Copyright, exifCopyright.value);
+
+    setStr("Exif", piexif.ExifIFD.DateTimeOriginal, exifDate.value);
+    setStr("Exif", piexif.ExifIFD.LensMake, exifLensMake.value);
+
+    setStr("GPS", piexif.GPSIFD.GPSLatitudeRef, exifLatRef.value);
+    setStr("GPS", piexif.GPSIFD.GPSLongitudeRef, exifLngRef.value);
+  }
+
+  saveBtn.addEventListener('click', () => {
+    if (!base64Img) return;
+    
+    try {
+      gatherForm();
+      const exifStr = piexif.dump(exifObj);
+      const newImgStr = piexif.insert(exifStr, base64Img);
+      
+      triggerDownload(newImgStr, (currentFile.name.split('.')[0] + '_exif.jpg'));
+    } catch (err) {
+      console.error(err);
+      alert("Error saving EXIF data: " + err.message);
+    }
+  });
+
+  clearBtn.addEventListener('click', () => {
+    if (!base64Img) return;
+    
+    if (confirm("Are you sure you want to strip all EXIF metadata from this image?")) {
+      try {
+        const newImgStr = piexif.remove(base64Img);
+        triggerDownload(newImgStr, (currentFile.name.split('.')[0] + '_stripped.jpg'));
+        
+        // Reset form visually
+        exifObj = {"0th":{}, "Exif":{}, "GPS":{}, "Interop":{}, "1st":{}, "thumbnail":null};
+        populateForm();
+      } catch (err) {
+        console.error(err);
+        alert("Error removing EXIF data: " + err.message);
+      }
+    }
+  });
+
+  function triggerDownload(dataUrl, filename) {
+    const a = document.createElement('a');
+    a.href = dataUrl;
+    a.download = filename;
+    a.click();
+  }
+
+</script>
+</body>
+</html>

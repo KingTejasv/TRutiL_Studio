@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Browser Window Size Checker – Totil Studio</title>
+<meta content="Check your exact viewport dimensions in real-time." name="description"/>
+<link href="../../../style.css" rel="stylesheet"/>
+<script src="../../../theme.js"></script>
+</head>
+<body>
+<div class="app-layout" id="app-layout">
+<div class="main-content">
+<div class="page-content">
+<div class="app-header">
+<div class="app-icon" style="background:linear-gradient(135deg, #3b82f6, #1d4ed8);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:24px;">⚙️</div>
+<div>
+<h1>Browser Window Size Checker</h1>
+<p>Check your exact viewport dimensions in real-time.</p>
+</div>
+</div>
+<div class="tool-workspace">
+<div class="panel" style="text-align:center; padding: 50px;">
+<h2>Your Current Browser Viewport:</h2>
+<div id="size-display" style="font-size: 54px; font-weight: bold; background: var(--grad-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 20px 0;">
+        Loading...
+    </div>
+<div class="grid-2" style="max-width: 400px; margin: 0 auto; gap: 10px;">
+<div style="background: var(--bg-elevated); padding: 15px; border-radius: 8px;">
+<div style="font-size: 12px; color: var(--text-muted);">Screen Resolution</div>
+<div id="screen-res" style="font-size: 20px; font-weight: 600;"></div>
+</div>
+<div style="background: var(--bg-elevated); padding: 15px; border-radius: 8px;">
+<div style="font-size: 12px; color: var(--text-muted);">Color Depth</div>
+<div id="color-depth" style="font-size: 20px; font-weight: 600;"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script>
+
+function updateSize() {
+    document.getElementById('size-display').textContent = window.innerWidth + " x " + window.innerHeight + " px";
+    document.getElementById('screen-res').textContent = window.screen.width + " x " + window.screen.height;
+    document.getElementById('color-depth').textContent = window.screen.colorDepth + "-bit";
+}
+window.addEventListener('resize', updateSize);
+updateSize();
+
+    </script>
+</body>
+</html>

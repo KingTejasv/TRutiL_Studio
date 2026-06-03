@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Dice Roller</title>
+<link href="../../../style.css" rel="stylesheet"/>
+
+<link href="../../../custom-tools.css" rel="stylesheet"/>
+    <script src="../../../theme.js"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-essentials-dice-roller">
+<div class="tool-layout-container">
+<header>
+<h1>🎲 Dice Roller</h1>
+<p>Roll multiple dice of different sides instantly.</p>
+</header>
+<div class="grid">
+<div class="card controls">
+<div>
+<label for="num-dice">Number of Dice</label>
+<input class="form-input" id="num-dice" max="20" min="1" type="number" value="2"/>
+</div>
+<div>
+<label for="dice-sides">Dice Type</label>
+<select class="form-input" id="dice-sides">
+<option value="4">D4 (4 sides)</option>
+<option selected="" value="6">D6 (6 sides)</option>
+<option value="8">D8 (8 sides)</option>
+<option value="10">D10 (10 sides)</option>
+<option value="12">D12 (12 sides)</option>
+<option value="20">D20 (20 sides)</option>
+<option value="100">D100 (100 sides)</option>
+</select>
+</div>
+<div>
+<label for="modifier">Modifier (±)</label>
+<input class="form-input" id="modifier" type="number" value="0"/>
+</div>
+<button class="btn-primary btn btn-primary" onclick="rollDice()">🎲 Roll Dice</button>
+</div>
+<div class="card">
+<div class="dice-arena" id="arena">
+<div class="die" data-sides="6">?</div>
+<div class="die" data-sides="6">?</div>
+</div>
+</div>
+</div>
+<div class="stats-bar">
+<div class="stat-item">
+<span class="stat-label">Total Roll</span>
+<span class="stat-num highlight" id="stat-total">-</span>
+</div>
+<div class="stat-item">
+<span class="stat-label">Base Sum</span>
+<span class="stat-num" id="stat-sum">-</span>
+</div>
+<div class="stat-item">
+<span class="stat-label">Highest</span>
+<span class="stat-num" id="stat-highest">-</span>
+</div>
+</div>
+</div>
+<script>
+        function rollDice() {
+            const numDice = Math.min(Math.max(parseInt(document.getElementById('num-dice').value) || 1, 1), 50);
+            const sides = parseInt(document.getElementById('dice-sides').value) || 6;
+            const modifier = parseInt(document.getElementById('modifier').value) || 0;
+            const arena = document.getElementById('arena');
+            
+            // Clear arena
+            arena.innerHTML = '';
+            
+            const results = [];
+            
+            // Create dice elements
+            for (let i = 0; i < numDice; i++) {
+                const die = document.createElement('div');
+                die.className = 'die rolling';
+                die.setAttribute('data-sides', sides);
+                // Assign a temporary symbol while rolling
+                die.innerText = '·';
+                arena.appendChild(die);
+                
+                // Random delay for animation variation
+                const delay = Math.random() * 0.2;
+                die.style.animationDelay = `${delay}s`;
+                
+                // Determine result
+                const result = Math.floor(Math.random() * sides) + 1;
+                results.push(result);
+                
+                // Update value after animation
+                setTimeout(() => {
+                    die.classList.remove('rolling');
+                    die.innerText = result;
+                    // Add subtle rotation for realistic look
+                    const rot = (Math.random() * 20 - 10);
+                    die.style.transform = `rotate(${rot}deg)`;
+                }, 600 + (delay * 1000));
+            }
+            
+            // Calculate stats
+            const sum = results.reduce((a, b) => a + b, 0);
+            const total = sum + modifier;
+            const highest = Math.max(...results);
+            
+            // Update stats after max animation delay
+            setTimeout(() => {
+                document.getElementById('stat-sum').innerText = sum;
+                const modStr = modifier > 0 ? ` +${modifier}` : modifier < 0 ? ` ${modifier}` : '';
+                document.getElementById('stat-total').innerText = `${total}`;
+                document.getElementById('stat-highest').innerText = highest;
+            }, 800);
+        }
+        
+        // Initial setup visual (optional)
+        document.getElementById('num-dice').addEventListener('change', (e) => {
+            const num = Math.min(Math.max(parseInt(e.target.value) || 1, 1), 50);
+            const sides = document.getElementById('dice-sides').value;
+            const arena = document.getElementById('arena');
+            arena.innerHTML = '';
+            for(let i=0; i<num; i++) {
+                const die = document.createElement('div');
+                die.className = 'die';
+                die.setAttribute('data-sides', sides);
+                die.innerText = '?';
+                arena.appendChild(die);
+            }
+        });
+        
+        document.getElementById('dice-sides').addEventListener('change', (e) => {
+            const sides = e.target.value;
+            document.querySelectorAll('.die').forEach(die => {
+                die.setAttribute('data-sides', sides);
+            });
+        });
+    </script>
+</div></div></div></div></body>
+</html>

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Google Cache Checker | SearchOps</title>
+<link href="../../../style.css" rel="stylesheet"/><link href="../../../custom-tools.css" rel="stylesheet"/>
+<script src="../../../theme.js"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-searchops-google-cache-checker">
+<div class="tool-layout-container">
+<div class="app-header">
+<div class="app-icon" style="background:linear-gradient(135deg, #3b82f6, #1d4ed8);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:24px;">🔍</div>
+<div>
+<h1>Google Cache Checker</h1>
+<p>View the cached version of any webpage.</p>
+</div>
+</div>
+<div class="panel">
+<label for="urlInput">Enter URL</label>
+<input autocomplete="off" class="form-input" id="urlInput" placeholder="https://example.com/page" type="url"/>
+<button class="btn btn-primary" id="checkBtn" style="width: 100%;">
+<svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                Find Cached Versions
+            </button>
+<div class="results" id="results">
+<div style="height: 1px; background: var(--border); margin: 0.5rem 0;"></div>
+<h3 style="margin: 0; font-size: 1rem; color: var(--text-muted);">Available Caches</h3>
+<a class="btn btn-primary" href="#" id="linkGoogle" rel="noopener" target="_blank">
+<span style="display: flex; align-items: center; gap: 0.5rem;">
+<svg fill="currentColor" viewbox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"></path><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"></path><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"></path><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"></path></svg>
+                        Google Cache
+                    </span>
+<svg fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</a>
+<a class="btn btn-primary" href="#" id="linkWayback" rel="noopener" target="_blank">
+<span style="display: flex; align-items: center; gap: 0.5rem;">
+<svg fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                        Wayback Machine
+                    </span>
+<svg fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</a>
+<a class="btn btn-primary" href="#" id="linkBing" rel="noopener" target="_blank">
+<span style="display: flex; align-items: center; gap: 0.5rem;">
+<svg fill="currentColor" viewbox="0 0 24 24"><path d="M10.1 2.1L9 1H2v22h20V1h-7l-1.1 1.1c-.2.2-.5.3-.8.3s-.6-.1-.8-.3zM12 21H4V3h4v4h8V3h4v18h-8z"></path></svg>
+                        Bing Cache
+                    </span>
+<svg fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</a>
+</div>
+</div>
+<p class="note">* Note: Google is officially deprecating the "cache:" operator, but Wayback Machine usually retains snapshots.</p>
+</div>
+<script>
+        document.getElementById('checkBtn').addEventListener('click', function() {
+            let url = document.getElementById('urlInput').value.trim();
+            if(!url) return;
+            if(!url.startsWith('http')) url = 'https://' + url;
+
+            const encodedUrl = encodeURIComponent(url);
+
+            document.getElementById('linkGoogle').href = `https://webcache.googleusercontent.com/search?q=cache:${encodedUrl}`;
+            document.getElementById('linkWayback').href = `https://web.archive.org/web/*/${url}`;
+            document.getElementById('linkBing').href = `https://cc.bingj.com/cache.aspx?q=${encodedUrl}`;
+
+            document.getElementById('results').style.display = 'flex';
+        });
+
+        // Trigger on enter
+        document.getElementById('urlInput').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                document.getElementById('checkBtn').click();
+            }
+        });
+    </script>
+</div></div></div></div></body>
+</html>

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Color & Design Toolkit — Totil Studio</title>
+<link href="../../../style.css" rel="stylesheet"/>
+<link href="../../../custom-tools.css" rel="stylesheet"/>
+<script src="../../../theme.js"></script>
+</head>
+<body>
+<div class="app-layout" id="app-layout">
+<div class="main-content">
+<div class="page-content">
+
+    <div class="app-header" style="margin-bottom: 2rem; display: flex; align-items: center; gap: 1.5rem;">
+        <div class="app-icon" style="background:linear-gradient(135deg,#8B5CF6,#6366F1); width: 64px; height: 64px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 32px; color: white;">🎨</div>
+        <div>
+            <h1 style="margin:0;font-size:2.5rem;font-weight:800;letter-spacing:-0.5px;">Color & Design Toolkit</h1>
+            <p style="margin:8px 0 0 0;color:var(--text-muted);font-size:1.1rem;max-width:600px;">Essential design utilities for generating palettes, checking contrasts, and optimizing SVGs.</p>
+        </div>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
+        
+        <a href="_components/color.html" style="text-decoration: none; color: inherit;">
+            <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; height: 100%; display: flex; flex-direction: column; gap: 10px;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 10px 25px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='none'; this.style.boxShadow='none';">
+                <div style="font-size: 2rem;">🌈</div>
+                <h3 style="margin: 0; font-size: 1.2rem; color: var(--text-primary);">Color Converter</h3>
+                <p style="margin: 0; color: var(--text-muted); font-size: 0.9rem;">Convert HEX, RGB, HSL, and CMYK colors.</p>
+            </div>
+        </a>
+        
+        <a href="_components/mediaworks-color-picker.html" style="text-decoration: none; color: inherit;">
+            <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; height: 100%; display: flex; flex-direction: column; gap: 10px;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 10px 25px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='none'; this.style.boxShadow='none';">
+                <div style="font-size: 2rem;">🎨</div>
+                <h3 style="margin: 0; font-size: 1.2rem; color: var(--text-primary);">Color Picker</h3>
+                <p style="margin: 0; color: var(--text-muted); font-size: 0.9rem;">Pick colors from a visual wheel.</p>
+            </div>
+        </a>
+        
+        <a href="_components/gradient.html" style="text-decoration: none; color: inherit;">
+            <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; height: 100%; display: flex; flex-direction: column; gap: 10px;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 10px 25px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='none'; this.style.boxShadow='none';">
+                <div style="font-size: 2rem;">🌊</div>
+                <h3 style="margin: 0; font-size: 1.2rem; color: var(--text-primary);">Gradient Generator</h3>
+                <p style="margin: 0; color: var(--text-muted); font-size: 0.9rem;">Generate beautiful CSS gradients.</p>
+            </div>
+        </a>
+        
+        <a href="_components/palette.html" style="text-decoration: none; color: inherit;">
+            <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; height: 100%; display: flex; flex-direction: column; gap: 10px;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 10px 25px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='none'; this.style.boxShadow='none';">
+                <div style="font-size: 2rem;">🎨</div>
+                <h3 style="margin: 0; font-size: 1.2rem; color: var(--text-primary);">Palette Generator</h3>
+                <p style="margin: 0; color: var(--text-muted); font-size: 0.9rem;">Extract cohesive palettes from images.</p>
+            </div>
+        </a>
+        
+        <a href="_components/mediaworks-color-contrast-checker.html" style="text-decoration: none; color: inherit;">
+            <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; height: 100%; display: flex; flex-direction: column; gap: 10px;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 10px 25px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='none'; this.style.boxShadow='none';">
+                <div style="font-size: 2rem;">👁️</div>
+                <h3 style="margin: 0; font-size: 1.2rem; color: var(--text-primary);">Contrast Checker</h3>
+                <p style="margin: 0; color: var(--text-muted); font-size: 0.9rem;">Check WCAG accessibility color contrast.</p>
+            </div>
+        </a>
+        
+        <a href="_components/svg.html" style="text-decoration: none; color: inherit;">
+            <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; height: 100%; display: flex; flex-direction: column; gap: 10px;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 10px 25px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='none'; this.style.boxShadow='none';">
+                <div style="font-size: 2rem;">⚡</div>
+                <h3 style="margin: 0; font-size: 1.2rem; color: var(--text-primary);">SVG Optimizer</h3>
+                <p style="margin: 0; color: var(--text-muted); font-size: 0.9rem;">Optimize and compress SVG code.</p>
+            </div>
+        </a>
+        
+        <a href="_components/mediaworks-favicon-generator.html" style="text-decoration: none; color: inherit;">
+            <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; height: 100%; display: flex; flex-direction: column; gap: 10px;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 10px 25px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='none'; this.style.boxShadow='none';">
+                <div style="font-size: 2rem;">🔖</div>
+                <h3 style="margin: 0; font-size: 1.2rem; color: var(--text-primary);">Favicon Generator</h3>
+                <p style="margin: 0; color: var(--text-muted); font-size: 0.9rem;">Generate favicons for your website.</p>
+            </div>
+        </a>
+        
+        <a href="_components/mediaworks-ico-generator.html" style="text-decoration: none; color: inherit;">
+            <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; height: 100%; display: flex; flex-direction: column; gap: 10px;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 10px 25px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='none'; this.style.boxShadow='none';">
+                <div style="font-size: 2rem;">🖼️</div>
+                <h3 style="margin: 0; font-size: 1.2rem; color: var(--text-primary);">ICO Generator</h3>
+                <p style="margin: 0; color: var(--text-muted); font-size: 0.9rem;">Convert images to Windows .ico format.</p>
+            </div>
+        </a>
+        
+    </div>
+
+</div>
+</div>
+</div>
+</body>
+</html>

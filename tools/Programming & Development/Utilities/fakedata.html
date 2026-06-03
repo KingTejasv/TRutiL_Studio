@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Fake Data Generator — Totil Studio</title>
+<link href="../../../style.css" rel="stylesheet"/>
+
+<link href="../../../custom-tools.css" rel="stylesheet"/>
+    <script src="../../../theme.js"></script>
+</head>
+<body>
+<div class="app-layout" id="app-layout">
+<div class="main-content">
+<div class="page-content"><div id="tool-fakedata">
+<div class="app-header">
+<div class="app-icon" style="background:linear-gradient(135deg, #8B5CF6, #6D28D9)">FD</div>
+<div>
+<h1>Fake Data Generator</h1>
+<p>Generate realistic mock data for testing and development</p>
+</div>
+</div>
+<div class="layout-grid">
+<div class="card">
+<h2 style="margin-top:0; margin-bottom: 1rem;">Configuration</h2>
+<div class="form-group">
+<label class="form-label" for="num-rows">Number of Rows (1-100)</label>
+<input class="form-input" id="num-rows" max="100" min="1" type="number" value="10"/>
+</div>
+<div class="form-group">
+<label class="form-label">Fields</label>
+<div id="fields-container"></div>
+<button class="btn btn-ghost" id="add-field-btn" style="margin-top: 0.5rem; width: 100%;" type="button">+ Add Field</button>
+</div>
+<div class="controls">
+<button class="btn btn-primary" id="generate-btn" type="button">Generate Data</button>
+</div>
+</div>
+<div class="card">
+<h2 style="margin-top:0; margin-bottom: 1rem;">Output</h2>
+<div class="output-toolbar">
+<button class="btn btn-ghost" id="copy-btn" type="button">Copy</button>
+<button class="btn btn-ghost" id="export-json-btn" type="button">Export JSON</button>
+<button class="btn btn-ghost" id="export-csv-btn" type="button">Export CSV</button>
+</div>
+<textarea class="output-area form-input" id="output-area" placeholder="Generated data will appear here..." readonly=""></textarea>
+</div>
+</div>
+</div></div>
+</div>
+</div>
+<script>
+  const firstNames = ["James", "Mary", "John", "Patricia", "Robert", "Jennifer", "Michael", "Linda", "William", "Elizabeth", "David", "Barbara", "Richard", "Susan", "Joseph", "Jessica", "Thomas", "Sarah", "Charles", "Karen", "Christopher", "Lisa", "Daniel", "Nancy", "Paul", "Betty", "Mark", "Margaret", "Donald", "Sandra"];
+  const lastNames = ["Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Rodriguez", "Martinez", "Hernandez", "Lopez", "Gonzalez", "Wilson", "Anderson", "Thomas", "Taylor", "Moore", "Jackson", "Martin", "Lee", "Perez", "Thompson", "White", "Harris", "Sanchez", "Clark", "Ramirez", "Lewis", "Robinson"];
+  const domains = ["gmail.com", "yahoo.com", "hotmail.com", "outlook.com", "example.com", "test.org", "company.net", "mail.com"];
+  const streetNames = ["Main St", "High St", "Park Ave", "Oak Ln", "Pine St", "Maple Dr", "Cedar Ct", "Elm St", "Washington Blvd", "Lake St", "Hillcrest Rd", "Sunset Blvd", "Broadway", "Market St", "Valley Rd"];
+  const cities = ["New York", "Los Angeles", "Chicago", "Houston", "Phoenix", "Philadelphia", "San Antonio", "San Diego", "Dallas", "San Jose", "Austin", "Jacksonville", "Fort Worth", "Columbus", "San Francisco"];
+
+  function randomChoice(arr) {
+    return arr[Math.floor(Math.random() * arr.length)];
+  }
+
+  function randomInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  const generators = {
+    Name: () => `${randomChoice(firstNames)} ${randomChoice(lastNames)}`,
+    Email: () => `${randomChoice(firstNames).toLowerCase()}${randomInt(1, 999)}@${randomChoice(domains)}`,
+    Address: () => `${randomInt(1, 9999)} ${randomChoice(streetNames)}, ${randomChoice(cities)}`,
+    Phone: () => `+1-${randomInt(200, 999)}-${randomInt(200, 999)}-${randomInt(1000, 9999)}`,
+    UUID: () => {
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        const r = Math.random() * 16 | 0;
+        const v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+      });
+    },
+    Date: () => {
+      const start = new Date(2015, 0, 1).getTime();
+      const end = new Date().getTime();
+      return new Date(start + Math.random() * (end - start)).toISOString().split('T')[0];
+    },
+    Number: () => randomInt(0, 1000),
+    Boolean: () => Math.random() > 0.5
+  };
+
+  const types = Object.keys(generators);
+  let currentData = [];
+
+  const fieldsContainer = document.getElementById("fields-container");
+  const addFieldBtn = document.getElementById("add-field-btn");
+  const generateBtn = document.getElementById("generate-btn");
+  const copyBtn = document.getElementById("copy-btn");
+  const exportJsonBtn = document.getElementById("export-json-btn");
+  const exportCsvBtn = document.getElementById("export-csv-btn");
+  const outputArea = document.getElementById("output-area");
+  const numRowsInput = document.getElementById("num-rows");
+
+  function createFieldRow(name = "", type = "Name") {
+    const row = document.createElement("div");
+    row.className = "field-row";
+    
+    const nameGroup = document.createElement("div");
+    nameGroup.className = "form-group";
+    
+    const nameInput = document.createElement("input");
+    nameInput.type = "text";
+    nameInput.className = "form-input field-name";
+    nameInput.value = name;
+    nameInput.placeholder = "Field Name (e.g. user_id)";
+    nameGroup.appendChild(nameInput);
+    
+    const typeGroup = document.createElement("div");
+    typeGroup.className = "form-group";
+    
+    const typeSelect = document.createElement("select");
+    typeSelect.className = "form-select field-type";
+    types.forEach(t => {
+      const opt = document.createElement("option");
+      opt.value = t;
+      opt.textContent = t;
+      if (t === type) opt.selected = true;
+      typeSelect.appendChild(opt);
+    });
+    typeGroup.appendChild(typeSelect);
+    
+    const removeBtn = document.createElement("button");
+    removeBtn.className = "remove-btn";
+    removeBtn.innerHTML = "&times;";
+    removeBtn.title = "Remove field";
+    removeBtn.onclick = () => row.remove();
+    
+    row.appendChild(nameGroup);
+    row.appendChild(typeGroup);
+    row.appendChild(removeBtn);
+    
+    fieldsContainer.appendChild(row);
+  }
+
+  createFieldRow("id", "UUID");
+  createFieldRow("full_name", "Name");
+  createFieldRow("email", "Email");
+  createFieldRow("address", "Address");
+  createFieldRow("created_at", "Date");
+
+  addFieldBtn.addEventListener("click", () => {
+    createFieldRow("", "Name");
+  });
+
+  generateBtn.addEventListener("click", () => {
+    const rows = parseInt(numRowsInput.value) || 10;
+    const boundedRows = Math.max(1, Math.min(100, rows));
+    numRowsInput.value = boundedRows;
+
+    const fieldElements = Array.from(fieldsContainer.querySelectorAll('.field-row'));
+    const config = fieldElements.map(row => {
+      const name = row.querySelector('.field-name').value.trim();
+      const type = row.querySelector('.field-type').value;
+      return { name, type };
+    }).filter(f => f.name !== "");
+
+    if (config.length === 0) {
+      alert("Please add at least one field with a name.");
+      return;
+    }
+
+    currentData = [];
+    for (let i = 0; i < boundedRows; i++) {
+      const rowObj = {};
+      config.forEach(field => {
+        rowObj[field.name] = generators[field.type]();
+      });
+      currentData.push(rowObj);
+    }
+
+    renderJSON();
+  });
+
+  function renderJSON() {
+    if (currentData.length === 0) return;
+    outputArea.value = JSON.stringify(currentData, null, 2);
+  }
+
+  function getCSV() {
+    if (currentData.length === 0) return "";
+    const headers = Object.keys(currentData[0]);
+    const csvRows = [];
+    
+    csvRows.push(headers.map(escapeCSV).join(','));
+    
+    for (const row of currentData) {
+      csvRows.push(headers.map(h => escapeCSV(row[h])).join(','));
+    }
+    
+    return csvRows.join('\n');
+  }
+
+  function escapeCSV(val) {
+    if (val === null || val === undefined) return '""';
+    const str = String(val);
+    if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+      return `"${str.replace(/"/g, '""')}"`;
+    }
+    return str;
+  }
+
+  copyBtn.addEventListener("click", () => {
+    if (!outputArea.value) return;
+    navigator.clipboard.writeText(outputArea.value).then(() => {
+      const origText = copyBtn.textContent;
+      copyBtn.textContent = "Copied!";
+      setTimeout(() => copyBtn.textContent = origText, 2000);
+    });
+  });
+
+  exportJsonBtn.addEventListener("click", () => {
+    if (currentData.length === 0) return;
+    const blob = new Blob([JSON.stringify(currentData, null, 2)], { type: "application/json" });
+    downloadBlob(blob, "fake_data.json");
+  });
+
+  exportCsvBtn.addEventListener("click", () => {
+    if (currentData.length === 0) return;
+    const csv = getCSV();
+    const blob = new Blob([csv], { type: "text/csv" });
+    downloadBlob(blob, "fake_data.csv");
+  });
+
+  function downloadBlob(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  setTimeout(() => generateBtn.click(), 100);
+</script>
+</body>
+</html>

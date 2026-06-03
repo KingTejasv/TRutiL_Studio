@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Image Converter — Totil Studio</title>
+<meta content="Convert images between PNG, JPG, WEBP, GIF, and BMP formats client-side." name="description"/>
+<link href="../../../../style.css" rel="stylesheet"/>
+<link href="../../../../custom-tools.css" rel="stylesheet"/>
+<script src="../../../../theme.js"></script>
+</head>
+<body>
+<div class="app-layout" id="app-layout">
+<div class="main-content">
+<div class="page-content"><div id="tool-image">
+<div class="app-header">
+<div class="app-icon" style="background:linear-gradient(135deg, #3b82f6, #1d4ed8);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:24px;">⚙️</div>
+<div>
+<h1>Image Format Converter</h1>
+<p>Convert images client-side — no upload to servers</p>
+</div>
+</div>
+<div class="img-layout">
+<!-- LEFT: Upload & Files -->
+<div>
+<div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+<div class="drop-icon">📂</div>
+<h3>Drop images here</h3>
+<p>or click to browse — PNG, JPG, WEBP, GIF, BMP</p>
+<input accept="image/*" id="fileInput" multiple="" onchange="addFiles(this.files)" style="display:none" type="file"/>
+</div>
+<div class="file-list" id="fileList"></div>
+<div style="margin-top:16px; display:flex; gap:8px; flex-wrap:wrap;">
+<button class="btn btn-primary btn-sm" onclick="convertAll()">⚡ Convert All</button>
+<button class="btn btn-outline btn-sm btn-primary" onclick="downloadAll()">⬇️ Download All</button>
+<button class="btn btn-outline btn-sm btn-primary" onclick="clearAll()">🗑️ Clear</button>
+</div>
+</div>
+<!-- RIGHT: Options -->
+<div class="options-panel">
+<h2 style="font-size:15px; font-weight:700; margin-bottom:16px;">Conversion Options</h2>
+<div class="form-group">
+<label class="form-label">Output Format</label>
+<select class="form-select form-input" id="outputFormat">
+<optgroup label="Lossy">
+<option selected="" value="image/jpeg">JPG / JPEG — Compressed</option>
+<option value="image/webp">WebP — Modern Lossy</option>
+<option value="image/avif">AVIF — Next-gen (best size)</option>
+</optgroup>
+<optgroup label="Lossless">
+<option value="image/png">PNG — Lossless transparent</option>
+</optgroup>
+<optgroup label="Other">
+<option value="image/gif">GIF — Animated support</option>
+<option value="image/bmp">BMP — Uncompressed</option>
+<option value="image/tiff">TIFF — Print quality</option>
+</optgroup>
+</select>
+</div>
+<div class="form-group">
+<label class="form-label">Image Effects</label>
+<select class="form-select form-input" id="imgEffect">
+<option value="none">None</option>
+<option value="grayscale">Grayscale</option>
+<option value="sepia">Sepia</option>
+<option value="invert">Invert Colors</option>
+<option value="blur">Blur (2px)</option>
+<option value="sharpen">Sharpen</option>
+</select>
+</div>
+<div class="form-group">
+<label class="form-label" style="display:flex;justify-content:space-between">Brightness <span id="brightVal">100%</span></label>
+<input id="brightness" max="200" min="10" oninput="document.getElementById('brightVal').textContent=this.value+'%'" type="range" value="100"/>
+</div>
+<div class="form-group">
+<label class="form-label" style="display:flex;justify-content:space-between">Contrast <span id="contrastVal">100%</span></label>
+<input id="contrast" max="200" min="10" oninput="document.getElementById('contrastVal').textContent=this.value+'%'" type="range" value="100"/>
+</div>
+<div class="form-group">
+<label class="form-label" style="display:flex;justify-content:space-between">Saturation <span id="satVal">100%</span></label>
+<input id="saturation" max="300" min="0" oninput="document.getElementById('satVal').textContent=this.value+'%'" type="range" value="100"/>
+</div>
+<div class="form-group">
+<label class="form-label">
+<div class="quality-label">
+<span>Quality</span>
+<span id="qualityVal">85%</span>
+</div>
+</label>
+<input id="quality" max="100" min="1" oninput="document.getElementById('qualityVal').textContent=this.value+'%'" type="range" value="85"/>
+</div>
+<div class="form-group">
+<label class="form-label">Resize (optional)</label>
+<div style="display:grid; grid-template-columns:1fr auto 1fr; gap:8px; align-items:center;">
+<input class="form-input" id="resizeW" placeholder="Width" type="number"/>
+<span style="color:var(--text-muted); font-size:18px;">×</span>
+<input class="form-input" id="resizeH" placeholder="Height" type="number"/>
+</div>
+<div style="margin-top:8px; display:flex; align-items:center; gap:8px;">
+<input checked="" id="aspectRatio" style="accent-color:var(--accent-primary); width: 100%; max-width: 14px; height:14px" type="checkbox"/>
+<label for="aspectRatio" style="font-size:12px; color:var(--text-muted);">Maintain aspect ratio</label>
+</div>
+</div>
+<div style="background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-sm); padding:14px; margin-top:8px;">
+<div style="font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.8px; margin-bottom:8px;">Output Preview</div>
+<div id="previewArea" style="color:var(--text-muted); font-size:13px;">Upload and convert an image to see preview</div>
+</div>
+</div>
+</div>
+</div></div>
+</div>
+</div>
+<script>
+  let files = [];
+  let convertedBlobs = {};
+
+  const dropZone = document.getElementById('dropZone');
+
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+    addFiles(e.dataTransfer.files);
+  });
+
+  function addFiles(newFiles) {
+    Array.from(newFiles).forEach(f => {
+      if (!f.type.startsWith('image/')) return;
+      const id = Date.now() + Math.random();
+      files.push({ id, file: f, status: 'pending' });
+    });
+    renderFileList();
+  }
+
+  function renderFileList() {
+    const el = document.getElementById('fileList');
+    if (!files.length) { el.innerHTML = ''; return; }
+    el.innerHTML = files.map(f => `
+      <div class="file-item" id="fi-${f.id}">
+        <img class="file-thumb" id="thumb-${f.id}" src="" alt="">
+        <div class="file-info">
+          <div class="fi-name">${f.file.name}</div>
+          <div class="fi-meta">${(f.file.size/1024).toFixed(1)} KB · ${f.file.type.split('/')[1].toUpperCase()}</div>
+          <div id="status-${f.id}" style="font-size:11px; margin-top:4px; color:var(--text-muted);">Pending</div>
+        </div>
+        <div class="file-actions">
+          <button class="convert-btn" onclick="convertFile('${f.id}')">Convert</button>
+          <a class="dl-btn" id="dl-${f.id}" download>⬇</a>
+        </div>
+      </div>
+    `).join('');
+
+    // Load thumbnails
+    files.forEach(f => {
+      const reader = new FileReader();
+      reader.onload = e => {
+        const img = document.getElementById('thumb-' + f.id);
+        if (img) img.src = e.target.result;
+      };
+      reader.readAsDataURL(f.file);
+    });
+  }
+
+  // Formats that canvas.toBlob cannot produce natively in browsers
+  const UNSUPPORTED_FORMATS = new Set(['image/gif', 'image/bmp', 'image/tiff']);
+
+  function buildFilterString() {
+    const effect = document.getElementById('imgEffect').value;
+    const brightness = document.getElementById('brightness').value;
+    const contrast = document.getElementById('contrast').value;
+    const saturation = document.getElementById('saturation').value;
+
+    let filters = [];
+
+    // Brightness / contrast / saturation (only add if non-default)
+    if (brightness !== '100') filters.push(`brightness(${brightness}%)`);
+    if (contrast !== '100') filters.push(`contrast(${contrast}%)`);
+    if (saturation !== '100') filters.push(`saturate(${saturation}%)`);
+
+    // Named effects
+    switch (effect) {
+      case 'grayscale': filters.push('grayscale(100%)'); break;
+      case 'sepia':     filters.push('sepia(100%)');     break;
+      case 'invert':    filters.push('invert(100%)');    break;
+      case 'blur':      filters.push('blur(2px)');        break;
+      // 'sharpen' is not a CSS filter — skip silently
+    }
+
+    return filters.length ? filters.join(' ') : 'none';
+  }
+
+  function convertFile(id) {
+    const entry = files.find(f => f.id == id);
+    if (!entry) return;
+    const format = document.getElementById('outputFormat').value;
+    const quality = document.getElementById('quality').value / 100;
+    const resW = parseInt(document.getElementById('resizeW').value) || 0;
+    const resH = parseInt(document.getElementById('resizeH').value) || 0;
+    const keepAR = document.getElementById('aspectRatio').checked;
+
+    const statusEl = document.getElementById('status-' + id);
+
+    // Bug fix 5: Reject formats unsupported by canvas.toBlob
+    if (UNSUPPORTED_FORMATS.has(format)) {
+      const fmtName = format.split('/')[1].toUpperCase();
+      statusEl.textContent = `⚠️ ${fmtName} is not supported by browser. Try JPEG, PNG, or WebP.`;
+      statusEl.style.color = '#ef4444';
+      return;
+    }
+
+    statusEl.textContent = 'Converting...';
+    statusEl.style.color = 'var(--accent-secondary)';
+
+    const img = new Image();
+    img.onload = () => {
+      let w = img.width, h = img.height;
+      if (resW && resH && !keepAR) { w = resW; h = resH; }
+      else if (resW && keepAR) { h = Math.round(resW * img.height / img.width); w = resW; }
+      else if (resH && keepAR) { w = Math.round(resH * img.width / img.height); h = resH; }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext('2d');
+
+      // White background for opaque formats
+      if (format === 'image/jpeg') {
+        ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, w, h);
+      }
+
+      // Bug fix 1 & 2: Apply effect + brightness/contrast/saturation via CSS filter
+      const filterStr = buildFilterString();
+      ctx.filter = filterStr;
+
+      ctx.drawImage(img, 0, 0, w, h);
+
+      // Reset filter so it doesn't bleed into future draws
+      ctx.filter = 'none';
+
+      canvas.toBlob(blob => {
+        if (!blob) {
+          statusEl.textContent = '❌ Conversion failed — format may not be supported.';
+          statusEl.style.color = '#ef4444';
+          return;
+        }
+        const url = URL.createObjectURL(blob);
+        const ext = format.split('/')[1];
+        const dl = document.getElementById('dl-' + id);
+        dl.href = url;
+        dl.download = entry.file.name.replace(/\.[^.]+$/, '') + '.' + ext;
+        dl.style.display = 'inline-block';
+        convertedBlobs[id] = { url, blob, name: dl.download };
+
+        statusEl.textContent = `✅ Done · ${(blob.size/1024).toFixed(1)} KB → ${ext.toUpperCase()}`;
+        statusEl.style.color = 'var(--accent-green)';
+
+        // Bug fix 4: Always update preview for the most recently converted image
+        const previewArea = document.getElementById('previewArea');
+        previewArea.innerHTML = `
+          <div class="preview-grid">
+            <div class="preview-item">
+              <div class="preview-label">Original</div>
+              <img src="${document.getElementById('thumb-'+id).src}" />
+            </div>
+            <div class="preview-item">
+              <div class="preview-label">Converted (${ext.toUpperCase()})</div>
+              <img src="${url}" />
+            </div>
+          </div>`;
+      }, format, quality);
+    };
+
+    const reader = new FileReader();
+    reader.onload = e => { img.src = e.target.result; };
+    reader.readAsDataURL(entry.file);
+  }
+
+  function convertAll() {
+    files.forEach(f => convertFile(f.id));
+  }
+
+  function downloadAll() {
+    Object.values(convertedBlobs).forEach(({ url, name }) => {
+      const a = document.createElement('a');
+      a.href = url; a.download = name;
+      a.click();
+    });
+  }
+
+  function clearAll() {
+    files = []; convertedBlobs = {};
+    document.getElementById('fileList').innerHTML = '';
+    document.getElementById('previewArea').innerHTML = 'Upload and convert an image to see preview';
+  }
+</script>
+</body>
+</html>

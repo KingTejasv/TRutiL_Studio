@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Moz Rank Checker - SearchOps</title>
+
+<link href="../../../style.css" rel="stylesheet"/><link href="../../../custom-tools.css" rel="stylesheet"/>
+    <script src="../../../theme.js"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-searchops-moz-rank-checker">
+<div class="tool-layout-container">
+<div class="app-header">
+<h1>📈 Moz Rank Checker</h1>
+<p>Analyze Domain Authority and Page Authority (Simulated Estimate)</p>
+</div>
+<div class="card">
+<div class="input-group">
+<label>Domain or URL</label>
+<input class="form-input" id="url" placeholder="example.com" type="text"/>
+</div>
+<button class="btn btn-primary" onclick="checkRank()">📈 Analyze Domain</button>
+</div>
+<div class="metrics-grid" id="results">
+<div class="metric-card">
+<h3>Domain Authority</h3>
+<svg height="120" viewbox="0 0 100 100" width="120">
+<circle cx="50" cy="50" fill="none" r="45" stroke="var(--bg-card)" stroke-width="10"></circle>
+<circle cx="50" cy="50" fill="none" id="da-circle" r="45" stroke="var(--accent)" stroke-dasharray="283" stroke-dashoffset="283" stroke-width="10" style="transition: stroke-dashoffset 1s ease-out;" transform="rotate(-90 50 50)"></circle>
+<text fill="var(--text-primary)" font-size="24" font-weight="bold" id="da" text-anchor="middle" x="50" y="58">0</text>
+</svg>
+</div>
+<div class="metric-card">
+<h3>Page Authority</h3>
+<svg height="120" viewbox="0 0 100 100" width="120">
+<circle cx="50" cy="50" fill="none" r="45" stroke="var(--bg-card)" stroke-width="10"></circle>
+<circle cx="50" cy="50" fill="none" id="pa-circle" r="45" stroke="var(--accent)" stroke-dasharray="283" stroke-dashoffset="283" stroke-width="10" style="transition: stroke-dashoffset 1s ease-out;" transform="rotate(-90 50 50)"></circle>
+<text fill="var(--text-primary)" font-size="24" font-weight="bold" id="pa" text-anchor="middle" x="50" y="58">0</text>
+</svg>
+</div>
+<div class="metric-card">
+<h3>Total Backlinks</h3>
+<div class="stat-text" id="links">0</div>
+</div>
+<div class="metric-card">
+<h3>Spam Score</h3>
+<div class="stat-text" id="spam" style="color: #F59E0B;">0%</div>
+</div>
+</div>
+</div>
+<script>
+function checkRank() {
+    let url = document.getElementById('url').value;
+    if(!url) return;
+    
+    document.getElementById('results').style.display = 'grid';
+    
+    // Deterministic simulation
+    let hash = 0;
+    for(let i=0; i<url.length; i++) hash = ((hash << 5) - hash) + url.charCodeAt(i);
+    let s = Math.abs(hash) + 1;
+    function rand() { s = Math.sin(s) * 10000; return s - Math.floor(s); }
+    
+    let da = Math.floor(rand() * 70) + 20;
+    let pa = Math.floor(rand() * 70) + 10;
+    let links = Math.floor(rand() * 50000) + 500;
+    let spam = Math.floor(rand() * 15);
+    
+    document.getElementById('da').textContent = da;
+    document.getElementById('pa').textContent = pa;
+    document.getElementById('links').textContent = links.toLocaleString();
+    document.getElementById('spam').textContent = spam + '%';
+    
+    setTimeout(() => {
+        setCircle('da-circle', da);
+        setCircle('pa-circle', pa);
+    }, 100);
+}
+function setCircle(id, val) {
+    const circle = document.getElementById(id);
+    const offset = 283 - (283 * val) / 100;
+    circle.style.strokeDashoffset = offset;
+}
+</script>
+</div></div></div></div></body>
+</html>

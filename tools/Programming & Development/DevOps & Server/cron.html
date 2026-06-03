@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Cron Builder — Totil Studio</title>
+<link href="../../../style.css" rel="stylesheet"/>
+<link href="../../../custom-tools.css" rel="stylesheet"/>
+<script src="../../../theme.js"></script>
+</head>
+<body>
+<div class="app-layout" id="app-layout">
+<div class="main-content">
+<div class="page-content"><div id="tool-cron">
+<div class="app-header">
+<div class="app-icon" style="background:linear-gradient(135deg, #3b82f6, #1d4ed8);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:24px;">⚙️</div>
+<div>
+<h1>Cron Builder</h1>
+<p>Easily build, edit, and translate cron schedules</p>
+</div>
+</div>
+<div class="form-group" style="margin-bottom: 2rem;">
+<label class="form-label">Quick Presets</label>
+<select class="form-select form-input" id="preset" style="max-width: 400px;">
+<option value="custom">-- Custom --</option>
+<option value="* * * * *">Every minute (* * * * *)</option>
+<option value="*/5 * * * *">Every 5 minutes (*/5 * * * *)</option>
+<option value="0 * * * *">Every hour (0 * * * *)</option>
+<option value="0 0 * * *">Every day at midnight (0 0 * * *)</option>
+<option value="0 12 * * ?">Every day at noon (0 12 * * ?)</option>
+<option value="0 9 * * 1-5">Every weekday at 9:00 AM (0 9 * * 1-5)</option>
+<option value="0 0 1 * *">First day of every month (0 0 1 * *)</option>
+</select>
+</div>
+<div class="panel">
+<div class="cron-grid">
+<div class="form-group" style="margin: 0;">
+<label class="form-label">Minute</label>
+<input class="form-input" id="minute" type="text" value="0"/>
+<div class="cron-hint">0-59, *, */5</div>
+</div>
+<div class="form-group" style="margin: 0;">
+<label class="form-label">Hour</label>
+<input class="form-input" id="hour" type="text" value="12"/>
+<div class="cron-hint">0-23, *, */2</div>
+</div>
+<div class="form-group" style="margin: 0;">
+<label class="form-label">Day of Month</label>
+<input class="form-input" id="dom" type="text" value="*"/>
+<div class="cron-hint">1-31, *, ?</div>
+</div>
+<div class="form-group" style="margin: 0;">
+<label class="form-label">Month</label>
+<input class="form-input" id="month" type="text" value="*"/>
+<div class="cron-hint">1-12, *, JAN-DEC</div>
+</div>
+<div class="form-group" style="margin: 0;">
+<label class="form-label">Day of Week</label>
+<input class="form-input" id="dow" type="text" value="?"/>
+<div class="cron-hint">0-6, *, ?, SUN-SAT</div>
+</div>
+</div>
+</div>
+<div class="form-group" style="margin-bottom: 2rem;">
+<label class="form-label">Generated Cron Expression</label>
+<div style="display: flex; gap: 1rem;">
+<input class="form-input" id="cron-expression" type="text"/>
+<button class="btn btn-primary copy-btn" id="copy-btn">Copy</button>
+</div>
+</div>
+<div class="form-group">
+<label class="form-label">Schedule Explanation</label>
+<div id="explanation"></div>
+</div>
+<div class="form-group" style="margin-top: 2rem;">
+<label class="form-label">Next 5 Executions</label>
+<ul id="next-executions" style="background:var(--bg-elevated); padding:1.5rem 2.5rem; border-radius:12px; font-family:monospace; color:var(--text-primary); margin:0;"></ul>
+</div>
+</div></div>
+</div>
+</div>
+<script>
+  const minuteEl = document.getElementById('minute');
+  const hourEl = document.getElementById('hour');
+  const domEl = document.getElementById('dom');
+  const monthEl = document.getElementById('month');
+  const dowEl = document.getElementById('dow');
+  const expressionEl = document.getElementById('cron-expression');
+  const explanationEl = document.getElementById('explanation');
+  const presetEl = document.getElementById('preset');
+  const copyBtn = document.getElementById('copy-btn');
+
+  function parseField(val, names) {
+    if (val === '*' || val === '?') return 'every';
+    if (val.startsWith('*/')) return `every ${val.slice(2)}`;
+    if (val.includes('-')) {
+      let [start, end] = val.split('-');
+      let s = names ? (names[start.toUpperCase()] || start) : start;
+      let e = names ? (names[end.toUpperCase()] || end) : end;
+      return `from ${s} to ${e}`;
+    }
+    if (val.includes(',')) {
+      return val.split(',').map(v => {
+        let uv = v.toUpperCase();
+        return names ? (names[uv] || v) : v;
+      }).join(', ');
+    }
+    let uval = val.toUpperCase();
+    return names ? (names[uval] || val) : val;
+  }
+
+  function describeCron(m, h, dom, mon, dow) {
+    const days = {
+      '0': 'Sunday', '1': 'Monday', '2': 'Tuesday', '3': 'Wednesday', '4': 'Thursday', '5': 'Friday', '6': 'Saturday', '7': 'Sunday',
+      'SUN': 'Sunday', 'MON': 'Monday', 'TUE': 'Tuesday', 'WED': 'Wednesday', 'THU': 'Thursday', 'FRI': 'Friday', 'SAT': 'Saturday'
+    };
+    
+    const months = {
+      '1': 'January', '2': 'February', '3': 'March', '4': 'April', '5': 'May', '6': 'June', '7': 'July', '8': 'August', '9': 'September', '10': 'October', '11': 'November', '12': 'December',
+      'JAN': 'January', 'FEB': 'February', 'MAR': 'March', 'APR': 'April', 'MAY': 'May', 'JUN': 'June', 'JUL': 'July', 'AUG': 'August', 'SEP': 'September', 'OCT': 'October', 'NOV': 'November', 'DEC': 'December'
+    };
+
+    let timeDesc = '';
+    let isSpecificMinute = /^\d+$/.test(m);
+    let isSpecificHour = /^\d+$/.test(h);
+
+    if (m === '*' && h === '*') timeDesc = 'Every minute';
+    else if (m === '0' && h === '*') timeDesc = 'Every hour';
+    else if (isSpecificMinute && isSpecificHour) {
+      let hh = parseInt(h);
+      let mm = parseInt(m);
+      let ampm = hh >= 12 ? 'PM' : 'AM';
+      let h12 = hh % 12 || 12;
+      let mpad = mm.toString().padStart(2, '0');
+      timeDesc = `At ${h12}:${mpad} ${ampm}`;
+    } else {
+      if (m === '*') timeDesc = 'Every minute';
+      else if (m.startsWith('*/')) timeDesc = `Every ${m.slice(2)} minutes`;
+      else timeDesc = `At minute ${m}`;
+
+      if (h === '*') { /* nothing */ }
+      else if (h.startsWith('*/')) timeDesc += ` past every ${h.slice(2)} hours`;
+      else timeDesc += ` past hour ${h}`;
+    }
+
+    let dateDesc = '';
+    let hasDom = dom !== '*' && dom !== '?';
+    let hasDow = dow !== '*' && dow !== '?';
+    let hasMon = mon !== '*' && mon !== '?';
+
+    if (hasDom) {
+      let d = parseField(dom);
+      dateDesc += d.startsWith('every ') ? ` on ${d} days of the month` : ` on day ${d} of the month`;
+    }
+
+    if (hasMon) {
+      let mDesc = parseField(mon, months);
+      dateDesc += mDesc.startsWith('every ') ? ` in ${mDesc} months` : ` in ${mDesc}`;
+    }
+
+    if (hasDow) {
+      let dDesc = parseField(dow, days);
+      if (dDesc.startsWith('from ')) {
+        dateDesc += (hasDom || hasMon ? ` and ` : ` `) + dDesc;
+      } else {
+        dateDesc += (hasDom || hasMon ? ` and on ` : ` on `) + dDesc;
+      }
+    }
+
+    if (!hasDom && !hasDow && timeDesc.startsWith('At ')) {
+      dateDesc = ' every day' + dateDesc;
+    }
+
+    let result = timeDesc + dateDesc;
+    return result.charAt(0).toUpperCase() + result.slice(1);
+  }
+
+  function validateField(el, val, min, max, namesMap) {
+    let valid = true;
+    if (val !== '*' && val !== '?') {
+      let parts = val.split(',');
+      for (let p of parts) {
+        if (p.startsWith('*/')) {
+          let step = parseInt(p.slice(2));
+          if (isNaN(step) || step < 1 || step > max) valid = false;
+        } else if (p.includes('-')) {
+          let [s, e] = p.split('-');
+          let sVal = namesMap ? (namesMap[s.toUpperCase()] || s) : s;
+          let eVal = namesMap ? (namesMap[e.toUpperCase()] || e) : e;
+          if (isNaN(parseInt(sVal)) || isNaN(parseInt(eVal)) || parseInt(sVal) < min || parseInt(eVal) > max) valid = false;
+        } else {
+          let pVal = namesMap ? (namesMap[p.toUpperCase()] || p) : p;
+          if (isNaN(parseInt(pVal)) || parseInt(pVal) < min || parseInt(pVal) > max) valid = false;
+        }
+      }
+    }
+    if (!valid) el.classList.add('invalid-field');
+    else el.classList.remove('invalid-field');
+    return valid;
+  }
+
+  function matchCronField(val, currentVal, namesMap) {
+    if(val === '*' || val === '?') return true;
+    if(val.includes(',')){
+      return val.split(',').some(v => matchCronField(v, currentVal, namesMap));
+    }
+    if(val.includes('-')){
+      let [start, end] = val.split('-');
+      let s = namesMap ? (namesMap[start.toUpperCase()] || start) : start;
+      let e = namesMap ? (namesMap[end.toUpperCase()] || end) : end;
+      return currentVal >= parseInt(s) && currentVal <= parseInt(e);
+    }
+    if(val.startsWith('*/')){
+      let step = parseInt(val.slice(2));
+      return currentVal % step === 0;
+    }
+    let uval = val.toUpperCase();
+    let parsed = namesMap ? (namesMap[uval] || uval) : uval;
+    return currentVal === parseInt(parsed);
+  }
+
+  function generateNextExecutions(parts) {
+    const nextList = document.getElementById('next-executions');
+    nextList.innerHTML = '';
+    const daysMap = {'SUN':0, 'MON':1, 'TUE':2, 'WED':3, 'THU':4, 'FRI':5, 'SAT':6, '7':0};
+    const monthsMap = {'JAN':1, 'FEB':2, 'MAR':3, 'APR':4, 'MAY':5, 'JUN':6, 'JUL':7, 'AUG':8, 'SEP':9, 'OCT':10, 'NOV':11, 'DEC':12};
+    
+    let m = parts[0], h = parts[1], dom = parts[2], mon = parts[3], dow = parts[4];
+    let results = [];
+    let d = new Date();
+    d.setSeconds(0);
+    d.setMilliseconds(0);
+    d.setMinutes(d.getMinutes() + 1);
+    
+    let iterations = 0;
+    while(results.length < 5 && iterations < 50000) { // Limit iterations
+      iterations++;
+      let curM = d.getMinutes();
+      let curH = d.getHours();
+      let curDom = d.getDate();
+      let curMon = d.getMonth() + 1;
+      let curDow = d.getDay();
+      
+      let matchM = matchCronField(m, curM, null);
+      let matchH = matchCronField(h, curH, null);
+      let matchDom = matchCronField(dom, curDom, null);
+      let matchMon = matchCronField(mon, curMon, monthsMap);
+      let matchDow = matchCronField(dow, curDow, daysMap);
+      
+      // Cron logic: If both dom and dow are specified, it's an OR condition (often). We will treat it as AND if both are * or ?, else OR if both are specified.
+      // Wait, standard cron: if either dom or dow is restricted, it matches if EITHER matches (provided the other isn't restricted? No, if BOTH are restricted, it's OR).
+      // Let's keep it simple: just AND them unless BOTH are specified, then OR them.
+      let domRestricted = (dom !== '*' && dom !== '?');
+      let dowRestricted = (dow !== '*' && dow !== '?');
+      let dateMatch = false;
+      if (domRestricted && dowRestricted) {
+        dateMatch = matchDom || matchDow;
+      } else {
+        dateMatch = matchDom && matchDow;
+      }
+
+      if(matchM && matchH && matchMon && dateMatch) {
+        results.push(new Date(d));
+      }
+      d.setMinutes(d.getMinutes() + 1);
+    }
+    
+    if(results.length === 0) {
+      let li = document.createElement('li');
+      li.textContent = "Could not compute next executions (might be too far in the future or invalid).";
+      nextList.appendChild(li);
+    } else {
+      results.forEach(res => {
+        let li = document.createElement('li');
+        li.textContent = res.toLocaleString();
+        nextList.appendChild(li);
+      });
+    }
+  }
+
+  function updateFromInputs() {
+    const vM = minuteEl.value.trim() || '*';
+    const vH = hourEl.value.trim() || '*';
+    const vDom = domEl.value.trim() || '*';
+    const vMon = monthEl.value.trim() || '*';
+    const vDow = dowEl.value.trim() || '*';
+
+    const daysMap = {'SUN':0, 'MON':1, 'TUE':2, 'WED':3, 'THU':4, 'FRI':5, 'SAT':6};
+    const monthsMap = {'JAN':1, 'FEB':2, 'MAR':3, 'APR':4, 'MAY':5, 'JUN':6, 'JUL':7, 'AUG':8, 'SEP':9, 'OCT':10, 'NOV':11, 'DEC':12};
+
+    let validM = validateField(minuteEl, vM, 0, 59, null);
+    let validH = validateField(hourEl, vH, 0, 23, null);
+    let validDom = validateField(domEl, vDom, 1, 31, null);
+    let validMon = validateField(monthEl, vMon, 1, 12, monthsMap);
+    let validDow = validateField(dowEl, vDow, 0, 7, daysMap);
+
+    const parts = [vM, vH, vDom, vMon, vDow];
+    const expr = parts.join(' ');
+    expressionEl.value = expr;
+    updateExplanation(parts);
+    if(validM && validH && validDom && validMon && validDow) {
+      generateNextExecutions(parts);
+    } else {
+      document.getElementById('next-executions').innerHTML = '<li>Invalid cron expression bounds.</li>';
+    }
+    checkPreset(expr);
+  }
+
+  function updateFromExpression() {
+    let expr = expressionEl.value.trim();
+    let parts = expr.split(/\s+/);
+    if (parts.length >= 5) {
+      minuteEl.value = parts[0];
+      hourEl.value = parts[1];
+      domEl.value = parts[2];
+      monthEl.value = parts[3];
+      dowEl.value = parts[4];
+      
+      checkPreset(expr);
+      updateExplanation(parts);
+      updateFromInputs(); // re-trigger validation and next executions
+    }
+  }
+
+  function checkPreset(expr) {
+    let matched = false;
+    for (let opt of presetEl.options) {
+      if (opt.value === expr) {
+        presetEl.value = expr;
+        matched = true;
+        break;
+      }
+    }
+    if (!matched) presetEl.value = 'custom';
+  }
+
+  function updateFromPreset() {
+    if (presetEl.value !== 'custom') {
+      expressionEl.value = presetEl.value;
+      updateFromExpression();
+    }
+  }
+
+  function updateExplanation(parts) {
+    try {
+      explanationEl.textContent = describeCron(parts[0], parts[1], parts[2], parts[3], parts[4]);
+    } catch (e) {
+      explanationEl.textContent = 'Invalid or complex cron expression format';
+    }
+  }
+
+  [minuteEl, hourEl, domEl, monthEl, dowEl].forEach(el => {
+    el.addEventListener('input', () => {
+      presetEl.value = 'custom';
+      updateFromInputs();
+    });
+  });
+
+  expressionEl.addEventListener('input', updateFromExpression);
+  presetEl.addEventListener('change', updateFromPreset);
+
+  copyBtn.addEventListener('click', () => {
+    navigator.clipboard.writeText(expressionEl.value);
+    const originalText = copyBtn.textContent;
+    copyBtn.textContent = 'Copied!';
+    setTimeout(() => { copyBtn.textContent = originalText; }, 2000);
+  });
+
+  // Init
+  updateFromInputs();
+</script>
+</body>
+</html>

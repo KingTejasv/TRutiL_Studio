@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Spreadsheet Formulas — Totil Studio</title>
+<link href="../../../style.css" rel="stylesheet"/>
+<link href="../../../custom-tools.css" rel="stylesheet"/>
+    <script src="../../../theme.js"></script>
+</head>
+<body>
+<div class="app-layout" id="app-layout">
+<div class="main-content">
+<div class="page-content"><div id="tool-data-spreadsheet-formulas">
+<div class="app-header">
+<div class="app-icon" style="background:linear-gradient(135deg,#10b981,#0ea5e9);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:1.2rem;">ƒx</div>
+<div>
+<h1>Spreadsheet Formulas Helper</h1>
+<p>Find, copy, and understand the most useful Excel and Google Sheets formulas.</p>
+</div>
+</div>
+<div class="tool-page-grid">
+<!-- Sidebar -->
+<div class="tool-sidebar">
+<div class="search-box">
+<span class="icon">🔍</span>
+<input autocomplete="off" class="form-input" id="searchInput" placeholder="Search formulas..." type="text"/>
+</div>
+<div class="category-list" id="categoryList">
+<button class="cat-btn active btn btn-primary" data-cat="all">All Formulas</button>
+<button class="cat-btn btn btn-primary" data-cat="lookup">Lookup &amp; Reference</button>
+<button class="cat-btn btn btn-primary" data-cat="logic">Logic &amp; Math</button>
+<button class="cat-btn btn btn-primary" data-cat="text">Text Manipulation</button>
+<button class="cat-btn btn btn-primary" data-cat="date">Date &amp; Time</button>
+<button class="cat-btn btn btn-primary" data-cat="advanced">Advanced (Query/Array)</button>
+</div>
+</div>
+<!-- Main Workspace -->
+<div class="tool-workspace" id="formulasList">
+<!-- Populated by JS -->
+</div>
+</div>
+</div></div>
+</div>
+</div>
+<div class="toast" id="toast">Copied to clipboard!</div>
+<script>
+  const formulas = [
+    {
+      id: 1,
+      title: "VLOOKUP (Exact Match)",
+      cat: "lookup",
+      desc: "Searches for a value in the first column of a table array and returns a value in the same row from another column.",
+      code: "=VLOOKUP(search_key, range, index, FALSE)",
+      example: "=VLOOKUP(A2, Data!A:D, 3, FALSE) - Finds A2 in column A of the Data sheet and returns the value in the 3rd column (C)."
+    },
+    {
+      id: 2,
+      title: "XLOOKUP",
+      cat: "lookup",
+      desc: "Modern replacement for VLOOKUP. Searches a range and returns an item corresponding to the first match.",
+      code: "=XLOOKUP(search_key, lookup_range, return_range, [if_not_found])",
+      example: '=XLOOKUP(A2, B:B, C:C, "Not Found") - Looks for A2 in column B, returns corresponding value in C.'
+    },
+    {
+      id: 3,
+      title: "INDEX / MATCH",
+      cat: "lookup",
+      desc: "A powerful combination for two-way lookups or when the return column is to the left of the lookup column.",
+      code: "=INDEX(return_range, MATCH(search_key, lookup_range, 0))",
+      example: "=INDEX(A:A, MATCH(F2, B:B, 0)) - Finds F2 in column B and returns the corresponding value from column A."
+    },
+    {
+      id: 4,
+      title: "IF Statement",
+      cat: "logic",
+      desc: "Returns one value if a logical expression is true, and another if it is false.",
+      code: '=IF(logical_expression, value_if_true, value_if_false)',
+      example: '=IF(B2>100, "Pass", "Fail") - Returns "Pass" if B2 is greater than 100, else "Fail".'
+    },
+    {
+      id: 5,
+      title: "COUNTIFS",
+      cat: "logic",
+      desc: "Counts the number of cells that meet multiple criteria.",
+      code: '=COUNTIFS(criteria_range1, criteria1, [criteria_range2, criteria2, ...])',
+      example: '=COUNTIFS(A:A, "Active", B:B, ">50") - Counts rows where column A is "Active" and column B is > 50.'
+    },
+    {
+      id: 6,
+      title: "SUMIFS",
+      cat: "logic",
+      desc: "Adds up values in a range that meet multiple criteria.",
+      code: '=SUMIFS(sum_range, criteria_range1, criteria1, [criteria_range2, criteria2, ...])',
+      example: '=SUMIFS(C:C, A:A, "Sales", B:B, ">2023-01-01") - Sums column C if A is "Sales" and B is after Jan 1, 2023.'
+    },
+    {
+      id: 7,
+      title: "Extract Text Before Character",
+      cat: "text",
+      desc: "Extracts all text before a specific character (e.g., extracting first name from 'John Smith' or username from email).",
+      code: '=LEFT(A2, FIND(" ", A2) - 1)',
+      example: '=LEFT(A2, FIND("@", A2) - 1) - Extracts the username from an email address in A2.'
+    },
+    {
+      id: 8,
+      title: "Extract Text After Character",
+      cat: "text",
+      desc: "Extracts all text after a specific character.",
+      code: '=RIGHT(A2, LEN(A2) - FIND(" ", A2))',
+      example: 'Extracts the last name from a full name (if separated by a single space).'
+    },
+    {
+      id: 9,
+      title: "Combine Text (CONCATENATE)",
+      cat: "text",
+      desc: "Joins text from multiple cells together. (Can also use the & operator).",
+      code: '=A2 & " " & B2',
+      example: 'Combines the first name in A2 and last name in B2 with a space in between.'
+    },
+    {
+      id: 10,
+      title: "End of Month (EOMONTH)",
+      cat: "date",
+      desc: "Returns the last day of a month, a specified number of months before or after another date.",
+      code: '=EOMONTH(start_date, months)',
+      example: '=EOMONTH(TODAY(), 0) - Returns the last day of the current month. Use 1 for next month.'
+    },
+    {
+      id: 11,
+      title: "Days Between Dates (DATEDIF)",
+      cat: "date",
+      desc: "Calculates the number of days, months, or years between two dates.",
+      code: '=DATEDIF(start_date, end_date, "unit")',
+      example: '=DATEDIF(A2, B2, "d") - Returns total days between A2 and B2. Use "m" for months, "y" for years.'
+    },
+    {
+      id: 12,
+      title: "QUERY (Google Sheets Only)",
+      cat: "advanced",
+      desc: "Runs a Google Visualization API Query Language query across data.",
+      code: '=QUERY(data, query, [headers])',
+      example: '=QUERY(A1:D100, "SELECT A, B WHERE C = \'Yes\' ORDER BY B DESC", 1) - Selects A and B where C is Yes, sorted by B.'
+    },
+    {
+      id: 13,
+      title: "IMPORTRANGE (Google Sheets Only)",
+      cat: "advanced",
+      desc: "Imports a range of cells from a specified spreadsheet.",
+      code: '=IMPORTRANGE("spreadsheet_url", "range_string")',
+      example: '=IMPORTRANGE("https://docs.google.com/...", "Sheet1!A1:C10")'
+    },
+    {
+      id: 14,
+      title: "UNIQUE",
+      cat: "advanced",
+      desc: "Returns unique rows in the provided source range, discarding duplicates.",
+      code: '=UNIQUE(range)',
+      example: '=UNIQUE(A2:A100) - Returns a list of unique values from column A.'
+    },
+    {
+      id: 15,
+      title: "FILTER",
+      cat: "advanced",
+      desc: "Filters a range based on a condition array. Returns all matching rows.",
+      code: '=FILTER(range, condition1, [condition2, ...])',
+      example: '=FILTER(A2:C100, B2:B100 > 50) - Returns rows from A to C where column B is > 50.'
+    }
+  ];
+
+  const searchInput = document.getElementById('searchInput');
+  const catBtns = document.querySelectorAll('.cat-btn');
+  const formulasList = document.getElementById('formulasList');
+  const toast = document.getElementById('toast');
+
+  let activeCat = 'all';
+  let searchTerm = '';
+
+  function renderFormulas() {
+    formulasList.innerHTML = '';
+    
+    const filtered = formulas.filter(f => {
+      const matchCat = activeCat === 'all' || f.cat === activeCat;
+      const matchSearch = searchTerm === '' || 
+                          f.title.toLowerCase().includes(searchTerm) || 
+                          f.desc.toLowerCase().includes(searchTerm) || 
+                          f.code.toLowerCase().includes(searchTerm);
+      return matchCat && matchSearch;
+    });
+
+    if (filtered.length === 0) {
+      formulasList.innerHTML = `
+        <div class="empty-state">
+          <div style="font-size: 3rem; margin-bottom: 1rem;">😕</div>
+          <h3>No formulas found</h3>
+          <p>Try adjusting your search or category filter.</p>
+        </div>
+      `;
+      return;
+    }
+
+    filtered.forEach(f => {
+      const card = document.createElement('div');
+      card.className = 'card formula-card';
+      
+      const catName = document.querySelector(`.cat-btn[data-cat="${f.cat}"]`).textContent;
+
+      card.innerHTML = `
+        <div class="fc-header">
+          <div class="fc-title">${f.title}</div>
+          <div class="fc-cat badge badge-stable">${catName}</div>
+        </div>
+        <div class="fc-desc">${f.desc}</div>
+        <div class="fc-code-wrap">
+          ${f.code}
+          <button class="fc-copy-btn" onclick="copyToClipboard(this, \`${f.code.replace(/`/g, '\\`')}\`)">Copy</button>
+        </div>
+        <div class="fc-example">
+          <strong>Example:</strong> ${f.example}
+        </div>
+      `;
+      formulasList.appendChild(card);
+    });
+  }
+
+  window.copyToClipboard = (btn, text) => {
+    navigator.clipboard.writeText(text).then(() => {
+      const originalText = btn.textContent;
+      btn.textContent = 'Copied!';
+      toast.classList.add('show');
+      
+      setTimeout(() => {
+        btn.textContent = originalText;
+        toast.classList.remove('show');
+      }, 2000);
+    });
+  };
+
+  // Search
+  searchInput.addEventListener('input', (e) => {
+    searchTerm = e.target.value.toLowerCase();
+    renderFormulas();
+  });
+
+  // Categories
+  catBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      catBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeCat = btn.dataset.cat;
+      renderFormulas();
+    });
+  });
+
+  // Initial render
+  renderFormulas();
+
+</script>
+</body>
+</html>

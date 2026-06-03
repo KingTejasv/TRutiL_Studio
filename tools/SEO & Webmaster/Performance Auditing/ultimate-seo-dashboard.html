@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Ultimate SEO Audit Dashboard — Totil Studio</title>
+<link href="../../../style.css" rel="stylesheet"/>
+<link href="../../../custom-tools.css" rel="stylesheet"/>
+<script src="../../../theme.js"></script>
+<style>
+    .panel { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px; margin-bottom: 20px; }
+    .input-group { display: flex; gap: 10px; margin-bottom: 20px; }
+    .input-group input { flex: 1; padding: 12px 16px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg-input); color: var(--text-primary); font-size: 1rem; }
+    
+    .grid-2 { display: grid; grid-template-columns: 1fr; gap: 20px; @media(min-width: 768px) { grid-template-columns: 1fr 1fr; } }
+    
+    .metric-card { background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 15px; text-align: center; display: flex; flex-direction: column; justify-content: center; }
+    .metric-score { font-size: 2.5rem; font-weight: 800; margin: 10px 0; }
+    .score-good { color: #10b981; }
+    .score-avg { color: #f59e0b; }
+    .score-poor { color: #ef4444; }
+    
+    .tag-grid { display: grid; grid-template-columns: 100px 1fr; gap: 10px; font-size: 0.9rem; align-items: center; }
+    .tag-name { font-weight: 600; color: var(--text-muted); }
+    .tag-value { color: var(--text-primary); word-break: break-all; background: rgba(0,0,0,0.05); padding: 6px 10px; border-radius: 4px; }
+    [data-theme="dark"] .tag-value { background: rgba(255,255,255,0.05); }
+    
+    .kw-list { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+    .kw-item { background: var(--primary-color); color: white; padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: 500; }
+    
+    .loader { display: none; text-align: center; padding: 20px; color: var(--primary-color); font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="app-layout" id="app-layout">
+<div class="main-content">
+<div class="page-content">
+    <div class="app-header">
+        <div class="app-icon" style="background:linear-gradient(135deg,#10b981,#047857);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:24px;">📈</div>
+        <div>
+            <h1>Ultimate SEO Audit Dashboard</h1>
+            <p>Complete on-page SEO analysis. Meta tags, Keyword density, and Lighthouse performance metrics.</p>
+        </div>
+    </div>
+    
+    <div class="panel">
+        <div class="input-group">
+            <input type="url" id="url-input" placeholder="https://example.com" value="https://example.com">
+            <button class="btn btn-primary" onclick="runAudit()">Run Full Audit</button>
+        </div>
+        <div class="loader" id="loader">Running audit... This may take up to 20 seconds.</div>
+    </div>
+    
+    <div id="results" style="display:none;">
+        <div class="grid-2">
+            <!-- Lighthouse Scores -->
+            <div class="panel">
+                <h3 style="margin-top:0;">Lighthouse Performance</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="metric-card">
+                        <div>Performance</div>
+                        <div class="metric-score" id="score-perf">-</div>
+                    </div>
+                    <div class="metric-card">
+                        <div>SEO</div>
+                        <div class="metric-score" id="score-seo">-</div>
+                    </div>
+                    <div class="metric-card">
+                        <div>Accessibility</div>
+                        <div class="metric-score" id="score-a11y">-</div>
+                    </div>
+                    <div class="metric-card">
+                        <div>Best Practices</div>
+                        <div class="metric-score" id="score-bp">-</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Meta Tags -->
+            <div class="panel">
+                <h3 style="margin-top:0;">Meta & Open Graph Tags</h3>
+                <div class="tag-grid" id="meta-tags">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+        </div>
+        
+        <div class="panel">
+            <h3 style="margin-top:0;">Top Keywords (Density)</h3>
+            <ul class="kw-list" id="kw-list">
+                <!-- Populated dynamically -->
+            </ul>
+        </div>
+    </div>
+</div>
+</div>
+</div>
+
+<script>
+async function runAudit() {
+    const url = document.getElementById('url-input').value;
+    if (!url) return alert('Enter a valid URL');
+            
+    document.getElementById('loader').style.display = 'block';
+    document.getElementById('results').style.display = 'none';
+            
+    // Run both independently so one crash doesn't break the whole audit
+    await Promise.all([
+        fetchLighthouse(url).catch(e => console.error("Lighthouse failed:", e)),
+        fetchHtmlData(url).catch(e => {
+            console.error("HTML fetch failed:", e);
+            document.getElementById('meta-tags').innerHTML = `<div class="tag-name" style="color:#ef4444">Error</div><div class="tag-value">Failed to fetch page data. The URL might be blocking proxies or down.</div>`;
+            document.getElementById('kw-list').innerHTML = '<li>Could not extract keywords.</li>';
+        })
+    ]);
+
+    // Show the dashboard regardless of partial failures
+    document.getElementById('results').style.display = 'block';
+    document.getElementById('loader').style.display = 'none';
+}
+
+async function fetchLighthouse(url) {
+    const apiUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(url)}&category=performance&category=seo&category=accessibility&category=best-practices`;
+            
+    const res = await fetch(apiUrl);
+    if (!res.ok) throw new Error(`Google API status: ${res.status}`);
+    const data = await res.json();
+                    
+    if(data.error) throw new Error(data.error.message);
+                    
+    const cats = data.lighthouseResult.categories;
+    setScore('score-perf', cats.performance?.score);
+    setScore('score-seo', cats.seo?.score);
+    setScore('score-a11y', cats.accessibility?.score);
+    setScore('score-bp', cats['best-practices']?.score);
+}
+    
+function setScore(id, score) {
+    const el = document.getElementById(id);
+    if(score === undefined || score === null) { 
+        el.textContent = 'Err'; 
+        el.className = 'metric-score score-poor';
+        return; 
+    }
+    const val = Math.round(score * 100);
+    el.textContent = val;
+    el.className = 'metric-score ' + (val >= 90 ? 'score-good' : val >= 50 ? 'score-avg' : 'score-poor');
+}
+
+async function fetchHtmlData(url) {
+    const proxies = [
+        `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+        `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`
+    ];
+    
+    let htmlText = null;
+    let lastError = null;
+    
+    for (let proxyUrl of proxies) {
+        try {
+            const res = await fetch(proxyUrl);
+            if (!res.ok) throw new Error(`Status ${res.status}`);
+            
+            const text = await res.text();
+            if (!text || text.includes("Error:") && text.length < 500) {
+                throw new Error("Invalid response from proxy");
+            }
+            
+            htmlText = text;
+            break; // Success! Break out of the loop
+        } catch(e) {
+            console.warn(`Proxy failed (${proxyUrl}):`, e);
+            lastError = e;
+        }
+    }
+    
+    if (!htmlText) {
+        throw new Error("All proxies failed to fetch the target data.");
+    }
+            
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(htmlText, 'text/html');
+            
+    const title = doc.querySelector('title')?.textContent || 'Missing';
+    const desc = doc.querySelector('meta[name="description"]')?.content || 'Missing';
+    const ogTitle = doc.querySelector('meta[property="og:title"]')?.content || 'Missing';
+    const ogImage = doc.querySelector('meta[property="og:image"]')?.content || 'Missing';
+            
+    const tagsHtml = `
+        <div class="tag-name">Title</div><div class="tag-value">${title}</div>
+        <div class="tag-name">Description</div><div class="tag-value">${desc}</div>
+        <div class="tag-name">OG:Title</div><div class="tag-value">${ogTitle}</div>
+        <div class="tag-name">OG:Image</div><div class="tag-value">${ogImage}</div>
+    `;
+    document.getElementById('meta-tags').innerHTML = tagsHtml;
+            
+    const text = doc.body?.textContent || '';
+    const words = text.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/).filter(w => w.length > 3);
+            
+    const counts = {};
+    words.forEach(w => counts[w] = (counts[w] || 0) + 1);
+            
+    const sortedKws = Object.keys(counts).sort((a,b) => counts[b] - counts[a]).slice(0, 20);
+            
+    const kwHtml = sortedKws.map(w => `<li class="kw-item">${w} <span style="opacity:0.7">(${counts[w]})</span></li>`).join('');
+    document.getElementById('kw-list').innerHTML = kwHtml || '<li>No significant words found.</li>';
+}
+</script>
+</body>
+</html>

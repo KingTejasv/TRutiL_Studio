@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>MAC Address Lookup</title>
+<link href="../../../style.css" rel="stylesheet"/>
+<link href="../../../custom-tools.css" rel="stylesheet"/>
+<script src="../../../theme.js"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-cypher-mac-address-lookup">
+<div class="app-header">
+<div class="app-icon" style="background:linear-gradient(135deg, #3b82f6, #1d4ed8);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:24px;">📡</div>
+<div>
+<h1>MAC Address Lookup</h1>
+<p>Find the manufacturer/vendor of any MAC address (OUI).</p>
+</div>
+</div>
+<div class="tool-layout-container">
+<div class="panel">
+<form class="input-group" onsubmit="lookup(event)">
+<input class="form-input" id="mac" placeholder="e.g. 00:1A:2B:3C:4D:5E" required="" type="text"/>
+<button class="btn btn-primary" id="lookupBtn" type="submit">⚡ Lookup</button>
+</form>
+<p style="text-align:center; color:var(--text-muted); font-size:0.85rem; margin:0;">
+            Formats accepted: 00:1A:2B:3C:4D:5E, 00-1A-2B-3C-4D-5E, 001A2B3C4D5E
+        </p>
+</div>
+<div class="error-msg" id="error"></div>
+<div class="panel" id="resultsPanel" style="display: none;">
+<h2 style="margin: 0 0 0.5rem 0; color: var(--accent);">Vendor Details</h2>
+<div class="results-grid" id="resultsGrid">
+<!-- Populated by JS -->
+</div>
+</div>
+</div>
+<script>
+    async function lookup(e) {
+        if(e) e.preventDefault();
+        
+        const mac = document.getElementById('mac').value.trim();
+        const btn = document.getElementById('lookupBtn');
+        const resultsPanel = document.getElementById('resultsPanel');
+        const resultsGrid = document.getElementById('resultsGrid');
+        const errorEl = document.getElementById('error');
+        
+        if (!mac) return;
+        
+        btn.innerHTML = '⏳ Searching...';
+        btn.disabled = true;
+        errorEl.style.display = 'none';
+        resultsPanel.style.display = 'none';
+        
+        try {
+            // Using api.maclookup.app for reliable public API with CORS support
+            const res = await fetch(`https://api.maclookup.app/v2/macs/${encodeURIComponent(mac)}`);
+            const data = await res.json();
+            
+            if (!data.success || !data.found) {
+                errorEl.textContent = `Vendor not found or invalid MAC Address.`;
+                errorEl.style.display = 'block';
+                return;
+            }
+            
+            const fields = [
+                { label: 'MAC Prefix', value: data.macPrefix },
+                { label: 'Company', value: data.company },
+                { label: 'Address', value: data.address },
+                { label: 'Country', value: data.country }
+            ];
+            
+            resultsGrid.innerHTML = fields.map(f => `
+                <div class="result-card">
+                    <h3>${f.label}</h3>
+                    <p>${f.value || 'N/A'}</p>
+                </div>
+            `).join('');
+            
+            resultsPanel.style.display = 'flex';
+            
+        } catch(err) {
+            errorEl.textContent = "Failed to connect to the lookup service. Please try again later.";
+            errorEl.style.display = 'block';
+        } finally {
+            btn.innerHTML = '⚡ Lookup';
+            btn.disabled = false;
+        }
+    }
+</script>
+</div></div></div></div></body>
+</html>

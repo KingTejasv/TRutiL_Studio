@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Bcrypt Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Fira+Code&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bcryptjs/2.4.3/bcrypt.min.js"></script>
+
+<link href="../../../style.css" rel="stylesheet"/><link href="../../../custom-tools.css" rel="stylesheet"/>
+    <script src="../../../theme.js"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-cypher-bcrypt-generator">
+<div class="app-header">
+<h1>🔐 Bcrypt Generator</h1>
+<p>Generate and verify Bcrypt hashes securely in your browser.</p>
+</div>
+<div class="tool-layout-container">
+<div class="panel">
+<h2>Generate Hash</h2>
+<div>
+<label>Plaintext String</label>
+<input class="form-input" id="plaintext" placeholder="Enter text to hash..." type="text"/>
+</div>
+<div>
+<label>Salt Rounds (Cost Factor)</label>
+<input class="form-input" id="rounds" max="31" min="4" type="number" value="10"/>
+</div>
+<button class="btn btn-primary" onclick="generateHash()">⚡ Generate Bcrypt</button>
+</div>
+<div class="panel">
+<h2>Output / Compare</h2>
+<div>
+<label>Bcrypt Hash</label>
+<textarea class="form-input" id="hashOutput" placeholder="Generated hash will appear here..." readonly=""></textarea>
+</div>
+<div style="border-top: 1px solid var(--border); margin: 1rem 0;"></div>
+<h2>Verify Hash</h2>
+<div>
+<label>Hash to Check Against Plaintext</label>
+<input class="form-input" id="hashCheck" placeholder="$2a$10$..." type="text"/>
+</div>
+<button class="btn btn-primary" onclick="verifyHash()">🔍 Verify Match</button>
+</div>
+</div>
+<div class="stats-bar">
+<div class="stat">
+<span class="stat-label">Time Taken</span>
+<span class="stat-value" id="statTime">0 ms</span>
+</div>
+<div class="stat">
+<span class="stat-label">Match Status</span>
+<span class="pill" id="statMatch">Ready</span>
+</div>
+</div>
+<script>
+  function generateHash() {
+    const text = document.getElementById('plaintext').value;
+    const rounds = parseInt(document.getElementById('rounds').value) || 10;
+    if (!text) return;
+    
+    const start = performance.now();
+    const salt = dcodeIO.bcrypt.genSaltSync(rounds);
+    const hash = dcodeIO.bcrypt.hashSync(text, salt);
+    const end = performance.now();
+    
+    document.getElementById('hashOutput').value = hash;
+    document.getElementById('statTime').textContent = (end - start).toFixed(2) + ' ms';
+  }
+  function verifyHash() {
+    const text = document.getElementById('plaintext').value;
+    const hash = document.getElementById('hashCheck').value;
+    if (!text || !hash) return;
+    
+    const start = performance.now();
+    let match = false;
+    try {
+      match = dcodeIO.bcrypt.compareSync(text, hash);
+    } catch(e) {}
+    const end = performance.now();
+    
+    const pill = document.getElementById('statMatch');
+    if(match) {
+      pill.textContent = 'Matched!';
+      pill.className = 'pill';
+    } else {
+      pill.textContent = 'No Match';
+      pill.className = 'pill error';
+    }
+    document.getElementById('statTime').textContent = (end - start).toFixed(2) + ' ms';
+  }
+</script>
+</div></div></div></div></body>
+</html>

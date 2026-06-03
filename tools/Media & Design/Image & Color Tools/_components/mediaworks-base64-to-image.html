@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Base64 to Image</title>
+<link href="../../../../style.css" rel="stylesheet"/>
+<link href="../../../../custom-tools.css" rel="stylesheet"/>
+<script src="../../../../theme.js"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-mediaworks-base64-to-image">
+<div class="tool-layout-container">
+<div class="app-header">
+<div class="app-icon" style="background:linear-gradient(135deg, #3b82f6, #1d4ed8);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:24px;">🖼</div>
+<div>
+<h1>️ Base64 to Image</h1>
+<p>Convert Base64 encoded strings back to image files.</p>
+</div>
+</div>
+<div class="split-pane">
+<!-- Input Pane -->
+<div class="panel">
+<h2>⌨️ Base64 String</h2>
+<textarea class="form-input" id="base64-input" placeholder="Paste your base64 string here...
+
+e.g. data:image/png;base64,iVBORw0KGgoAAA..."></textarea>
+<button class="btn btn-primary" id="convert-btn">⚡ Convert to Image</button>
+</div>
+<!-- Output Pane -->
+<div class="panel">
+<h2>👁️ Image Preview</h2>
+<div class="image-preview-container" id="preview-container">
+<div class="placeholder" id="placeholder-text">Preview will appear here</div>
+<img alt="Converted Image" id="image-preview"/>
+</div>
+<button class="btn btn-primary" id="download-btn" style="display: none;">💾 Download Image</button>
+<div class="stats-bar">
+<span id="size-stat">Size: -</span>
+<span class="pill" id="status-pill">Awaiting Input</span>
+</div>
+</div>
+</div>
+</div>
+<script>
+    const base64Input = document.getElementById('base64-input');
+    const convertBtn = document.getElementById('convert-btn');
+    const imagePreview = document.getElementById('image-preview');
+    const placeholderText = document.getElementById('placeholder-text');
+    const downloadBtn = document.getElementById('download-btn');
+    const statusPill = document.getElementById('status-pill');
+    const sizeStat = document.getElementById('size-stat');
+
+    let currentFileExtension = 'png';
+
+    function isBase64(str) {
+        try {
+            return btoa(atob(str)) === str;
+        } catch (err) {
+            return false;
+        }
+    }
+
+    function detectMimeType(b64) {
+        const signatures = {
+            'JVBERi0': 'application/pdf',
+            'R0lGODdh': 'image/gif',
+            'R0lGODlh': 'image/gif',
+            'iVBORw0KGgo': 'image/png',
+            '/9j/': 'image/jpeg',
+            'UklGR': 'image/webp'
+        };
+        for (let sig in signatures) {
+            if (b64.indexOf(sig) === 0) {
+                return signatures[sig];
+            }
+        }
+        return 'image/png'; // default fallback
+    }
+
+    convertBtn.addEventListener('click', () => {
+        let inputStr = base64Input.value.trim();
+        
+        if (!inputStr) {
+            showError("Input cannot be empty");
+            return;
+        }
+
+        let base64Data = inputStr;
+        let mimeType = '';
+
+        // Check if it has a data URI prefix
+        const match = inputStr.match(/^data:([a-zA-Z0-9]+\/[a-zA-Z0-9-.+]+).*?,(.*)/);
+        if (match) {
+            mimeType = match[1];
+            base64Data = match[2];
+        } else {
+            // No prefix, try to detect
+            // Remove any whitespace or newlines just in case
+            base64Data = inputStr.replace(/\s+/g, '');
+            mimeType = detectMimeType(base64Data);
+        }
+
+        try {
+            // Verify if it's decodable by browser
+            atob(base64Data);
+        } catch (e) {
+            showError("Invalid Base64 string");
+            return;
+        }
+
+        // It is valid
+        const dataUri = `data:${mimeType};base64,${base64Data}`;
+        
+        imagePreview.onload = () => {
+            placeholderText.style.display = 'none';
+            imagePreview.style.display = 'block';
+            downloadBtn.style.display = 'flex';
+            
+            // Calculate approximate size
+            const sizeInBytes = Math.floor(base64Data.length * 0.75);
+            const sizeInKb = (sizeInBytes / 1024).toFixed(2);
+            sizeStat.textContent = `Size: ${sizeInKb} KB`;
+
+            statusPill.textContent = "Success";
+            statusPill.className = "pill";
+            
+            // Extract extension
+            currentFileExtension = mimeType.split('/')[1] || 'png';
+            if (currentFileExtension === 'jpeg') currentFileExtension = 'jpg';
+        };
+
+        imagePreview.onerror = () => {
+            showError("Base64 decodes successfully but is not a valid image");
+        };
+
+        imagePreview.src = dataUri;
+    });
+
+    function showError(msg) {
+        imagePreview.style.display = 'none';
+        placeholderText.style.display = 'block';
+        placeholderText.textContent = msg;
+        downloadBtn.style.display = 'none';
+        statusPill.textContent = "Error";
+        statusPill.className = "pill error";
+        sizeStat.textContent = "Size: -";
+    }
+
+    downloadBtn.addEventListener('click', () => {
+        const a = document.createElement('a');
+        a.href = imagePreview.src;
+        a.download = `converted-image.${currentFileExtension}`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    });
+</script>
+</div></div></div></div></body>
+</html>

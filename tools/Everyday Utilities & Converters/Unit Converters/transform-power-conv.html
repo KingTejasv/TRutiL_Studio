@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Power Converter</title>
+<link href="../../../style.css" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Cascadia+Code&amp;display=swap" rel="stylesheet"/>
+
+<link href="../../../custom-tools.css" rel="stylesheet"/>
+    <script src="../../../theme.js"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-transform-power-conv">
+<div class="app-header">
+<h1>⚡ Power Converter</h1>
+<p>Instantly convert between Watt, Horsepower, BTU, and more</p>
+</div>
+<div class="tool-layout-container">
+<div class="converter-pane">
+<div class="input-group">
+<label>From</label>
+<input class="form-input" id="from-val" oninput="update(true)" placeholder="0" type="number"/>
+</div>
+<div class="input-group">
+<label>Unit</label>
+<select class="form-input" id="from-unit" onchange="update(true)">
+<option value="W">Watt (W)</option>
+<option value="kW">Kilowatt (kW)</option>
+<option value="MW">Megawatt (MW)</option>
+<option value="GW">Gigawatt (GW)</option>
+<option value="mW">Milliwatt (mW)</option>
+<option value="hp">Mechanical Horsepower (hp)</option>
+<option value="hp_metric">Metric Horsepower (hp)</option>
+<option value="btu_h">BTU per hour (BTU/h)</option>
+<option value="cal_s">Calories per second (cal/s)</option>
+</select>
+</div>
+</div>
+<div class="equals">=</div>
+<div class="converter-pane">
+<div class="input-group">
+<label>To</label>
+<input class="form-input" id="to-val" oninput="update(false)" placeholder="0" type="number"/>
+</div>
+<div class="input-group">
+<label>Unit</label>
+<select class="form-input" id="to-unit" onchange="update(true)">
+<option value="W">Watt (W)</option>
+<option selected="" value="kW">Kilowatt (kW)</option>
+<option value="MW">Megawatt (MW)</option>
+<option value="GW">Gigawatt (GW)</option>
+<option value="mW">Milliwatt (mW)</option>
+<option value="hp">Mechanical Horsepower (hp)</option>
+<option value="hp_metric">Metric Horsepower (hp)</option>
+<option value="btu_h">BTU per hour (BTU/h)</option>
+<option value="cal_s">Calories per second (cal/s)</option>
+</select>
+</div>
+</div>
+</div>
+<div class="stats-bar">
+<div class="stats-group">
+<div class="stat">
+<span class="stat-label">Conversion Rate</span>
+<span class="stat-value" id="rate-value">1 W = 0.001 kW</span>
+</div>
+</div>
+<div class="pill idle" id="status-pill">Ready</div>
+</div>
+<script>
+        const rates = {
+            W: 1,
+            kW: 1000,
+            MW: 1000000,
+            GW: 1000000000,
+            mW: 0.001,
+            hp: 745.699872,
+            hp_metric: 735.49875,
+            btu_h: 0.29307107,
+            cal_s: 4.184
+        };
+
+        function update(isFrom) {
+            const fromVal = document.getElementById('from-val');
+            const toVal = document.getElementById('to-val');
+            const fromUnit = document.getElementById('from-unit');
+            const toUnit = document.getElementById('to-unit');
+            
+            const fu = fromUnit.value;
+            const tu = toUnit.value;
+
+            // Update rate display
+            const getSymbol = (select) => select.options[select.selectedIndex].text.match(/\(([^)]+)\)/)[1];
+            const rateStr = `1 ${getSymbol(fromUnit)} = ` + 
+                            `${Number((rates[fu] / rates[tu]).toPrecision(8)).toString()} ` +
+                            `${getSymbol(toUnit)}`;
+            document.getElementById('rate-value').textContent = rateStr;
+
+            if (isFrom) {
+                if (fromVal.value === '') { toVal.value = ''; updatePill(false); return; }
+                const valInBase = parseFloat(fromVal.value) * rates[fu];
+                toVal.value = Number((valInBase / rates[tu]).toPrecision(10)).toString();
+            } else {
+                if (toVal.value === '') { fromVal.value = ''; updatePill(false); return; }
+                const valInBase = parseFloat(toVal.value) * rates[tu];
+                fromVal.value = Number((valInBase / rates[fu]).toPrecision(10)).toString();
+            }
+            updatePill(true);
+        }
+
+        function updatePill(isActive) {
+            const pill = document.getElementById('status-pill');
+            if(isActive) {
+                pill.className = 'pill';
+                pill.textContent = 'Converted';
+            } else {
+                pill.className = 'pill idle';
+                pill.textContent = 'Ready';
+            }
+        }
+        
+        // Initial setup
+        update(true);
+    </script>
+</div></div></div></div></body>
+</html>

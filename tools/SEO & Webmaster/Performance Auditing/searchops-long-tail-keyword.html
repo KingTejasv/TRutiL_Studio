@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Long Tail Keyword Generator</title>
+<link href="../../../style.css" rel="stylesheet"/><link href="../../../custom-tools.css" rel="stylesheet"/>
+<script src="../../../theme.js"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-searchops-long-tail-keyword">
+<div class="app-header">
+<div class="app-icon" style="background:linear-gradient(135deg, #3b82f6, #1d4ed8);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:24px;">🎯</div>
+<div>
+<h1>Long-Tail Keyword Generator</h1>
+<p>Combine a seed keyword with common modifiers to find niche search queries.</p>
+</div>
+</div>
+<div class="tool-layout-container">
+<div class="panel">
+<div class="pane-header">Configuration</div>
+<div class="pane-body">
+<div>
+<label style="display:block; margin-bottom:0.5rem; color:var(--text-muted);">Seed Keyword</label>
+<input class="form-input" id="seedKeyword" placeholder="e.g. laptop" style="flex-grow:0;" type="text"/>
+</div>
+<div class="control-group">
+<span style="font-size:0.75rem; text-transform:uppercase; color:var(--text-muted); margin-bottom:0.25rem;">Modifiers</span>
+<label><input checked="" id="modQuestions" type="checkbox"/> Questions (how to, what is, why)</label>
+<label><input checked="" id="modIntent" type="checkbox"/> Buyer Intent (best, cheap, review)</label>
+<label><input checked="" id="modComparison" type="checkbox"/> Comparison (vs, alternative to)</label>
+<label><input checked="" id="modLocal" type="checkbox"/> Local (near me, in [city])</label>
+</div>
+<button class="btn btn-primary" id="btnGenerate" style="margin-top:auto;">⚡ Generate Variations</button>
+</div>
+</div>
+<div class="panel">
+<div class="pane-header">Results <button class="btn btn-primary" id="btnCopy" style="padding:4px 8px; font-size:0.75rem;">📋 Copy All</button></div>
+<div class="pane-body">
+<textarea class="form-input" id="outputKeywords" placeholder="Long-tail keywords will appear here..." readonly=""></textarea>
+</div>
+</div>
+</div>
+<div class="stats-bar">
+<div class="stat-item"><span class="stat-label">Variations Found</span><span class="stat-num" id="totalKeywords">0</span></div>
+</div>
+<script>
+        const modifiers = {
+            questions: ['how to use', 'what is', 'why choose', 'how to fix', 'can you', 'is'],
+            intent: ['best', 'cheap', 'affordable', 'review of', 'buy', 'discount', 'top rated', 'guide for'],
+            comparison: ['vs', 'alternative to', 'compared to', 'better than'],
+            local: ['near me', 'in my area', 'local']
+        };
+
+        document.getElementById('btnGenerate').addEventListener('click', () => {
+            const seed = document.getElementById('seedKeyword').value.trim().toLowerCase();
+            if(!seed) return;
+
+            const results = new Set();
+            
+            if(document.getElementById('modQuestions').checked) {
+                modifiers.questions.forEach(m => {
+                    results.add(`${m} ${seed}`);
+                    results.add(`${seed} ${m}`); 
+                });
+            }
+            if(document.getElementById('modIntent').checked) {
+                modifiers.intent.forEach(m => {
+                    results.add(`${m} ${seed}`);
+                    results.add(`${seed} ${m}`);
+                });
+            }
+            if(document.getElementById('modComparison').checked) {
+                modifiers.comparison.forEach(m => {
+                    results.add(`${seed} ${m}`);
+                    results.add(`${m} ${seed}`);
+                });
+            }
+            if(document.getElementById('modLocal').checked) {
+                modifiers.local.forEach(m => {
+                    results.add(`${seed} ${m}`);
+                });
+            }
+
+            const arr = Array.from(results).filter(x => x !== seed);
+            document.getElementById('outputKeywords').value = arr.join('\n');
+            document.getElementById('totalKeywords').textContent = arr.length;
+        });
+
+        document.getElementById('btnCopy').addEventListener('click', () => {
+            const out = document.getElementById('outputKeywords');
+            out.select();
+            document.execCommand('copy');
+            const orig = document.getElementById('btnCopy').innerHTML;
+            document.getElementById('btnCopy').innerHTML = '✅ Copied!';
+            setTimeout(() => document.getElementById('btnCopy').innerHTML = orig, 1500);
+        });
+    </script>
+</div></div></div></div></body>
+</html>

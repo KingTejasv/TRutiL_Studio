@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ASCII Table Reference – Totil Studio</title>
+<meta content="Quickly lookup ASCII character codes in HEX, DEC, and OCT." name="description"/>
+<link href="../../../style.css" rel="stylesheet"/>
+<script src="../../../theme.js"></script>
+</head>
+<body>
+<div class="app-layout" id="app-layout">
+<div class="main-content">
+<div class="page-content">
+<div class="app-header">
+<div class="app-icon" style="background:linear-gradient(135deg, #3b82f6, #1d4ed8);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:24px;">⚙️</div>
+<div>
+<h1>ASCII Table Reference</h1>
+<p>Quickly lookup ASCII character codes in HEX, DEC, and OCT.</p>
+</div>
+</div>
+<div class="tool-workspace">
+<div class="panel" style="overflow-x: auto;">
+<table style="width:100%; border-collapse: collapse; font-family: monospace; text-align: left;">
+<thead>
+<tr style="border-bottom: 2px solid var(--border);">
+<th style="padding: 10px;">DEC</th><th style="padding: 10px;">HEX</th><th style="padding: 10px;">OCT</th><th style="padding: 10px;">CHAR</th>
+<th style="padding: 10px;">DEC</th><th style="padding: 10px;">HEX</th><th style="padding: 10px;">OCT</th><th style="padding: 10px;">CHAR</th>
+</tr>
+</thead>
+<tbody id="ascii-body"></tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script>
+
+const body = document.getElementById('ascii-body');
+let html = '';
+for(let i = 32; i < 78; i++) {
+    let c1 = String.fromCharCode(i);
+    let i2 = i + 47;
+    let c2 = i2 < 127 ? String.fromCharCode(i2) : (i2 === 127 ? 'DEL' : '');
+    
+    html += `<tr style="border-bottom: 1px solid var(--border);">
+        <td style="padding: 6px 10px;">${i}</td><td style="padding: 6px 10px;">${i.toString(16).toUpperCase()}</td><td style="padding: 6px 10px;">${i.toString(8)}</td><td style="padding: 6px 10px; font-weight:bold; color:var(--accent);">${c1}</td>
+        <td style="padding: 6px 10px;">${i2}</td><td style="padding: 6px 10px;">${i2.toString(16).toUpperCase()}</td><td style="padding: 6px 10px;">${i2.toString(8)}</td><td style="padding: 6px 10px; font-weight:bold; color:var(--accent);">${c2}</td>
+    </tr>`;
+}
+body.innerHTML = html;
+
+    </script>
+</body>
+</html>

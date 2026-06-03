@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Bandwidth Calculator</title>
+<link href="../../../style.css" rel="stylesheet"/>
+<link href="../../../custom-tools.css" rel="stylesheet"/>
+<script src="../../../theme.js"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-compute-bandwidth-calc">
+<div class="tool-layout-container">
+<div class="app-header">
+<div class="app-icon" style="background:linear-gradient(135deg, #3b82f6, #1d4ed8);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:24px;">⚡</div>
+<div>
+<h1>Bandwidth Calculator</h1>
+<p>Calculate download and upload transfer times</p>
+</div>
+</div>
+<div class="grid">
+<div class="panel">
+<h2>Transfer Details</h2>
+<div class="form-group">
+<label>File Size</label>
+<div class="input-group">
+<input class="form-input" id="fileSize" min="0" step="any" type="number" value="1"/>
+<select class="form-input" id="sizeUnit">
+<option value="1024">KB (Kilobytes)</option>
+<option value="1048576">MB (Megabytes)</option>
+<option selected="" value="1073741824">GB (Gigabytes)</option>
+<option value="1099511627776">TB (Terabytes)</option>
+</select>
+</div>
+</div>
+<div class="form-group">
+<label>Internet Speed (Bandwidth)</label>
+<div class="input-group">
+<input class="form-input" id="speed" min="0" step="any" type="number" value="100"/>
+<select class="form-input" id="speedUnit">
+<option value="1000">Kbps (Kilobits/s)</option>
+<option selected="" value="1000000">Mbps (Megabits/s)</option>
+<option value="1000000000">Gbps (Gigabits/s)</option>
+<option value="8192">KB/s (Kilobytes/s)</option>
+<option value="8388608">MB/s (Megabytes/s)</option>
+</select>
+</div>
+</div>
+<button class="btn btn-primary" onclick="calculateTime()">
+<svg fill="none" height="20" stroke="currentColor" viewbox="0 0 24 24" width="20" xmlns="http://www.w3.org/2000/svg"><path d="M13 10V3L4 14h7v7l9-11h-7z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+                    Calculate Time
+                </button>
+</div>
+<div class="panel">
+<h2>Estimated Time</h2>
+<div class="main-result" id="humanTime">
+                    00:00:00
+                </div>
+<div class="time-blocks">
+<div class="time-block">
+<div class="time-value" id="valDays">0</div>
+<div class="time-label">Days</div>
+</div>
+<div class="time-block">
+<div class="time-value" id="valHours">0</div>
+<div class="time-label">Hours</div>
+</div>
+<div class="time-block">
+<div class="time-value" id="valMins">0</div>
+<div class="time-label">Minutes</div>
+</div>
+<div class="time-block">
+<div class="time-value" id="valSecs">0</div>
+<div class="time-label">Seconds</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script>
+        function calculateTime() {
+            const size = parseFloat(document.getElementById('fileSize').value) || 0;
+            const sizeUnitMultiplier = parseFloat(document.getElementById('sizeUnit').value);
+            
+            const speed = parseFloat(document.getElementById('speed').value) || 0;
+            const speedUnitMultiplier = parseFloat(document.getElementById('speedUnit').value);
+
+            if (size === 0 || speed === 0) {
+                updateUI(0, 0, 0, 0);
+                return;
+            }
+
+            // File size in bytes * 8 = file size in bits
+            const sizeInBits = size * sizeUnitMultiplier * 8;
+            
+            // Speed is converted to bits per second via multiplier
+            const speedInBitsPerSec = speed * speedUnitMultiplier;
+
+            // Total seconds
+            let totalSeconds = sizeInBits / speedInBitsPerSec;
+
+            const days = Math.floor(totalSeconds / (3600 * 24));
+            totalSeconds -= days * 3600 * 24;
+            
+            const hours = Math.floor(totalSeconds / 3600);
+            totalSeconds -= hours * 3600;
+            
+            const minutes = Math.floor(totalSeconds / 60);
+            totalSeconds -= minutes * 60;
+            
+            const seconds = Math.floor(totalSeconds);
+
+            updateUI(days, hours, minutes, seconds);
+        }
+
+        function updateUI(d, h, m, s) {
+            document.getElementById('valDays').innerText = d;
+            document.getElementById('valHours').innerText = h;
+            document.getElementById('valMins').innerText = m;
+            document.getElementById('valSecs').innerText = s;
+
+            let humanStr = [];
+            if (d > 0) humanStr.push(`${d}d`);
+            if (h > 0 || d > 0) humanStr.push(`${h}h`);
+            if (m > 0 || h > 0 || d > 0) humanStr.push(`${m}m`);
+            humanStr.push(`${s}s`);
+            
+            document.getElementById('humanTime').innerText = humanStr.join(' ');
+            if (d === 0 && h === 0 && m === 0 && s === 0) {
+                document.getElementById('humanTime').innerText = "Instant";
+            }
+        }
+
+        // Calculate initially
+        calculateTime();
+    </script>
+</div></div></div></div></body>
+</html>

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Page Speed Tester - SearchOps</title>
+
+<link href="../../../style.css" rel="stylesheet"/><link href="../../../custom-tools.css" rel="stylesheet"/>
+    <script src="../../../theme.js"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-searchops-page-speed-tester">
+<div class="tool-layout-container">
+<div class="app-header">
+<h1>⚡ Page Speed Tester</h1>
+<p>Real-time Core Web Vitals analysis using Google PageSpeed Insights API</p>
+</div>
+<div class="card">
+<div class="input-group">
+<label>Website URL</label>
+<input class="form-input" id="url" placeholder="https://example.com" type="url"/>
+</div>
+<button class="btn btn-primary" id="btn" onclick="analyze()">⚡ Analyze Page Speed</button>
+</div>
+<div class="metrics-grid" id="results">
+<div class="metric-card" style="grid-column: 1 / -1; flex-direction: row; justify-content: center; gap: 2rem;">
+<div style="text-align:left;">
+<h3 style="margin:0 0 0.5rem 0;">Performance Score</h3>
+<p style="color:var(--text-muted); margin:0; max-width:200px;">Overall mobile performance calculated by Lighthouse.</p>
+</div>
+<svg height="120" viewbox="0 0 100 100" width="120">
+<circle cx="50" cy="50" fill="none" r="45" stroke="var(--bg-card)" stroke-width="10"></circle>
+<circle cx="50" cy="50" fill="none" id="score-circle" r="45" stroke="var(--accent)" stroke-dasharray="283" stroke-dashoffset="283" stroke-width="10" style="transition: stroke-dashoffset 1s ease-out;" transform="rotate(-90 50 50)"></circle>
+<text fill="var(--text-primary)" font-size="24" font-weight="bold" id="score" text-anchor="middle" x="50" y="58">0</text>
+</svg>
+</div>
+<div class="metric-card">
+<h3>First Contentful Paint</h3>
+<div class="stat-text" id="fcp">--</div>
+</div>
+<div class="metric-card">
+<h3>Largest Contentful Paint</h3>
+<div class="stat-text" id="lcp">--</div>
+</div>
+<div class="metric-card">
+<h3>Cumulative Layout Shift</h3>
+<div class="stat-text" id="cls">--</div>
+</div>
+</div>
+</div>
+<script>
+async function analyze() {
+    let url = document.getElementById('url').value;
+    if(!url) return;
+    if(!url.startsWith('http')) url = 'https://' + url;
+    
+    const btn = document.getElementById('btn');
+    btn.innerHTML = '⚡ Analyzing... (This may take up to 20s)';
+    btn.disabled = true;
+    
+    try {
+        const res = await fetch(`https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(url)}&strategy=mobile`);
+        const data = await res.json();
+        
+        if(data.error) throw new Error(data.error.message);
+        
+        const score = Math.round(data.lighthouseResult.categories.performance.score * 100);
+        const fcp = data.lighthouseResult.audits['first-contentful-paint'].displayValue;
+        const lcp = data.lighthouseResult.audits['largest-contentful-paint'].displayValue;
+        const cls = data.lighthouseResult.audits['cumulative-layout-shift'].displayValue;
+        
+        document.getElementById('score').textContent = score;
+        document.getElementById('fcp').textContent = fcp;
+        document.getElementById('lcp').textContent = lcp;
+        document.getElementById('cls').textContent = cls;
+        
+        document.getElementById('results').style.display = 'grid';
+        setTimeout(() => setCircle('score-circle', score), 100);
+    } catch (e) {
+        alert('Error fetching page speed data: ' + e.message);
+    }
+    
+    btn.innerHTML = '⚡ Analyze Page Speed';
+    btn.disabled = false;
+}
+function setCircle(id, val) {
+    const circle = document.getElementById(id);
+    const offset = 283 - (283 * val) / 100;
+    circle.style.strokeDashoffset = offset;
+    if(val >= 90) circle.style.stroke = 'var(--success)';
+    else if(val >= 50) circle.style.stroke = 'var(--warning)';
+    else circle.style.stroke = 'var(--danger)';
+}
+</script>
+</div></div></div></div></body>
+</html>

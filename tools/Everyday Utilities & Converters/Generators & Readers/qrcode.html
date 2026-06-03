@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>QR Code Generator – Totil Studio</title>
+<link href="../../../style.css" rel="stylesheet"/>
+<script onerror="document.getElementById('qr-lib-error').style.display='block'" src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
+<link href="../../../custom-tools.css" rel="stylesheet"/>
+<script src="../../../theme.js"></script>
+</head>
+<body>
+<div id="qr-lib-error" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:#fef2f2;color:#991b1b;border-bottom:2px solid #fca5a5;padding:1rem 1.5rem;font-size:0.95rem;font-weight:600;text-align:center;">⚠️ QR Code library failed to load. Please check your internet connection.</div>
+<div class="app-layout" id="app-layout">
+<div class="main-content">
+<div class="page-content"><div id="tool-qrcode">
+<div class="qr-root">
+<h1>QR Code Generator</h1>
+<p class="subtitle">Generate QR codes instantly for URLs, text, emails, phone numbers, and Wi-Fi credentials.</p>
+<div class="qr-card">
+<!-- Tab Bar -->
+<div aria-label="QR type" class="qr-tabs" role="tablist">
+<button aria-selected="true" class="qr-tab active btn btn-primary" data-tab="url" role="tab">
+<svg fill="none" height="14" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="14"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+              URL
+            </button>
+<button aria-selected="false" class="qr-tab btn btn-primary" data-tab="text" role="tab">
+<svg fill="none" height="14" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="14"><polyline points="4 7 4 4 20 4 20 7"></polyline><line x1="9" x2="15" y1="20" y2="20"></line><line x1="12" x2="12" y1="4" y2="20"></line></svg>
+              Text
+            </button>
+<button aria-selected="false" class="qr-tab btn btn-primary" data-tab="email" role="tab">
+<svg fill="none" height="14" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="14"><rect height="16" rx="2" width="20" x="2" y="4"></rect><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path></svg>
+              Email
+            </button>
+<button aria-selected="false" class="qr-tab btn btn-primary" data-tab="phone" role="tab">
+<svg fill="none" height="14" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="14"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.42 2 2 0 0 1 3.58 1h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 8.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+              Phone
+            </button>
+<button aria-selected="false" class="qr-tab btn btn-primary" data-tab="wifi" role="tab">
+<svg fill="none" height="14" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="14"><path d="M5 12.55a11 11 0 0 1 14.08 0"></path><path d="M1.42 9a16 16 0 0 1 21.16 0"></path><path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path><line x1="12" x2="12.01" y1="20" y2="20"></line></svg>
+              Wi-Fi
+            </button>
+</div>
+<!-- Body -->
+<div class="qr-body">
+<!-- Left: Inputs -->
+<div class="qr-inputs-col">
+<!-- URL panel -->
+<div class="tab-panel active" id="panel-url">
+<div class="field-group">
+<label for="input-url">Website URL</label>
+<input class="form-input" id="input-url" placeholder="https://example.com" type="url" value="https://Totil Studio.app"/>
+</div>
+</div>
+<!-- Text panel -->
+<div class="tab-panel" id="panel-text">
+<div class="field-group">
+<label for="input-text">Text Content</label>
+<textarea class="form-input" id="input-text" placeholder="Enter any text or message…"></textarea>
+</div>
+</div>
+<!-- Email panel -->
+<div class="tab-panel" id="panel-email">
+<div class="field-group">
+<label for="input-email-to">To (Email Address)</label>
+<input class="form-input" id="input-email-to" placeholder="recipient@example.com" type="email"/>
+</div>
+<div class="field-group">
+<label for="input-email-subject">Subject</label>
+<input class="form-input" id="input-email-subject" placeholder="Hello from Totil Studio" type="text"/>
+</div>
+<div class="field-group">
+<label for="input-email-body">Body</label>
+<textarea class="form-input" id="input-email-body" placeholder="Email body…" style="min-height:70px"></textarea>
+</div>
+</div>
+<!-- Phone panel -->
+<div class="tab-panel" id="panel-phone">
+<div class="field-group">
+<label for="input-phone">Phone Number</label>
+<input class="form-input" id="input-phone" placeholder="+1 555 000 0000" type="tel"/>
+</div>
+</div>
+<!-- WiFi panel -->
+<div class="tab-panel" id="panel-wifi">
+<div class="field-group">
+<label for="input-wifi-ssid">Network Name (SSID)</label>
+<input class="form-input" id="input-wifi-ssid" placeholder="My Network" type="text"/>
+</div>
+<div class="field-group">
+<label for="input-wifi-security">Security Type</label>
+<select class="form-input" id="input-wifi-security">
+<option value="WPA">WPA / WPA2</option>
+<option value="WEP">WEP</option>
+<option value="nopass">None (Open)</option>
+</select>
+</div>
+<div class="field-group" id="wifi-password-group">
+<label for="input-wifi-pass">Password</label>
+<input class="form-input" id="input-wifi-pass" placeholder="Network password" type="password"/>
+</div>
+<div class="toggle-row">
+<label class="switch">
+<input id="input-wifi-hidden" type="checkbox"/>
+<span class="switch-slider"></span>
+</label>
+<span class="toggle-label">Hidden network</span>
+</div>
+</div>
+<!-- Divider + Settings -->
+<div class="settings-divider"></div>
+<span class="settings-label">Customization</span>
+<!-- Size -->
+<div class="field-group">
+<label>Size</label>
+<div class="slider-row">
+<input id="qr-size" max="400" min="100" step="10" type="range" value="200"/>
+<span class="slider-value" id="qr-size-label">200 px</span>
+</div>
+</div>
+<!-- Colors -->
+<div class="color-row">
+<div class="color-field">
+<label>Foreground</label>
+<label class="color-swatch-wrap" for="qr-fg">
+<input id="qr-fg" type="color" value="#000000"/>
+<span class="color-hex" id="qr-fg-hex">#000000</span>
+</label>
+</div>
+<div class="color-field">
+<label>Background</label>
+<label class="color-swatch-wrap" for="qr-bg">
+<input id="qr-bg" type="color" value="#ffffff"/>
+<span class="color-hex" id="qr-bg-hex">#ffffff</span>
+</label>
+</div>
+</div>
+<!-- EC Level -->
+<div class="field-group">
+<label for="qr-ec">Error Correction Level</label>
+<select class="form-input" id="qr-ec">
+<option value="L">L – Low (~7% correction)</option>
+<option selected="" value="M">M – Medium (~15% correction)</option>
+<option value="Q">Q – Quartile (~25% correction)</option>
+<option value="H">H – High (~30% correction)</option>
+</select>
+</div>
+</div><!-- /qr-inputs-col -->
+<!-- Right: Preview -->
+<div class="qr-preview-col">
+<div class="qr-canvas-wrap" id="qr-canvas-wrap">
+<canvas id="qr-canvas"></canvas>
+</div>
+<div class="qr-actions">
+<button class="btn btn-primary" id="btn-download">
+<svg fill="none" height="16" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" viewbox="0 0 24 24" width="16"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" x2="12" y1="15" y2="3"></line></svg>
+                  Download PNG
+                </button>
+<button class="btn btn-secondary btn-primary" id="btn-copy">
+<svg fill="none" height="16" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" viewbox="0 0 24 24" width="16"><rect height="13" rx="2" width="13" x="9" y="9"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                  Copy to Clipboard
+                </button>
+<div class="copy-toast" id="copy-toast">
+<svg fill="none" height="14" stroke="#10b981" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" viewbox="0 0 24 24" width="14"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                  Copied to clipboard!
+                </div>
+</div>
+<div class="qr-meta" id="qr-meta">Loading…</div>
+</div><!-- /qr-preview-col -->
+</div><!-- /qr-body -->
+</div><!-- /qr-card -->
+</div><!-- /qr-root -->
+</div></div>
+</div>
+</div>
+<script>
+(function () {
+  'use strict';
+
+  /* ── State ── */
+  let currentTab = 'url';
+  let qr = null;
+
+  /* ── Element refs ── */
+  const canvas       = document.getElementById('qr-canvas');
+  const sizeSlider   = document.getElementById('qr-size');
+  const sizeLabel    = document.getElementById('qr-size-label');
+  const fgPicker     = document.getElementById('qr-fg');
+  const bgPicker     = document.getElementById('qr-bg');
+  const fgHex        = document.getElementById('qr-fg-hex');
+  const bgHex        = document.getElementById('qr-bg-hex');
+  const ecSelect     = document.getElementById('qr-ec');
+  const btnDownload  = document.getElementById('btn-download');
+  const btnCopy      = document.getElementById('btn-copy');
+  const copyToast    = document.getElementById('copy-toast');
+  const metaEl       = document.getElementById('qr-meta');
+  const wifiPassGrp  = document.getElementById('wifi-password-group');
+  const wifiSecurity = document.getElementById('input-wifi-security');
+
+  /* ── Init QRious ── */
+  if (typeof QRious === 'undefined') {
+    // CDN failed; error banner already shown — disable controls gracefully
+    metaEl.textContent = 'QR Code library failed to load. Please check your internet connection.';
+    btnDownload.disabled = true;
+    btnCopy.disabled = true;
+    return;
+  }
+  qr = new QRious({
+    element: canvas,
+    value: 'https://Totil Studio.app',
+    size: 200,
+    foreground: '#000000',
+    background: '#ffffff',
+    level: 'M',
+    padding: 10,
+  });
+
+  /* ── Build QR value from active tab ── */
+  function buildValue() {
+    switch (currentTab) {
+      case 'url': {
+        const v = document.getElementById('input-url').value.trim();
+        return v || 'https://Totil Studio.app';
+      }
+      case 'text': {
+        const v = document.getElementById('input-text').value.trim();
+        return v || ' ';
+      }
+      case 'email': {
+        const to      = document.getElementById('input-email-to').value.trim();
+        const subject = document.getElementById('input-email-subject').value.trim();
+        const body    = document.getElementById('input-email-body').value.trim();
+        if (!to && !subject && !body) return 'mailto:';
+        let str = `mailto:${encodeURIComponent(to)}`;
+        const params = [];
+        if (subject) params.push(`subject=${encodeURIComponent(subject)}`);
+        if (body)    params.push(`body=${encodeURIComponent(body)}`);
+        if (params.length) str += '?' + params.join('&');
+        return str;
+      }
+      case 'phone': {
+        const v = document.getElementById('input-phone').value.trim().replace(/\s/g, '');
+        return v ? `tel:${v}` : 'tel:+1';
+      }
+      case 'wifi': {
+        const ssid   = document.getElementById('input-wifi-ssid').value;
+        const pass   = document.getElementById('input-wifi-pass').value;
+        const sec    = wifiSecurity.value;
+        const hidden = document.getElementById('input-wifi-hidden').checked ? 'true' : 'false';
+        // Escape \, ;, ,, ", : per the Wi-Fi QR spec
+        const wifiEscape = s => s.replace(/[\\;,":]/g, c => '\\' + c);
+        const escapedSsid = wifiEscape(ssid);
+        const escapedPass = wifiEscape(pass);
+        return `WIFI:T:${sec};S:${escapedSsid};P:${escapedPass};H:${hidden};;`;
+      }
+      default: return '';
+    }
+  }
+
+  /* ── Update the QR code ── */
+  let updateTimeout;
+  function updateQR() {
+    clearTimeout(updateTimeout);
+    updateTimeout = setTimeout(() => {
+      const value = buildValue();
+      const size  = parseInt(sizeSlider.value, 10);
+      const fg    = fgPicker.value;
+      const bg    = bgPicker.value;
+      const level = ecSelect.value;
+
+      qr.set({
+        value,
+        size,
+        foreground: fg,
+        background: bg,
+        level,
+        padding: Math.max(8, Math.round(size * 0.05)),
+      });
+
+      // Update meta
+      const bytes = new TextEncoder().encode(value).length;
+      metaEl.textContent = `${bytes} byte${bytes !== 1 ? 's' : ''} · EC: ${level} · ${size}×${size} px`;
+    }, 250);
+  }
+
+  /* ── Tab switching ── */
+  document.querySelectorAll('.qr-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.qr-tab').forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-selected', 'false');
+      });
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+
+      btn.classList.add('active');
+      btn.setAttribute('aria-selected', 'true');
+      currentTab = btn.dataset.tab;
+      document.getElementById('panel-' + currentTab).classList.add('active');
+      updateQR();
+    });
+  });
+
+  /* ── WiFi: show/hide password field ── */
+  wifiSecurity.addEventListener('change', () => {
+    wifiPassGrp.style.display = wifiSecurity.value === 'nopass' ? 'none' : '';
+    updateQR();
+  });
+
+  /* ── Slider ── */
+  sizeSlider.addEventListener('input', () => {
+    sizeLabel.textContent = sizeSlider.value + ' px';
+    updateQR();
+  });
+
+  /* ── Color pickers ── */
+  fgPicker.addEventListener('input', () => {
+    fgHex.textContent = fgPicker.value;
+    updateQR();
+  });
+  bgPicker.addEventListener('input', () => {
+    bgHex.textContent = bgPicker.value;
+    updateQR();
+  });
+
+  /* ── EC Level ── */
+  ecSelect.addEventListener('change', updateQR);
+
+  /* ── Live input listeners ── */
+  const liveInputIds = [
+    'input-url', 'input-text',
+    'input-email-to', 'input-email-subject', 'input-email-body',
+    'input-phone',
+    'input-wifi-ssid', 'input-wifi-pass',
+  ];
+  liveInputIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('input', updateQR);
+    }
+  });
+  document.getElementById('input-wifi-hidden').addEventListener('change', updateQR);
+
+  /* ── Download ── */
+  btnDownload.addEventListener('click', () => {
+    const link = document.createElement('a');
+    link.download = `qrcode-${currentTab}-${Date.now()}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  });
+
+  /* ── Copy to clipboard ── */
+  btnCopy.addEventListener('click', async () => {
+    // ClipboardItem is not available in Firefox — wrap in try/catch
+    try {
+      if (typeof ClipboardItem === 'undefined') {
+        throw new Error('ClipboardItem not supported');
+      }
+      const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+      const item = new ClipboardItem({ 'image/png': blob });
+      await navigator.clipboard.write([item]);
+      copyToast.classList.add('show');
+      setTimeout(() => copyToast.classList.remove('show'), 2200);
+    } catch (err) {
+      // Show a user-friendly message for unsupported browsers (e.g. Firefox)
+      copyToast.textContent = 'Copy image is not supported in this browser. Right-click the QR code to save.';
+      copyToast.style.color = '#ef4444';
+      copyToast.classList.add('show');
+      setTimeout(() => {
+        copyToast.classList.remove('show');
+        // Restore original toast content
+        copyToast.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Copied to clipboard!';
+        copyToast.style.color = '#10b981';
+      }, 4000);
+    }
+  });
+
+  /* ── Initial render ── */
+  updateQR();
+})();
+</script>
+</body>
+</html>

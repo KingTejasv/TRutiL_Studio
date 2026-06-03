@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Unit Converter – Totil Studio</title>
+<link href="../../../style.css" rel="stylesheet"/>
+<link href="../../../custom-tools.css" rel="stylesheet"/>
+    <script src="../../../theme.js"></script>
+</head>
+<body>
+<div class="app-layout" id="app-layout">
+<div class="main-content">
+<div class="page-content"><div id="tool-unit">
+<!-- Page Header -->
+<div style="margin-bottom:28px;">
+<h1 style="font-size:1.8rem;font-weight:800;color:var(--text,#cdd6f4);margin:0 0 6px;">
+          Unit Converter
+        </h1>
+<p style="color:var(--text-secondary,#a6adc8);font-size:0.95rem;margin:0;">
+          Instantly convert between units across multiple categories.
+        </p>
+</div>
+<div class="unit-wrapper">
+<!-- ── Sidebar ────────────────────────────────────── -->
+<aside class="unit-sidebar" id="unit-sidebar">
+<button class="cat-btn active btn btn-primary" data-cat="length">
+<span class="cat-icon">📏</span> Length
+          </button>
+<button class="cat-btn btn btn-primary" data-cat="weight">
+<span class="cat-icon">⚖️</span> Weight
+          </button>
+<button class="cat-btn btn btn-primary" data-cat="temperature">
+<span class="cat-icon">🌡️</span> Temp
+          </button>
+<button class="cat-btn btn btn-primary" data-cat="area">
+<span class="cat-icon">🗺️</span> Area
+          </button>
+<button class="cat-btn btn btn-primary" data-cat="volume">
+<span class="cat-icon">🧪</span> Volume
+          </button>
+<button class="cat-btn btn btn-primary" data-cat="speed">
+<span class="cat-icon">🚀</span> Speed
+          </button>
+</aside>
+<!-- ── Main ──────────────────────────────────────── -->
+<div class="unit-main">
+<!-- Converter Card -->
+<div class="converter-card">
+<div class="cat-title">
+<span class="cat-title-icon" id="cat-icon-display">📏</span>
+<span id="cat-name-display">Length</span>
+</div>
+<div class="converter-row">
+<!-- FROM -->
+<div class="input-group">
+<label>From</label>
+<input class="form-input" id="from-input" placeholder="Enter value…" type="number" value="1"/>
+<select class="form-input" id="from-select"></select>
+</div>
+<!-- Swap -->
+<button class="swap-btn btn btn-primary" id="swap-btn" title="Swap units">⇄</button>
+<!-- TO -->
+<div class="input-group">
+<label>To</label>
+<input class="form-input" id="to-input" placeholder="Result…" type="number"/>
+<select class="form-input" id="to-select"></select>
+</div>
+</div>
+<!-- Big result -->
+<div class="big-result">
+<div class="result-value" id="big-result">–</div>
+<div class="result-label" id="big-label">Enter a value above to convert</div>
+</div>
+</div>
+<!-- All-conversions table -->
+<div class="table-card">
+<h3>All Conversions for <span id="table-from-label">1 Meter</span></h3>
+<div class="conv-table-wrap">
+<div class="table-responsive"><table class="conv-table">
+<thead>
+<tr>
+<th>Unit</th>
+<th>Symbol</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody id="conv-table-body">
+</tbody>
+</table></div>
+</div>
+</div>
+</div><!-- /unit-main -->
+</div><!-- /unit-wrapper -->
+</div></div>
+</div>
+</div>
+<script>
+// ═══════════════════════════════════════════════════════════
+//  DATA
+// ═══════════════════════════════════════════════════════════
+const CATEGORIES = {
+  length: {
+    label: 'Length',
+    icon: '📏',
+    base: 'm',
+    units: [
+      { key: 'm',   label: 'Meter',         symbol: 'm',   factor: 1 },
+      { key: 'km',  label: 'Kilometer',     symbol: 'km',  factor: 1000 },
+      { key: 'cm',  label: 'Centimeter',    symbol: 'cm',  factor: 0.01 },
+      { key: 'mm',  label: 'Millimeter',    symbol: 'mm',  factor: 0.001 },
+      { key: 'mi',  label: 'Mile',          symbol: 'mi',  factor: 1609.344 },
+      { key: 'yd',  label: 'Yard',          symbol: 'yd',  factor: 0.9144 },
+      { key: 'ft',  label: 'Foot',          symbol: 'ft',  factor: 0.3048 },
+      { key: 'in',  label: 'Inch',          symbol: 'in',  factor: 0.0254 },
+      { key: 'nmi', label: 'Nautical Mile', symbol: 'nmi', factor: 1852 },
+    ]
+  },
+  weight: {
+    label: 'Weight',
+    icon: '⚖️',
+    base: 'kg',
+    units: [
+      { key: 'kg', label: 'Kilogram',   symbol: 'kg', factor: 1 },
+      { key: 'g',  label: 'Gram',       symbol: 'g',  factor: 0.001 },
+      { key: 'mg', label: 'Milligram',  symbol: 'mg', factor: 0.000001 },
+      { key: 't',  label: 'Metric Ton', symbol: 't',  factor: 1000 },
+      { key: 'lb', label: 'Pound',      symbol: 'lb', factor: 0.45359237 },
+      { key: 'oz', label: 'Ounce',      symbol: 'oz', factor: 0.028349523125 },
+      { key: 'st', label: 'Stone',      symbol: 'st', factor: 6.35029318 },
+    ]
+  },
+  temperature: {
+    label: 'Temperature',
+    icon: '🌡️',
+    base: 'C',
+    units: [
+      { key: 'C', label: 'Celsius',    symbol: '°C' },
+      { key: 'F', label: 'Fahrenheit', symbol: '°F' },
+      { key: 'K', label: 'Kelvin',     symbol: 'K'  },
+    ],
+    // custom conversion – toBase converts to °C, fromBase converts from °C
+    toBase: (val, fromKey) => {
+      if (fromKey === 'C') return val;
+      if (fromKey === 'F') return (val - 32) * 5/9;
+      if (fromKey === 'K') return val - 273.15;
+    },
+    fromBase: (celsius, toKey) => {
+      if (toKey === 'C') return celsius;
+      if (toKey === 'F') return celsius * 9/5 + 32;
+      if (toKey === 'K') return celsius + 273.15;
+    }
+  },
+  area: {
+    label: 'Area',
+    icon: '🗺️',
+    base: 'm2',
+    units: [
+      { key: 'm2',  label: 'Square Meter',      symbol: 'm²',  factor: 1 },
+      { key: 'km2', label: 'Square Kilometer',  symbol: 'km²', factor: 1e6 },
+      { key: 'mi2', label: 'Square Mile',       symbol: 'mi²', factor: 2589988.110336 },
+      { key: 'ha',  label: 'Hectare',           symbol: 'ha',  factor: 10000 },
+      { key: 'ac',  label: 'Acre',              symbol: 'ac',  factor: 4046.8564224 },
+      { key: 'ft2', label: 'Square Foot',       symbol: 'ft²', factor: 0.09290304 },
+      { key: 'in2', label: 'Square Inch',       symbol: 'in²', factor: 0.00064516 },
+      { key: 'yd2', label: 'Square Yard',       symbol: 'yd²', factor: 0.83612736 },
+    ]
+  },
+  volume: {
+    label: 'Volume',
+    icon: '🧪',
+    base: 'L',
+    units: [
+      { key: 'L',    label: 'Liter',           symbol: 'L',    factor: 1 },
+      { key: 'mL',   label: 'Milliliter',      symbol: 'mL',   factor: 0.001 },
+      { key: 'm3',   label: 'Cubic Meter',     symbol: 'm³',   factor: 1000 },
+      { key: 'gal',  label: 'Gallon (US)',      symbol: 'gal',  factor: 3.785411784 },
+      { key: 'qt',   label: 'Quart (US)',       symbol: 'qt',   factor: 0.946352946 },
+      { key: 'pt',   label: 'Pint (US)',        symbol: 'pt',   factor: 0.473176473 },
+      { key: 'cup',  label: 'Cup (US)',         symbol: 'cup',  factor: 0.2365882365 },
+      { key: 'floz', label: 'Fluid Ounce (US)', symbol: 'fl oz', factor: 0.0295735296 },
+    ]
+  },
+  speed: {
+    label: 'Speed',
+    icon: '🚀',
+    base: 'ms',
+    units: [
+      { key: 'ms',   label: 'Meter/Second',   symbol: 'm/s',  factor: 1 },
+      { key: 'kmh',  label: 'Kilometer/Hour', symbol: 'km/h', factor: 1/3.6 },
+      { key: 'mph',  label: 'Mile/Hour',      symbol: 'mph',  factor: 0.44704 },
+      { key: 'kn',   label: 'Knot',           symbol: 'kn',   factor: 0.514444 },
+      { key: 'fts',  label: 'Foot/Second',    symbol: 'ft/s', factor: 0.3048 },
+      { key: 'mach', label: 'Mach',           symbol: 'Mach', factor: 343 },
+    ]
+  }
+};
+
+// ═══════════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════════
+let currentCat = 'length';
+
+// ═══════════════════════════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════════════════════════
+function formatNum(n) {
+  if (n === null || n === undefined || isNaN(n)) return '–';
+  const abs = Math.abs(n);
+  if (abs === 0) return '0';
+  if (abs >= 1e12 || (abs < 1e-6 && abs > 0)) return n.toExponential(6);
+  // precision based smart decimals
+  return parseFloat(n.toPrecision(8)).toString();
+}
+
+function convert(value, fromKey, toKey, catKey) {
+  const cat = CATEGORIES[catKey];
+  if (isNaN(value) || value === null || value === '') return null;
+  value = parseFloat(value);
+  if (fromKey === toKey) return value;
+
+  if (cat.toBase && cat.fromBase) {
+    // temperature path
+    const base = cat.toBase(value, fromKey);
+    return cat.fromBase(base, toKey);
+  } else {
+    // factor path
+    const fromUnit = cat.units.find(u => u.key === fromKey);
+    const toUnit   = cat.units.find(u => u.key === toKey);
+    if (!fromUnit || !toUnit) return null;
+    const base = value * fromUnit.factor;
+    return base / toUnit.factor;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  BUILD SELECTS
+// ═══════════════════════════════════════════════════════════
+function buildSelects(catKey) {
+  const cat = CATEGORIES[catKey];
+  const fromSel = document.getElementById('from-select');
+  const toSel   = document.getElementById('to-select');
+
+  fromSel.innerHTML = '';
+  toSel.innerHTML   = '';
+
+  cat.units.forEach((u, i) => {
+    const opt1 = new Option(`${u.label} (${u.symbol})`, u.key);
+    const opt2 = new Option(`${u.label} (${u.symbol})`, u.key);
+    fromSel.appendChild(opt1);
+    toSel.appendChild(opt2);
+  });
+
+  // default: first vs second
+  fromSel.value = cat.units[0].key;
+  toSel.value   = cat.units.length > 1 ? cat.units[1].key : cat.units[0].key;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  PERFORM CONVERSION (from → to direction)
+// ═══════════════════════════════════════════════════════════
+function doConvert(direction = 'from') {
+  const cat    = CATEGORIES[currentCat];
+  const fromSel = document.getElementById('from-select');
+  const toSel   = document.getElementById('to-select');
+  const fromInp = document.getElementById('from-input');
+  const toInp   = document.getElementById('to-input');
+  const bigRes  = document.getElementById('big-result');
+  const bigLbl  = document.getElementById('big-label');
+
+  let value, fromKey, toKey;
+
+  if (direction === 'from') {
+    value   = fromInp.value;
+    fromKey = fromSel.value;
+    toKey   = toSel.value;
+    const result = convert(value, fromKey, toKey, currentCat);
+    toInp.value = result !== null ? formatNum(result) : '';
+    // big display
+    const fromUnit = cat.units.find(u => u.key === fromKey);
+    const toUnit   = cat.units.find(u => u.key === toKey);
+    if (result !== null && value !== '') {
+      bigRes.textContent = `${formatNum(result)} ${toUnit.symbol}`;
+      bigLbl.textContent = `${formatNum(parseFloat(value))} ${fromUnit.symbol} = ${formatNum(result)} ${toUnit.symbol}`;
+    } else {
+      bigRes.textContent = '–';
+      bigLbl.textContent = 'Enter a value above to convert';
+    }
+  } else {
+    value   = toInp.value;
+    fromKey = toSel.value;
+    toKey   = fromSel.value;
+    const result = convert(value, fromKey, toKey, currentCat);
+    fromInp.value = result !== null ? formatNum(result) : '';
+    const fromUnit = cat.units.find(u => u.key === toSel.value);
+    const toUnit   = cat.units.find(u => u.key === fromSel.value);
+    if (result !== null && value !== '') {
+      bigRes.textContent = `${formatNum(result)} ${toUnit.symbol}`;
+      bigLbl.textContent = `${formatNum(parseFloat(value))} ${fromUnit.symbol} = ${formatNum(result)} ${toUnit.symbol}`;
+    } else {
+      bigRes.textContent = '–';
+      bigLbl.textContent = 'Enter a value above to convert';
+    }
+  }
+
+  updateTable(direction === 'from' ? fromInp.value : toInp.value,
+              direction === 'from' ? fromSel.value : toSel.value);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  TABLE
+// ═══════════════════════════════════════════════════════════
+function updateTable(value, fromKey) {
+  const cat = CATEGORIES[currentCat];
+  const tbody = document.getElementById('conv-table-body');
+  const tableFromLabel = document.getElementById('table-from-label');
+  const fromUnit = cat.units.find(u => u.key === fromKey);
+  const parsedVal = parseFloat(value);
+
+  if (fromUnit) {
+    tableFromLabel.textContent = `${isNaN(parsedVal) ? '?' : formatNum(parsedVal)} ${fromUnit.label}`;
+  }
+
+  tbody.innerHTML = '';
+  const toSel = document.getElementById('to-select');
+  const highlightKey = toSel.value;
+
+  cat.units.forEach(u => {
+    const result = (!isNaN(parsedVal) && value !== '')
+      ? convert(parsedVal, fromKey, u.key, currentCat)
+      : null;
+
+    const tr = document.createElement('tr');
+    if (u.key === highlightKey) tr.classList.add('highlight-row');
+    tr.innerHTML = `
+      <td>${u.label}</td>
+      <td class="unit-name">${u.symbol}</td>
+      <td class="unit-val">${result !== null ? formatNum(result) : '–'}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+//  SWITCH CATEGORY
+// ═══════════════════════════════════════════════════════════
+function switchCategory(catKey) {
+  currentCat = catKey;
+  const cat = CATEGORIES[catKey];
+
+  // Update sidebar active state
+  document.querySelectorAll('.cat-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.cat === catKey);
+  });
+
+  // Update header
+  document.getElementById('cat-icon-display').textContent = cat.icon;
+  document.getElementById('cat-name-display').textContent = cat.label;
+
+  // Reset inputs
+  document.getElementById('from-input').value = '1';
+  document.getElementById('to-input').value   = '';
+
+  buildSelects(catKey);
+  doConvert('from');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  EVENT LISTENERS
+// ═══════════════════════════════════════════════════════════
+document.getElementById('unit-sidebar').addEventListener('click', e => {
+  const btn = e.target.closest('.cat-btn');
+  if (btn) switchCategory(btn.dataset.cat);
+});
+
+let lastEdited = 'from';
+document.getElementById('from-input').addEventListener('input', () => { lastEdited = 'from'; doConvert('from'); });
+document.getElementById('to-input').addEventListener('input', () => { lastEdited = 'to'; doConvert('to'); });
+document.getElementById('from-select').addEventListener('change', () => doConvert(lastEdited));
+document.getElementById('to-select').addEventListener('change', () => doConvert(lastEdited));
+
+document.getElementById('swap-btn').addEventListener('click', () => {
+  const fromSel = document.getElementById('from-select');
+  const toSel   = document.getElementById('to-select');
+  const fromInp = document.getElementById('from-input');
+  const toInp   = document.getElementById('to-input');
+
+  // swap selected units
+  const tmp = fromSel.value;
+  fromSel.value = toSel.value;
+  toSel.value   = tmp;
+
+  // swap values
+  const tmpV = fromInp.value;
+  fromInp.value = toInp.value;
+  toInp.value   = tmpV;
+
+  doConvert('from');
+});
+
+// ═══════════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════════
+switchCategory('length');
+</script>
+</body>
+</html>

@@ -1,0 +1,380 @@
+{
+    "Developer & DevOps": {
+        "API & Networking": [
+            "API Response Visualizer",
+            "API Tester \u2014 Totil Studio",
+            "CORS Tester",
+            "Webhook Tester",
+            "CURL \u2194 Fetch Converter",
+            "OpenAPI Viewer"
+        ],
+        "Code Validation & Formatting": [
+            "HTML Formatter",
+            "JS Formatter - Codelab",
+            "CSS Formatter",
+            "JSON Formatter \u2014 Totil Studio",
+            "XML Formatter \u2014 Totil Studio",
+            "PHP Formatter",
+            "SQL Formatter \u2014 Totil Studio",
+            "SQL Formatter",
+            "HTML Minifier",
+            "JS Minifier - Codelab",
+            "CSS Minifier",
+            "JSON Minifier - Codelab",
+            "XML Minifier",
+            "Kubernetes YAML Validator",
+            "JSON Validator & Formatter"
+        ],
+        "DevOps & Server": [
+            "Docker Compose Generator",
+            "Dockerfile Generator",
+            "Nginx Config Gen - Codelab",
+            "Apache Config Gen",
+            "Cron Builder \u2014 Totil Studio",
+            "Crontab Generator",
+            "Chmod Calculator"
+        ],
+        "Security & Auth": [
+            "JWT Builder - Codelab",
+            "JWT Decoder \u2014 Totil Studio",
+            "JWT Inspector",
+            "CSP Generator"
+        ],
+        "Git & Documentation": [
+            ".gitignore Generator",
+            "Git Diff Viewer",
+            "GitHub README Generator"
+        ],
+        "Utilities": [
+            "Fake Data Generator \u2014 Totil Studio",
+            "Browser Window Size Checker",
+            "User Agent Parser"
+        ]
+    },
+    "Cybersecurity & Networking": {
+        "Cryptography & Hashing": [
+            "SHA-512 Hash Generator",
+            "SHA-256 Hash Generator",
+            "RIPEMD-160 Hash Generator",
+            "Bcrypt Generator",
+            "BCrypt Verifier",
+            "HMAC Generator",
+            "RSA Key Generator",
+            "ROT13 Cipher",
+            "MD2 Hash Generator",
+            "MD4 Hash Generator",
+            "Hash Generator \u2014 Totil Studio"
+        ],
+        "Network Analysis": [
+            "DNS Lookup",
+            "DNS Propagation Checker",
+            "IP Lookup Tool",
+            "MAC Address Lookup",
+            "WHOIS Lookup",
+            "Port Scanner",
+            "Subnet Calculator"
+        ],
+        "Passwords & Access": [
+            "Password Generator",
+            "Random Password Generator",
+            "Password Strength Checker \u2014 Totil Studio",
+            "Password Strength Tester",
+            "htpasswd Generator"
+        ],
+        "Security Auditing": [
+            "SSL Certificate Checker",
+            "Security Headers Checker",
+            "Duplicate File Detector"
+        ]
+    },
+    "Business & Finance": {
+        "Corporate & Startup": [
+            "Cash Flow Calculator",
+            "Break-Even Calculator",
+            "Startup Valuation Calculator",
+            "Business Name Generator"
+        ],
+        "Personal Finance & Loans": [
+            "Auto Loan Calculator",
+            "EMI Calculator \u2014 Totil Studio",
+            "Mortgage Calculator",
+            "Salary Calculator"
+        ],
+        "Invoicing & Taxation": [
+            "GST Calculator",
+            "Sales Tax Calculator",
+            "VAT Calculator Pro",
+            "GST Invoice Generator",
+            "Invoice Generator \u2014 Totil Studio"
+        ],
+        "Trading & Investment": [
+            "ROI Calculator",
+            "Compound Interest Calculator",
+            "Crypto Converter",
+            "Stock Profit/Loss Calculator",
+            "Trading Profitability Calculator"
+        ],
+        "Pricing & Margins": [
+            "Margin & Markup Calculator",
+            "Profit Margin Calculator",
+            "Discount Calculator",
+            "Freelance Rate Calculator"
+        ],
+        "Validation": [
+            "Credit Card Validator Pro",
+            "IBAN Validator Pro"
+        ]
+    },
+    "SEO & Webmaster": {
+        "Performance Auditing": [
+            "Lighthouse Audit",
+            "Core Web Vitals Checker",
+            "Page Speed Tester - SearchOps",
+            "Mobile Friendly Test - SearchOps"
+        ],
+        "Links & Authority": [
+            "Backlink Checker | SearchOps",
+            "Broken Link Checker",
+            "Link Extractor",
+            "Domain Authority Checker | SearchOps",
+            "Moz Rank Checker - SearchOps"
+        ],
+        "Meta & Markup": [
+            "Meta Tag Analyzer",
+            "Meta Tag Generator - SearchOps",
+            "Open Graph Generator",
+            "Schema Markup Generator",
+            "Canonical Tag Checker | SearchOps",
+            "Hreflang Generator | SearchOps"
+        ],
+        "Crawling & Indexing": [
+            "XML Sitemap Generator",
+            "Sitemap Auditor",
+            "Robots.txt Generator",
+            "Robots.txt Tester",
+            "Google Cache Checker | SearchOps",
+            "Redirect Checker - SearchOps",
+            "Website Technology Detector",
+            ".htaccess Generator",
+            "SERP Preview Tool"
+        ],
+        "Keywords": [
+            "Keyword Density Checker",
+            "Keyword Typo Generator",
+            "Long Tail Keyword Generator"
+        ]
+    },
+    "Media & Design": {
+        "Image & Color Tools": [
+            "Social Media Image Resizer",
+            "Image Resizer",
+            "Image Cropper",
+            "Image Compressor \u2014 Totil Studio",
+            "Image Converter",
+            "Image Converter \u2014 Totil Studio",
+            "Image Upscaler \u2014 Totil Studio",
+            "Background Remover \u2014 Totil Studio",
+            "Color Converter \u2014 Totil Studio",
+            "Color Palette Generator \u2014 Totil Studio",
+            "Color Palette Generator",
+            "Color Picker",
+            "Color Contrast Checker",
+            "EXIF Editor \u2014 Totil Studio",
+            "EXIF Remover - MediaWorks",
+            "EXIF Viewer - MediaWorks",
+            "Image Watermark"
+        ],
+        "PDF & Documents": [
+            "PDF Splitter \u2014 Totil Studio",
+            "PDF Merger \u2014 Totil Studio",
+            "PDF Watermark",
+            "PDF Signer",
+            "PDF OCR Converter",
+            "DOCX \u2194 PDF Converter",
+            "PPT \u2194 PDF Converter",
+            "Base64 to Image",
+            "PDF Compressor \u2014 Totil Studio",
+            "PDF Password Remover",
+            "PDF to Image \u2014 Totil Studio"
+        ],
+        "Audio & Video": [
+            "Audio Converter \u2014 Totil Studio",
+            "Video Converter",
+            "Audio Trimmer",
+            "Video Trimmer",
+            "Video Compressor \u2014 Totil Studio",
+            "Screen Recorder",
+            "Webcam Recorder",
+            "Voice Recorder",
+            "Auto Subtitle Generator",
+            "Video Subtitle Editor",
+            "Audio Analyzer",
+            "Audio Noise Remover",
+            "Video Frame Extractor",
+            "TikTok Video Downloader"
+        ],
+        "CSS & SVG": [
+            "SVG Optimizer",
+            "SVG Optimizer \u2014 Totil Studio",
+            "CSS Gradient Generator \u2014 Totil Studio",
+            "REM to PX Converter",
+            "CSS to LESS Converter"
+        ],
+        "Icons & Graphics": [
+            "Favicon Generator - MediaWorks",
+            "ICO Generator",
+            "GIF Maker - MediaWorks",
+            "HEIC Converter - MediaWorks",
+            "Twitch Emote Resizer | SocialKit"
+        ]
+    },
+    "Text & Data Processing": {
+        "Data Conversion": [
+            "CSV to JSON Converter",
+            "JSON to CSV Converter",
+            "JSON to XML Converter",
+            "XML to JSON Converter \u2014 Totil Studio",
+            "YAML \u2194 JSON Converter \u2014 Totil Studio",
+            "Base64 Codec \u2014 Totil Studio",
+            "Base64 Encode",
+            "Base64 Decode",
+            "ASCII Converter",
+            "ASCII Table Reference",
+            "Hex to Text",
+            "Binary to Text",
+            "Text to Binary",
+            "Text to Hexadecimal",
+            "Text to Morse Converter",
+            "Morse to Text Translator",
+            "Number Base Converter",
+            "Number to Words",
+            "Word to Number",
+            "Binary Calculator",
+            "Hex Calculator",
+            "CSV Cleaner & Optimizer",
+            "CSV Editor \u2014 Totil Studio"
+        ],
+        "Text Formatting": [
+            "Camel Case",
+            "Snake Case Converter",
+            "Kebab Case Converter",
+            "Title Case Converter",
+            "Uppercase Converter",
+            "Lowercase Converter",
+            "Remove Spaces",
+            "Remove Duplicate Lines",
+            "Remove Line Breaks",
+            "Reverse Text",
+            "Reverse Words",
+            "Reverse Lines",
+            "Shuffle Text",
+            "Shuffle Lines",
+            "Fancy Text Generator \u2014 Totil Studio",
+            "Upside Down Text Generator"
+        ],
+        "Writing & Editing": [
+            "Markdown Editor \u2014 Totil Studio",
+            "Markdown Editor Pro",
+            "Diff Checker \u2014 Totil Studio",
+            "Diff Checker Pro",
+            "Word Counter",
+            "Line Counter",
+            "Line Sorter",
+            "Lorem Ipsum Generator",
+            "Speech to Text"
+        ],
+        "Advanced Processing": [
+            "Regex Tester \u2014 Totil Studio",
+            "RegEx Tester Pro",
+            "OCR Text Extractor \u2014 Totil Studio",
+            "JSON Escape/Unescape",
+            "Zalgo Text Generator",
+            "URL Decoder",
+            "URL Encoder",
+            "URL Parser",
+            "URL Slug Generator"
+        ]
+    },
+    "Social & Marketing": {
+        "Link Management": [
+            "Bio Link Generator",
+            "UTM Builder | SocialKit",
+            "WhatsApp Link Generator | SocialKit",
+            "Telegram Link Generator"
+        ],
+        "Platform-Specific Tools": [
+            "Discord Formatting",
+            "Pinterest Pin Maker",
+            "Twitter Card Generator | SocialKit",
+            "YouTube Thumbnail Downloader | SocialKit",
+            "LinkedIn Summary Generator",
+            "Instagram Spacer"
+        ],
+        "Engagement": [
+            "Hashtag Generator",
+            "QR Code Generator",
+            "Tweet Generator | SocialKit"
+        ]
+    },
+    "Everyday Utilities & Converters": {
+        "Time & Date": [
+            "Calendar Generator",
+            "Date Calculator",
+            "Time Calculator",
+            "Time Converter",
+            "Pomodoro Timer",
+            "Stopwatch",
+            "World Clock",
+            "Timestamp Converter \u2014 Totil Studio",
+            "Countdown Timer"
+        ],
+        "Health & Fitness": [
+            "BMI Calculator \u2014 Totil Studio",
+            "Age Calculator \u2014 Totil Studio",
+            "Percentage Calculator \u2014 Totil Studio",
+            "Calories Burned Calculator",
+            "Running Pace Calculator"
+        ],
+        "Math & Probability": [
+            "Scientific Calculator \u2014 Totil Studio",
+            "Fraction Calculator",
+            "Probability Calculator",
+            "Dice Roller",
+            "Coin Flipper"
+        ],
+        "Unit Converters": [
+            "Unit Converter",
+            "Length Converter",
+            "Weight Converter",
+            "Temperature Converter",
+            "Speed Converter",
+            "Area Converter",
+            "Volume Converter",
+            "Angle Converter",
+            "Power Converter",
+            "Pressure Converter",
+            "Energy Converter",
+            "Data Storage Converter",
+            "Data Transfer Converter",
+            "Frequency Converter"
+        ],
+        "Generators & Readers": [
+            "Random Number Generator",
+            "UUID Generator \u2014 Totil Studio",
+            "UUID/GUID Generator",
+            "Barcode Generator",
+            "Barcode Reader",
+            "QR Code Reader",
+            "Roman Numeral Converter",
+            "Octal Converter"
+        ],
+        "Files & Misc": [
+            "ZIP Extractor & Creator",
+            "EPUB Converter",
+            "Clipboard History \u2014 Totil Studio",
+            "Typing Speed Test \u2014 Totil Studio",
+            "Metadata Remover \u2014 Totil Studio",
+            "Spreadsheet Formulas \u2014 Totil Studio"
+        ]
+    }
+}

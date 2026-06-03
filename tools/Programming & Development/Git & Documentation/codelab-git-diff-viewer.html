@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Git Diff Viewer – Totil Studio</title>
+    <meta content="Paste git diffs and view them with syntax highlighting." name="description"/>
+    <link href="../../../style.css" rel="stylesheet"/>
+    
+
+    <script src="../../../theme.js"></script>
+</head>
+<body>
+    <div class="app-layout" id="app-layout">
+        <div class="main-content">
+            <div class="page-content">
+                <div class="app-header">
+                    <div class="app-icon">👨‍💻</div>
+                    <div>
+                        <h1>Git Diff Viewer</h1>
+                        <p>Paste git diffs and view them with syntax highlighting.</p>
+                    </div>
+                </div>
+                <div class="tool-workspace">
+                    
+<div class="panel">
+    <div class="panel-title">Paste Unified Diff</div>
+    <textarea class="form-textarea" id="git-input" placeholder="--- a/file.js\n+++ b/file.js\n- old line\n+ new line" style="min-height: 150px; font-family: monospace;"></textarea>
+    <button class="btn btn-primary" id="btn-git" style="margin-top:10px; margin-bottom: 20px;">Render Diff</button>
+    
+    <div class="panel-title">Rendered Output</div>
+    <div id="git-output" style="background: var(--bg-elevated); border: 1px solid var(--border); color: var(--text-primary); min-height: 200px; padding: 10px; font-family: monospace; white-space: pre;"></div>
+</div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+
+document.addEventListener('DOMContentLoaded', () => {
+    const actionBtn = document.getElementById('action-btn');
+    const inputData = document.getElementById('tool-input');
+    const outputData = document.getElementById('tool-output');
+
+    actionBtn.addEventListener('click', () => {
+        if(!inputData.value) {
+            outputData.innerHTML = `<span style="color: var(--accent-red); font-size: 14px;">Please paste two strings to diff, separated by "---"</span>`;
+            return;
+        }
+        
+        const parts = inputData.value.split('---');
+        if(parts.length < 2) {
+            outputData.innerHTML = `<span style="color: var(--accent-red); font-size: 14px;">Please use "---" to separate old text and new text.</span>`;
+            return;
+        }
+        
+        const oldLines = parts[0].trim().split('
+');
+        const newLines = parts[1].trim().split('
+');
+        
+        let diffHtml = '<div style="font-family: monospace; background: var(--bg-surface); padding: 15px; border-radius: 8px;">';
+        
+        const maxLines = Math.max(oldLines.length, newLines.length);
+        for(let i=0; i<maxLines; i++) {
+            const o = oldLines[i] || '';
+            const n = newLines[i] || '';
+            if(o === n) {
+                diffHtml += `<div style="color: var(--text-muted);">&nbsp;&nbsp;${o}</div>`;
+            } else {
+                if(o) diffHtml += `<div style="color: #ef4444; background: rgba(239, 68, 68, 0.1);">- ${o}</div>`;
+                if(n) diffHtml += `<div style="color: #10b981; background: rgba(16, 185, 129, 0.1);">+ ${n}</div>`;
+            }
+        }
+        diffHtml += '</div>';
+        
+        outputData.innerHTML = diffHtml;
+    });
+});
+
+</script>
+</body>
+</html>

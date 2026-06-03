@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Subnet Calculator</title>
+<link href="../../../style.css" rel="stylesheet"/><link href="../../../custom-tools.css" rel="stylesheet"/>
+<script src="../../../theme.js"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-compute-subnet-calculator">
+<div class="app-header">
+<div class="app-icon" style="background:linear-gradient(135deg, #3b82f6, #1d4ed8);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:24px;">🌐</div>
+<div>
+<h1>Subnet Calculator</h1>
+<p>Calculate network ranges, broadcasts, and usable hosts</p>
+</div>
+</div>
+<div class="tool-layout-container">
+<div class="panel">
+<h2 class="panel-title">
+<svg fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="24"><rect height="8" rx="2" ry="2" width="20" x="2" y="2"></rect><rect height="8" rx="2" ry="2" width="20" x="2" y="14"></rect><line x1="6" x2="6.01" y1="6" y2="6"></line><line x1="6" x2="6.01" y1="18" y2="18"></line></svg>
+                Network Config
+            </h2>
+<div class="form-group">
+<label for="ip">IP Address</label>
+<input class="form-input" id="ip" placeholder="192.168.1.10" type="text" value="192.168.1.10"/>
+</div>
+<div class="form-group">
+<label for="mask">Subnet Mask or CIDR</label>
+<input class="form-input" id="mask" placeholder="/24 or 255.255.255.0" type="text" value="/24"/>
+</div>
+</div>
+<div class="panel">
+<h2 class="panel-title">
+<svg fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                Network Details
+            </h2>
+<div class="table-responsive"><table class="output-table">
+<tbody>
+<tr>
+<th>IP Address</th>
+<td id="out-ip">-</td>
+</tr>
+<tr>
+<th>Subnet Mask</th>
+<td id="out-mask">-</td>
+</tr>
+<tr>
+<th>Network Address</th>
+<td id="out-network">-</td>
+</tr>
+<tr>
+<th>Broadcast Address</th>
+<td id="out-broadcast">-</td>
+</tr>
+<tr>
+<th>Usable Host Range</th>
+<td id="out-range">-</td>
+</tr>
+<tr>
+<th>Usable Hosts</th>
+<td id="out-usable">-</td>
+</tr>
+<tr>
+<th>Total Hosts</th>
+<td id="out-total">-</td>
+</tr>
+<tr>
+<th>Wildcard Mask</th>
+<td id="out-wildcard">-</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<script>
+        function ip2long(ip) {
+            return ip.split('.').reduce((acc, octet) => (acc << 8) + parseInt(octet, 10), 0) >>> 0;
+        }
+
+        function long2ip(long) {
+            return [(long >>> 24) & 255, (long >>> 16) & 255, (long >>> 8) & 255, long & 255].join('.');
+        }
+
+        function calculateSubnet() {
+            const ipInput = document.getElementById('ip').value.trim();
+            const maskInput = document.getElementById('mask').value.trim();
+
+            const resetOutput = () => {
+                document.querySelectorAll('.output-table td').forEach(td => td.textContent = '-');
+            };
+
+            try {
+                if (!ipInput || !maskInput) throw new Error();
+                
+                const ipParts = ipInput.split('.');
+                if (ipParts.length !== 4 || ipParts.some(p => p < 0 || p > 255 || isNaN(p) || p === '')) throw new Error();
+
+                let cidr = 24;
+                if (maskInput.startsWith('/')) {
+                    cidr = parseInt(maskInput.substring(1), 10);
+                } else if (maskInput.includes('.')) {
+                    const maskParts = maskInput.split('.');
+                    if (maskParts.length !== 4) throw new Error();
+                    const maskLong = ip2long(maskInput);
+                    cidr = 0;
+                    for (let i = 31; i >= 0; i--) {
+                        if ((maskLong & (1 << i)) !== 0) cidr++;
+                        else break;
+                    }
+                } else {
+                    cidr = parseInt(maskInput, 10);
+                }
+
+                if (isNaN(cidr) || cidr < 0 || cidr > 32) throw new Error();
+
+                const ipLong = ip2long(ipInput);
+                const maskLong = cidr === 0 ? 0 : (0xffffffff << (32 - cidr)) >>> 0;
+                const networkLong = (ipLong & maskLong) >>> 0;
+                const broadcastLong = (networkLong | (~maskLong)) >>> 0;
+
+                const wildcardLong = (~maskLong) >>> 0;
+                
+                let firstHostLong = networkLong + 1;
+                let lastHostLong = broadcastLong - 1;
+                
+                if (cidr >= 31) {
+                    firstHostLong = networkLong;
+                    lastHostLong = broadcastLong;
+                }
+
+                const totalHosts = Math.pow(2, 32 - cidr);
+                const usableHosts = cidr >= 31 ? totalHosts : Math.max(0, totalHosts - 2);
+
+                document.getElementById('out-ip').textContent = ipInput;
+                document.getElementById('out-mask').textContent = `${long2ip(maskLong)} (/${cidr})`;
+                document.getElementById('out-network').textContent = long2ip(networkLong);
+                document.getElementById('out-broadcast').textContent = long2ip(broadcastLong);
+                document.getElementById('out-range').textContent = cidr >= 31 ? '-' : `${long2ip(firstHostLong)} - ${long2ip(lastHostLong)}`;
+                document.getElementById('out-usable').textContent = usableHosts.toLocaleString();
+                document.getElementById('out-total').textContent = totalHosts.toLocaleString();
+                document.getElementById('out-wildcard').textContent = long2ip(wildcardLong);
+
+            } catch (e) {
+                resetOutput();
+                document.getElementById('out-ip').textContent = 'Invalid Input';
+            }
+        }
+
+        document.getElementById('ip').addEventListener('input', calculateSubnet);
+        document.getElementById('mask').addEventListener('input', calculateSubnet);
+        calculateSubnet();
+    </script>
+</div></div></div></div></body>
+</html>

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Security Headers Checker – Totil Studio</title>
+    <meta content="Analyze HTTP response headers for missing security configurations." name="description"/>
+    <link href="../../../style.css" rel="stylesheet"/>
+    
+
+    <script src="../../../theme.js"></script>
+</head>
+<body>
+    <div class="app-layout" id="app-layout">
+        <div class="main-content">
+            <div class="page-content">
+                <div class="app-header">
+                    <div class="app-icon">🚀</div>
+                    <div>
+                        <h1>Security Headers Checker</h1>
+                        <p>Analyze HTTP response headers for missing security configurations.</p>
+                    </div>
+                </div>
+
+                <div class="tool-workspace">
+                    <div class="panel">
+                        <div class="panel-title">Security Headers Checker Interface</div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Input Data</label>
+                            <textarea class="form-textarea" id="tool-input" placeholder="Enter your data, configure your settings, or upload a file..."></textarea>
+                        </div>
+                        
+                        <div style="margin-top: 15px; margin-bottom: 25px;">
+                            <button class="btn btn-primary" id="action-btn">Process / Execute Tool</button>
+                            <button class="btn btn-ghost" id="clear-btn">Clear</button>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Result Output</label>
+                            <div class="result-card" id="tool-output" style="min-height: 120px; background: var(--bg-elevated); color: var(--text-primary); border: 1px solid var(--border);">
+                                <span style="color: var(--text-muted); font-size: 14px;">Results will appear here...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+
+document.addEventListener('DOMContentLoaded', () => {
+    const actionBtn = document.getElementById('action-btn');
+    const inputData = document.getElementById('tool-input');
+    const outputData = document.getElementById('tool-output');
+
+    actionBtn.addEventListener('click', async () => {
+        if(!inputData.value) {
+            outputData.innerHTML = `<span style="color: var(--accent-red); font-size: 14px;">Please enter a URL.</span>`;
+            return;
+        }
+        
+        outputData.innerHTML = '<span style="color: var(--tv-primary); font-size: 14px;">Fetching headers...</span>';
+        
+        try {
+            const res = await fetch(inputData.value);
+            
+            let html = '<table style="width: 100%; border-collapse: collapse; text-align: left;"><tr style="border-bottom: 1px solid var(--border);"><th>Header</th><th>Value</th></tr>';
+            res.headers.forEach((val, key) => {
+                html += `<tr><td style="padding: 5px; font-weight: bold;">${key}</td><td style="padding: 5px;">${val}</td></tr>`;
+            });
+            html += '</table>';
+            
+            outputData.innerHTML = `
+                <div style="display:flex; flex-direction:column; gap: 10px;">
+                    <span style="color: #00FF25; font-size: 16px; font-weight: bold;">✓ Headers Retrieved</span>
+                    ${html}
+                </div>
+            `;
+        } catch(e) {
+            outputData.innerHTML = `
+                <div style="display:flex; flex-direction:column; gap: 10px;">
+                    <span style="color: var(--accent-red); font-size: 14px;">Fetch failed (CORS restriction).</span>
+                    <p>Browsers block reading headers from third-party sites unless they send CORS headers. Simulated results for demonstration:</p>
+                    <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                        <tr style="border-bottom: 1px solid var(--border);"><th>Header</th><th>Status</th></tr>
+                        <tr><td>Strict-Transport-Security</td><td><span style="color:#00FF25">Present</span></td></tr>
+                        <tr><td>Content-Security-Policy</td><td><span style="color:#ef4444">Missing</span></td></tr>
+                        <tr><td>X-Frame-Options</td><td><span style="color:#00FF25">DENY</span></td></tr>
+                    </table>
+                </div>
+            `;
+        }
+    });
+});
+
+</script>
+</body>
+</html>

@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Image Upscaler — Totil Studio</title>
+<link href="../../../../style.css" rel="stylesheet"/>
+<link href="../../../../custom-tools.css" rel="stylesheet"/>
+<script src="../../../../theme.js"></script>
+</head>
+<body>
+<div class="app-layout" id="app-layout">
+<div class="main-content">
+<div class="page-content"><div id="tool-mediaworks-image-upscaler">
+<div class="app-header">
+<div class="app-icon" style="background:linear-gradient(135deg, #3b82f6, #1d4ed8);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:24px;">⚙️</div>
+<div>
+<h1>Image Upscaler</h1>
+<p>Upscale images manually via Canvas smoothing, or use DeepAI's API for AI Super Resolution.</p>
+</div>
+</div>
+<div class="tool-page-grid">
+<!-- Sidebar Controls -->
+<div class="tool-sidebar">
+<div class="drop-zone" id="uploadArea">
+<div style="font-size: 2.5rem; margin-bottom: 1rem;">🖼️</div>
+<p style="color: var(--text-muted); margin-bottom: 1rem; font-size: 0.95rem;">Drag &amp; drop an image, or click to select</p>
+<button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">Select Image</button>
+<input accept="image/*" id="fileInput" style="display:none;" type="file"/>
+</div>
+<div class="panel hidden" id="toolsPanel">
+<div class="panel-title">🛠️ Settings</div>
+<div class="settings-row">
+<label>Scale Factor</label>
+<div class="scale-grid">
+<button class="scale-btn active btn btn-primary" data-scale="2">2x</button>
+<button class="scale-btn btn btn-primary" data-scale="4">4x</button>
+<button class="scale-btn btn btn-primary" data-scale="8">8x</button>
+</div>
+</div>
+<button class="btn btn-primary btn-block" id="basicUpscaleBtn">Basic Upscale (Local)</button>
+<div class="api-key-box">
+<div class="panel-title">🧠 AI Super Resolution</div>
+<p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.75rem;">
+                Use the <a href="https://deepai.org/machine-learning-model/torch-srgan" style="color: var(--accent);" target="_blank">DeepAI Super Resolution API</a> for AI upscaling. 
+              </p>
+<input class="form-input" id="apiKeyInput" placeholder="DeepAI API Key" type="password"/>
+<button class="btn btn-primary btn-block" id="aiUpscaleBtn" style="background: linear-gradient(135deg, #8b5cf6, #ec4899); border: none;">AI Upscale</button>
+</div>
+</div>
+</div>
+<!-- Main Workspace -->
+<div class="tool-workspace hidden" id="workspace">
+<div class="compare-labels">
+<span>Original</span>
+<span>Upscaled</span>
+</div>
+<div class="split-view" id="splitView">
+<img alt="Original" id="origImg" src=""/>
+<img alt="Upscaled" id="compImg" src=""/>
+<div class="slider-handle" id="sliderHandle"></div>
+<input class="slider-input" id="splitRange" max="100" min="0" type="range" value="50"/>
+<div class="loader hidden" id="loader">
+<div class="spinner"></div>
+<span id="loaderText">Processing...</span>
+</div>
+</div>
+<div class="resolution-info" id="resInfo">
+<span>Original:</span> <span id="resOrig">0x0</span>  | 
+            <span>Upscaled:</span> <span id="resUp">0x0</span>
+</div>
+<button class="btn btn-primary" id="downloadBtn" style="width: 100%; max-width: 200px">Download Image</button>
+</div>
+</div>
+</div></div>
+</div>
+</div>
+<script>
+  const uploadArea = document.getElementById('uploadArea');
+  const fileInput = document.getElementById('fileInput');
+  const toolsPanel = document.getElementById('toolsPanel');
+  const workspace = document.getElementById('workspace');
+  
+  const scaleBtns = document.querySelectorAll('.scale-btn');
+  const basicUpscaleBtn = document.getElementById('basicUpscaleBtn');
+  
+  const apiKeyInput = document.getElementById('apiKeyInput');
+  const aiUpscaleBtn = document.getElementById('aiUpscaleBtn');
+  
+  const origImg = document.getElementById('origImg');
+  const compImg = document.getElementById('compImg');
+  const splitRange = document.getElementById('splitRange');
+  const sliderHandle = document.getElementById('sliderHandle');
+  
+  const loader = document.getElementById('loader');
+  const loaderText = document.getElementById('loaderText');
+  const resOrig = document.getElementById('resOrig');
+  const resUp = document.getElementById('resUp');
+  const downloadBtn = document.getElementById('downloadBtn');
+
+  let currentFile = null;
+  let originalImage = null;
+  let currentScale = 2;
+  let upscaledBlobUrl = null;
+
+  // File Upload
+  fileInput.addEventListener('change', (e) => {
+    if (e.target.files.length) loadImage(e.target.files[0]);
+  });
+  uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.classList.add('dragover'); });
+  uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
+  uploadArea.addEventListener('drop', e => {
+    e.preventDefault();
+    uploadArea.classList.remove('dragover');
+    if (e.dataTransfer.files.length) loadImage(e.dataTransfer.files[0]);
+  });
+
+  function loadImage(file) {
+    if (!file.type.startsWith('image/')) return alert("Please select an image file.");
+    currentFile = file;
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      originalImage = img;
+      
+      origImg.src = url;
+      // Temporarily set upscaled to original until processed
+      compImg.src = url;
+      
+      resOrig.textContent = `${img.width}x${img.height}`;
+      resUp.textContent = `${img.width}x${img.height}`;
+      
+      uploadArea.classList.add('hidden');
+      toolsPanel.classList.remove('hidden');
+      workspace.classList.remove('hidden');
+      
+      upscaledBlobUrl = null; // reset
+    };
+    img.src = url;
+  }
+
+  // Split Slider
+  splitRange.addEventListener('input', (e) => {
+    const val = e.target.value;
+    compImg.style.clipPath = `polygon(${val}% 0, 100% 0, 100% 100%, ${val}% 100%)`;
+    sliderHandle.style.left = `${val}%`;
+  });
+
+  // Scale Buttons
+  scaleBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      scaleBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentScale = parseInt(btn.dataset.scale);
+    });
+  });
+
+  // Basic Upscale (Canvas Bicubic interpolation via browser smoothing)
+  basicUpscaleBtn.addEventListener('click', () => {
+    if (!originalImage) return;
+    
+    loader.classList.remove('hidden');
+    loaderText.textContent = "Upscaling locally...";
+    basicUpscaleBtn.disabled = true;
+
+    setTimeout(() => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      
+      canvas.width = originalImage.width * currentScale;
+      canvas.height = originalImage.height * currentScale;
+      
+      // Enforce high-quality smoothing
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      
+      ctx.drawImage(originalImage, 0, 0, canvas.width, canvas.height);
+      
+      canvas.toBlob((blob) => {
+        if (upscaledBlobUrl) URL.revokeObjectURL(upscaledBlobUrl);
+        upscaledBlobUrl = URL.createObjectURL(blob);
+        compImg.src = upscaledBlobUrl;
+        
+        resUp.textContent = `${canvas.width}x${canvas.height}`;
+        
+        loader.classList.add('hidden');
+        basicUpscaleBtn.disabled = false;
+      }, currentFile.type, 0.95);
+    }, 100);
+  });
+
+  // AI Upscale (DeepAI API)
+  aiUpscaleBtn.addEventListener('click', async () => {
+    const key = apiKeyInput.value.trim();
+    if (!key) {
+      alert("Please enter a DeepAI API Key for AI Upscaling.");
+      apiKeyInput.focus();
+      return;
+    }
+    if (!currentFile) return;
+
+    loader.classList.remove('hidden');
+    loaderText.textContent = "AI Processing (may take a minute)...";
+    aiUpscaleBtn.disabled = true;
+
+    try {
+      const formData = new FormData();
+      formData.append('image', currentFile);
+
+      // DeepAI's torch-srgan API endpoint
+      const response = await fetch('https://api.deepai.org/api/torch-srgan', {
+        method: 'POST',
+        headers: { 'api-key': key },
+        body: formData
+      });
+
+      if (!response.ok) {
+        const err = await response.text();
+        throw new Error(err || response.statusText);
+      }
+
+      const data = await response.json();
+      
+      if (data.output_url) {
+        // Fetch the output image
+        const imgRes = await fetch(data.output_url);
+        const blob = await imgRes.blob();
+        
+        if (upscaledBlobUrl) URL.revokeObjectURL(upscaledBlobUrl);
+        upscaledBlobUrl = URL.createObjectURL(blob);
+        compImg.src = upscaledBlobUrl;
+        
+        // Check new dimensions
+        const tempImg = new Image();
+        tempImg.onload = () => resUp.textContent = `${tempImg.width}x${tempImg.height}`;
+        tempImg.src = upscaledBlobUrl;
+        
+        loader.classList.add('hidden');
+      } else {
+        throw new Error("No output URL returned from API.");
+      }
+
+    } catch (err) {
+      console.error(err);
+      alert("AI Upscaling Failed: " + (err.message.includes('401') || err.message.includes('403') ? "Invalid API Key." : err.message));
+      loader.classList.add('hidden');
+    }
+    
+    aiUpscaleBtn.disabled = false;
+  });
+
+  // Download
+  downloadBtn.addEventListener('click', () => {
+    if (!upscaledBlobUrl) {
+      alert("Please upscale the image first!");
+      return;
+    }
+    const a = document.createElement('a');
+    const name = currentFile ? currentFile.name.split('.')[0] : 'image';
+    a.download = name + '-upscaled.png';
+    a.href = upscaledBlobUrl;
+    a.click();
+  });
+
+</script>
+</body>
+</html>

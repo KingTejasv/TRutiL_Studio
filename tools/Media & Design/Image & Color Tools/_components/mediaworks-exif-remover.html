@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>EXIF Remover - MediaWorks</title>
+<link href="../../../../style.css" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/piexifjs/1.0.6/piexif.min.js"></script>
+<link href="../../../../custom-tools.css" rel="stylesheet"/>
+<script src="../../../../theme.js"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-mediaworks-exif-remover">
+<div class="app-header">
+<div class="app-icon" style="background:linear-gradient(135deg, #3b82f6, #1d4ed8);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:24px;">🖼</div>
+<div>
+<h1>️ EXIF Remover</h1>
+<p>Strip hidden metadata &amp; GPS data from your images to protect your privacy</p>
+</div>
+</div>
+<div class="tool-layout-container">
+<!-- Input Panel -->
+<div class="panel">
+<div class="panel-title">
+<svg fill="none" height="20" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="20"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" x2="12" y1="3" y2="15"></line></svg>
+                1. Upload Image
+            </div>
+<div class="drop-zone" id="dropZone">
+<svg fill="none" height="48" stroke="var(--accent)" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" style="margin-bottom: 1rem;" viewbox="0 0 24 24" width="48"><rect height="18" rx="2" ry="2" width="18" x="3" y="3"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+<div id="dropText" style="font-weight: 600; margin-bottom: 0.5rem;">Click or drag image here</div>
+<div style="color: var(--text-muted); font-size: 0.875rem;">Supports JPG, PNG</div>
+<input accept="image/jpeg, image/png" id="fileInput" type="file"/>
+</div>
+<div class="controls">
+<button class="btn btn-primary" disabled="" id="processBtn">
+<svg fill="none" height="18" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="18"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                    Clean EXIF Data
+                </button>
+</div>
+</div>
+<!-- Output Panel -->
+<div class="panel">
+<div class="panel-title">
+<svg fill="none" height="20" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="20"><rect height="18" rx="2" ry="2" width="18" x="3" y="3"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                2. Preview &amp; Download
+            </div>
+<div class="preview-area" id="previewArea">
+<div id="previewPlaceholder" style="color: var(--text-muted); text-align: center;">
+                    Cleaned image will appear here
+                </div>
+<img id="outputImage" style="display: none;"/>
+</div>
+<div class="controls">
+<button class="btn btn-primary" disabled="" id="downloadBtn">
+<svg fill="none" height="18" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="18"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" x2="12" y1="15" y2="3"></line></svg>
+                    Download Secure Image
+                </button>
+</div>
+</div>
+</div>
+<div class="stats-bar">
+<div class="stat-item">
+<span class="stat-label">Original Size:</span>
+<span class="stat-num" id="statOriginal">0 KB</span>
+</div>
+<div class="stat-item">
+<span class="stat-label">Cleaned Size:</span>
+<span class="stat-num" id="statCleaned">0 KB</span>
+</div>
+<div class="pill" id="statSaved">0% Smaller</div>
+</div>
+<script>
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const processBtn = document.getElementById('processBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const outputImage = document.getElementById('outputImage');
+        const previewPlaceholder = document.getElementById('previewPlaceholder');
+        const dropText = document.getElementById('dropText');
+        
+        const statOriginal = document.getElementById('statOriginal');
+        const statCleaned = document.getElementById('statCleaned');
+        const statSaved = document.getElementById('statSaved');
+        
+        let currentFile = null;
+        let originalSize = 0;
+        let currentOutputDataUrl = null;
+        let currentExtension = '.jpg';
+        
+        function formatBytes(bytes, decimals = 2) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const dm = decimals < 0 ? 0 : decimals;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+        }
+        
+        dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            if (e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                handleFileSelection();
+            }
+        });
+        fileInput.addEventListener('change', handleFileSelection);
+        
+        function handleFileSelection() {
+            if (fileInput.files.length > 0) {
+                currentFile = fileInput.files[0];
+                dropText.textContent = currentFile.name;
+                processBtn.disabled = false;
+                originalSize = currentFile.size;
+                statOriginal.textContent = formatBytes(originalSize);
+                
+                outputImage.style.display = 'none';
+                previewPlaceholder.style.display = 'block';
+                downloadBtn.disabled = true;
+                currentOutputDataUrl = null;
+                statCleaned.textContent = '0 KB';
+                statSaved.textContent = '0% Smaller';
+            }
+        }
+        
+        processBtn.addEventListener('click', () => {
+            if (!currentFile) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                let result = e.target.result;
+                if (currentFile.type === 'image/jpeg' || currentFile.type === 'image/jpg') {
+                    try {
+                        let cleanData = piexif.remove(result);
+                        finishProcessing(cleanData, 'image/jpeg');
+                    } catch(err) {
+                        console.warn("piexif error, falling back to canvas", err);
+                        fallbackToCanvas(result, currentFile.type);
+                    }
+                } else {
+                    fallbackToCanvas(result, currentFile.type);
+                }
+            };
+            reader.readAsDataURL(currentFile);
+        });
+        
+        function fallbackToCanvas(dataUrl, type) {
+            let img = new Image();
+            img.onload = function() {
+                let canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                let ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+                let cleanData = canvas.toDataURL(type, 1.0);
+                finishProcessing(cleanData, type);
+            };
+            img.src = dataUrl;
+        }
+        
+        function finishProcessing(cleanDataUrl, type) {
+            outputImage.src = cleanDataUrl;
+            outputImage.style.display = 'block';
+            previewPlaceholder.style.display = 'none';
+            
+            let base64Length = cleanDataUrl.length - (cleanDataUrl.indexOf(',') + 1);
+            let padding = (cleanDataUrl.charAt(cleanDataUrl.length - 2) === '=') ? 2 : ((cleanDataUrl.charAt(cleanDataUrl.length - 1) === '=') ? 1 : 0);
+            let cleanedSize = (base64Length * 0.75) - padding;
+            
+            statCleaned.textContent = formatBytes(cleanedSize);
+            downloadBtn.disabled = false;
+            
+            let percent = ((originalSize - cleanedSize) / originalSize * 100).toFixed(1);
+            if (percent < 0) percent = 0;
+            statSaved.textContent = `${percent}% Smaller`;
+            
+            currentOutputDataUrl = cleanDataUrl;
+            currentExtension = type === 'image/png' ? '.png' : '.jpg';
+        }
+        
+        downloadBtn.addEventListener('click', () => {
+            if(!currentOutputDataUrl) return;
+            const a = document.createElement('a');
+            a.href = currentOutputDataUrl;
+            a.download = "cleaned_image" + currentExtension;
+            a.click();
+        });
+    </script>
+</div></div></div></div></body>
+</html>

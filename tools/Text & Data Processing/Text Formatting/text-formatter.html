@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Universal Text Formatter — Totil Studio</title>
+<link href="../../../style.css" rel="stylesheet"/>
+<link href="../../../custom-tools.css" rel="stylesheet"/>
+<script src="../../../theme.js"></script>
+<style>
+    .panel-container { display: flex; gap: 20px; flex-wrap: wrap; }
+    .panel { flex: 1; min-width: 300px; display: flex; flex-direction: column; gap: 10px; }
+    textarea { width: 100%; height: 250px; resize: vertical; padding: 10px; }
+    .controls { display: flex; flex-wrap: wrap; gap: 10px; margin: 15px 0; }
+</style>
+</head>
+<body>
+<div class="app-layout" id="app-layout">
+<div class="main-content">
+<div class="page-content">
+    <div class="app-header">
+        <div class="app-icon" style="background:linear-gradient(135deg,#3B82F6,#2563EB);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:24px;">📝</div>
+        <div>
+            <h1>Universal Text Formatter</h1>
+            <p>Change text case, sort lines, reverse, shuffle, and clean up your text in one click.</p>
+        </div>
+    </div>
+    
+    <div class="panel-container">
+        <div class="panel">
+            <h3>Input Text</h3>
+            <textarea class="form-input" id="input-text" placeholder="Type or paste your text here..."></textarea>
+            <div id="stats" style="font-size: 0.85rem; color: var(--text-muted);">Words: 0 | Characters: 0 | Lines: 0</div>
+        </div>
+        <div class="panel">
+            <h3>Output Text</h3>
+            <textarea class="form-input" id="output-text" readonly placeholder="Result will appear here..."></textarea>
+            <button class="btn btn-secondary" onclick="document.getElementById('output-text').select(); document.execCommand('copy'); alert('Copied!')">Copy Output</button>
+        </div>
+    </div>
+    
+    <div class="controls">
+        
+<button class="btn btn-primary" onclick="transform('upper')">UPPERCASE</button>
+<button class="btn btn-primary" onclick="transform('lower')">lowercase</button>
+<button class="btn btn-primary" onclick="transform('title')">Title Case</button>
+<button class="btn btn-primary" onclick="transform('camel')">camelCase</button>
+<button class="btn btn-primary" onclick="transform('snake')">snake_case</button>
+<button class="btn btn-primary" onclick="transform('kebab')">kebab-case</button>
+<button class="btn btn-secondary" onclick="transform('reverseText')">Reverse Text</button>
+<button class="btn btn-secondary" onclick="transform('reverseWords')">Reverse Words</button>
+<button class="btn btn-secondary" onclick="transform('reverseLines')">Reverse Lines</button>
+<button class="btn btn-secondary" onclick="transform('sortLines')">Sort Lines</button>
+<button class="btn btn-secondary" onclick="transform('shuffleLines')">Shuffle Lines</button>
+<button class="btn btn-secondary" onclick="transform('removeSpaces')">Remove Spaces</button>
+<button class="btn btn-secondary" onclick="transform('removeLineBreaks')">Remove Line Breaks</button>
+<button class="btn btn-secondary" onclick="transform('removeDuplicates')">Remove Duplicate Lines</button>
+
+    </div>
+</div>
+</div>
+</div>
+<script>
+    const input = document.getElementById('input-text');
+    const output = document.getElementById('output-text');
+    const stats = document.getElementById('stats');
+    
+    input.addEventListener('input', () => {
+        const text = input.value;
+        const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+        const lines = text.length === 0 ? 0 : text.split('\n').length;
+        stats.textContent = `Words: ${words} | Characters: ${text.length} | Lines: ${lines}`;
+    });
+
+    
+    function transform(type) {
+        let txt = input.value;
+        if(!txt) return;
+        switch(type) {
+            case 'upper': txt = txt.toUpperCase(); break;
+            case 'lower': txt = txt.toLowerCase(); break;
+            case 'title': txt = txt.replace(/\w\S*/g, (w) => (w.replace(/^\w/, c => c.toUpperCase()))); break;
+            case 'camel': txt = txt.replace(/(?:^|\s)\w/g, (match, index) => index === 0 ? match.toLowerCase() : match.toUpperCase()).replace(/\s+/g, ''); break;
+            case 'snake': txt = txt.replace(/\s+/g, '_').toLowerCase(); break;
+            case 'kebab': txt = txt.replace(/\s+/g, '-').toLowerCase(); break;
+            case 'reverseText': txt = txt.split('').reverse().join(''); break;
+            case 'reverseWords': txt = txt.split(' ').map(w => w.split('').reverse().join('')).join(' '); break;
+            case 'reverseLines': txt = txt.split('\n').reverse().join('\n'); break;
+            case 'sortLines': txt = txt.split('\n').sort().join('\n'); break;
+            case 'shuffleLines': txt = txt.split('\n').sort(() => Math.random() - 0.5).join('\n'); break;
+            case 'removeSpaces': txt = txt.replace(/\s+/g, ''); break;
+            case 'removeLineBreaks': txt = txt.replace(/[\r\n]+/g, ' '); break;
+            case 'removeDuplicates': txt = [...new Set(txt.split('\n'))].join('\n'); break;
+        }
+        output.value = txt;
+    }
+
+</script>
+</body>
+</html>
