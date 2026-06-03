@@ -865,10 +865,6 @@
                 "path": "Media & Design/Audio & Video/mediaworks-mp3-converter.html"
             },
             {
-                "name": "Audio Converter",
-                "path": "Media & Design/Audio & Video/audio.html"
-            },
-            {
                 "name": "Audio Noise Remover",
                 "path": "Media & Design/Audio & Video/mediaworks-audio-noise-remover.html"
             },
