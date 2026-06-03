@@ -1245,6 +1245,7 @@
                 "path": "Text & Data Processing/Text Formatting/text-formatter.html"
             }
         ]
+    }
 };
         const navData = window.navData;
         // Determine current main category and sub-hub
