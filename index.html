@@ -186,9 +186,7 @@
             categoriesGrid.style.display = 'none';
             statsBar.style.display = 'none';
             searchContainer.style.display = 'block';
-            
-            searchTitle.textContent = results.length > 0 ? \`Found \${results.length} tools for "\${term}"\` : \`No tools found for "\${term}"\`;
-            
+            searchTitle.textContent = results.length > 0 ? `Found ${results.length} tools for "${term}"` : `No tools found for "${term}"`;
             // Render results
             searchGrid.innerHTML = '';
             results.forEach(result => {
@@ -196,15 +194,15 @@
                 const card = document.createElement('a');
                 card.href = tool.path;
                 card.className = 'premium-card';
-                card.innerHTML = \`
+                card.innerHTML = `
                     <div class="card-icon">⚡</div>
-                    <h3 class="card-title">\${tool.name}</h3>
-                    <p class="card-desc">\${tool.category} / \${tool.subCategory}</p>
+                    <h3 class="card-title">${tool.name}</h3>
+                    <p class="card-desc">${tool.category} / ${tool.subCategory}</p>
                     <div class="card-footer">
                         <span class="card-tag">Launch Tool</span>
                         <span class="card-arrow">Explore →</span>
                     </div>
-                \`;
+                `;
                 searchGrid.appendChild(card);
             });
         });
