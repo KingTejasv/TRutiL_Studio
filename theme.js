@@ -1272,7 +1272,7 @@
                 const navContainer = document.getElementById('tv-sidebar-nav');
                 let html = '';
                 html += `<a href="${prefix}index.html" class="nav-home"><span class="ni">🏠</span> Main Hub</a>`;
-                html += `<a href="${prefix}${currentMainCategory}/hub.html" class="nav-home" style="margin-bottom: 1rem;"><span class="ni">📂</span> ${currentMainCategory} Hub</a>`;
+                html += `<a href="${prefix}${currentMainCategory}/index.html" class="nav-home" style="margin-bottom: 1rem;"><span class="ni">📂</span> ${currentMainCategory} Hub</a>`;
                 
                 // Render all subcategories for the current main category
                 const subHubs = navData[currentMainCategory];
