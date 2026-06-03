@@ -494,7 +494,7 @@
                     </div>
                 </div>
             `;
-            const mainContainer = document.querySelector('.main-container') || document.querySelector('.app-layout');
+            const mainContainer = document.querySelector('.main-container') || document.querySelector('.main-content');
             if (mainContainer) {
                 mainContainer.appendChild(footer);
             } else {
