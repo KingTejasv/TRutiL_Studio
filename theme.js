@@ -618,10 +618,7 @@
             }
         ],
         "Network Analysis": [
-            {
-                "name": "Advanced Network Analyzer",
-                "path": "Cybersecurity & Networking/Network Analysis/advanced-network-analyzer.html"
-            },
+            
             {
                 "name": "Bandwidth Calculator",
                 "path": "Cybersecurity & Networking/Network Analysis/compute-bandwidth-calc.html"
@@ -864,10 +861,7 @@
                 "name": "Audio Analyzer",
                 "path": "Media & Design/Audio & Video/mediaworks-mp3-converter.html"
             },
-            {
-                "name": "Audio Noise Remover",
-                "path": "Media & Design/Audio & Video/mediaworks-audio-noise-remover.html"
-            },
+            
             {
                 "name": "Audio Trimmer",
                 "path": "Media & Design/Audio & Video/mediaworks-audio-trimmer.html"
@@ -904,14 +898,8 @@
             }
         ],
         "PDF & Documents": [
-            {
-                "name": "OCR Text Extractor",
-                "path": "Media & Design/PDF & Documents/ocr.html"
-            },
-            {
-                "name": "PDF OCR Converter",
-                "path": "Media & Design/PDF & Documents/file-pdf-ocr.html"
-            },
+            
+            
             {
                 "name": "PDF Signer",
                 "path": "Media & Design/PDF & Documents/file-pdf-signer.html"
@@ -928,10 +916,7 @@
                 "name": "API Response Visualizer",
                 "path": "Programming & Development/API & Networking/codelab-api-response-visualizer.html"
             },
-            {
-                "name": "API Tester",
-                "path": "Programming & Development/API & Networking/api.html"
-            },
+            
             {
                 "name": "CORS Tester",
                 "path": "Programming & Development/API & Networking/cypher-cors-tester.html"
@@ -1058,10 +1043,7 @@
                 "name": "Broken Link Checker",
                 "path": "SEO & Webmaster/Crawling & Indexing/audit-broken-link-checker.html"
             },
-            {
-                "name": "Canonical Tag Checker",
-                "path": "SEO & Webmaster/Crawling & Indexing/searchops-canonical-tag-checker.html"
-            },
+            
             {
                 "name": "Google Cache Checker",
                 "path": "SEO & Webmaster/Crawling & Indexing/searchops-google-cache-checker.html"
@@ -1070,10 +1052,7 @@
                 "name": "Hreflang Generator",
                 "path": "SEO & Webmaster/Crawling & Indexing/searchops-hreflang-generator.html"
             },
-            {
-                "name": "Link Extractor",
-                "path": "SEO & Webmaster/Crawling & Indexing/searchops-link-extractor.html"
-            },
+            
             {
                 "name": "Meta Tag Generator",
                 "path": "SEO & Webmaster/Crawling & Indexing/searchops-meta-tag-generator.html"
@@ -1102,24 +1081,15 @@
                 "name": "Security Headers Checker",
                 "path": "SEO & Webmaster/Crawling & Indexing/audit-security-headers-checker.html"
             },
-            {
-                "name": "Sitemap Auditor",
-                "path": "SEO & Webmaster/Crawling & Indexing/audit-sitemap-auditor.html"
-            },
-            {
-                "name": "Website Technology Detector",
-                "path": "SEO & Webmaster/Crawling & Indexing/audit-technology-detector.html"
-            },
+            
+            
             {
                 "name": "XML Sitemap Generator",
                 "path": "SEO & Webmaster/Crawling & Indexing/searchops-sitemap-generator.html"
             }
         ],
         "Performance Auditing": [
-            {
-                "name": "Domain Authority Checker",
-                "path": "SEO & Webmaster/Performance Auditing/searchops-domain-authority.html"
-            },
+            
             {
                 "name": "Keyword Typo Generator",
                 "path": "SEO & Webmaster/Performance Auditing/searchops-keyword-typo-gen.html"
@@ -1128,18 +1098,9 @@
                 "name": "Long Tail Keyword Generator",
                 "path": "SEO & Webmaster/Performance Auditing/searchops-long-tail-keyword.html"
             },
-            {
-                "name": "Mobile Friendly Test",
-                "path": "SEO & Webmaster/Performance Auditing/searchops-mobile-friendly-test.html"
-            },
-            {
-                "name": "Moz Rank Checker",
-                "path": "SEO & Webmaster/Performance Auditing/searchops-moz-rank-checker.html"
-            },
-            {
-                "name": "Page Speed Tester",
-                "path": "SEO & Webmaster/Performance Auditing/searchops-page-speed-tester.html"
-            },
+            
+            
+            
             {
                 "name": "Ultimate SEO Audit Dashboard",
                 "path": "SEO & Webmaster/Performance Auditing/ultimate-seo-dashboard.html"
