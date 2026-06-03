@@ -1272,7 +1272,7 @@
                 const navContainer = document.getElementById('tv-sidebar-nav');
                 let html = '';
                 html += `<a href="${prefix}index.html" class="nav-home"><span class="ni">🏠</span> Main Hub</a>`;
-                html += `<a href="${prefix}${currentMainCategory}/index.html" class="nav-home" style="margin-bottom: 1rem;"><span class="ni">📂</span> ${currentMainCategory} Hub</a>`;
+                html += `<a href="${prefix}tools/${currentMainCategory}/index.html" class="nav-home" style="margin-bottom: 1rem;"><span class="ni">📂</span> ${currentMainCategory} Hub</a>`;
                 
                 // Render all subcategories for the current main category
                 const subHubs = navData[currentMainCategory];
@@ -1291,7 +1291,7 @@
                         
                         for (const tool of subTools) {
                             const isActiveTool = decodedPath.endsWith(tool.path.split('/').pop());
-                            const linkUrl = prefix + tool.path.replace(/\\/g, '/');
+                            const linkUrl = prefix + 'tools/' + tool.path.replace(/\\/g, '/');
                             html += `
                                 <a href="${linkUrl}" class="nav-item ${isActiveTool ? 'active' : ''}">
                                     <span class="ni">▪</span> ${tool.name}
