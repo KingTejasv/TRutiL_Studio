@@ -1,12 +1,12 @@
-// theme.js - Universal Theme Manager for Totil Studio
+// theme.js - Universal Theme Manager for TRutiL Studio
 (function() {
     // 1. Initialize Theme immediately to prevent flash of wrong theme
-    const savedTheme = localStorage.getItem('Totil Studio_theme');
+    const savedTheme = localStorage.getItem('TRutiL Studio_theme');
     let currentTheme = savedTheme || 'dark';
     
     document.documentElement.setAttribute('data-theme', currentTheme);
 
-    const savedAccent = localStorage.getItem('Totil Studio_accent') || 'blue';
+    const savedAccent = localStorage.getItem('TRutiL Studio_accent') || 'blue';
     document.documentElement.setAttribute('data-accent', savedAccent);
 
     // 2. Inject floating customizer UI and Navbar after DOM is ready
@@ -491,7 +491,7 @@
         const setTheme = (theme) => {
             currentTheme = theme;
             document.documentElement.setAttribute('data-theme', theme);
-            localStorage.setItem('Totil Studio_theme', theme);
+            localStorage.setItem('TRutiL Studio_theme', theme);
             if (theme === 'light') {
                 lightBtn.classList.add('active');
                 darkBtn.classList.remove('active');
@@ -1251,7 +1251,7 @@
                 sidebar.innerHTML = `
                     <div class="sidebar-logo">
                         <a href="${prefix}hub.html" style="text-decoration:none; display:flex; align-items:center;">
-                            <span style="font-weight: 800; color: var(--tv-text); font-family: 'Ole', cursive; font-size: 1.75rem; transform: translateY(4px);">Totil Studio</span>
+                            <span style="font-weight: 800; color: var(--tv-text); font-family: 'Ole', cursive; font-size: 1.75rem; transform: translateY(4px);">TRutiL Studio</span>
                         </a>
                         <div class="sidebar-toggle-btn" id="tv-sidebar-toggle">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
@@ -1364,7 +1364,7 @@
             // --- Sidebar Minimization State ---
             const toggleBtn = document.getElementById('tv-sidebar-toggle');
             if (toggleBtn) {
-                const savedMin = localStorage.getItem('Totil Studio_sidebar_min');
+                const savedMin = localStorage.getItem('TRutiL Studio_sidebar_min');
                 if (savedMin === 'true') {
                     sidebar.classList.add('sidebar-minimized');
                     document.body.classList.add('sidebar-min-body');
@@ -1374,7 +1374,7 @@
                     sidebar.classList.toggle('sidebar-minimized');
                     document.body.classList.toggle('sidebar-min-body');
                     const isMin = sidebar.classList.contains('sidebar-minimized');
-                    localStorage.setItem('Totil Studio_sidebar_min', isMin);
+                    localStorage.setItem('TRutiL Studio_sidebar_min', isMin);
                 });
             }
 

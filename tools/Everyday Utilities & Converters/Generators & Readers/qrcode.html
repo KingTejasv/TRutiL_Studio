@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>QR Code Generator – Totil Studio</title>
+<title>QR Code Generator – TRutiL Studio</title>
 <link href="../../../style.css" rel="stylesheet"/>
 <script onerror="document.getElementById('qr-lib-error').style.display='block'" src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
 <link href="../../../custom-tools.css" rel="stylesheet"/>
@@ -50,7 +50,7 @@
 <div class="tab-panel active" id="panel-url">
 <div class="field-group">
 <label for="input-url">Website URL</label>
-<input class="form-input" id="input-url" placeholder="https://example.com" type="url" value="https://Totil Studio.app"/>
+<input class="form-input" id="input-url" placeholder="https://example.com" type="url" value="https://TRutiL Studio.app"/>
 </div>
 </div>
 <!-- Text panel -->
@@ -68,7 +68,7 @@
 </div>
 <div class="field-group">
 <label for="input-email-subject">Subject</label>
-<input class="form-input" id="input-email-subject" placeholder="Hello from Totil Studio" type="text"/>
+<input class="form-input" id="input-email-subject" placeholder="Hello from TRutiL Studio" type="text"/>
 </div>
 <div class="field-group">
 <label for="input-email-body">Body</label>
@@ -208,7 +208,7 @@
   }
   qr = new QRious({
     element: canvas,
-    value: 'https://Totil Studio.app',
+    value: 'https://TRutiL Studio.app',
     size: 200,
     foreground: '#000000',
     background: '#ffffff',
@@ -221,7 +221,7 @@
     switch (currentTab) {
       case 'url': {
         const v = document.getElementById('input-url').value.trim();
-        return v || 'https://Totil Studio.app';
+        return v || 'https://TRutiL Studio.app';
       }
       case 'text': {
         const v = document.getElementById('input-text').value.trim();

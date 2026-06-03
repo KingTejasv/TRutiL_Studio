@@ -2,7 +2,7 @@
     "Developer & DevOps": {
         "API & Networking": [
             "API Response Visualizer",
-            "API Tester \u2014 Totil Studio",
+            "API Tester \u2014 TRutiL Studio",
             "CORS Tester",
             "Webhook Tester",
             "CURL \u2194 Fetch Converter",
@@ -12,10 +12,10 @@
             "HTML Formatter",
             "JS Formatter - Codelab",
             "CSS Formatter",
-            "JSON Formatter \u2014 Totil Studio",
-            "XML Formatter \u2014 Totil Studio",
+            "JSON Formatter \u2014 TRutiL Studio",
+            "XML Formatter \u2014 TRutiL Studio",
             "PHP Formatter",
-            "SQL Formatter \u2014 Totil Studio",
+            "SQL Formatter \u2014 TRutiL Studio",
             "SQL Formatter",
             "HTML Minifier",
             "JS Minifier - Codelab",
@@ -30,13 +30,13 @@
             "Dockerfile Generator",
             "Nginx Config Gen - Codelab",
             "Apache Config Gen",
-            "Cron Builder \u2014 Totil Studio",
+            "Cron Builder \u2014 TRutiL Studio",
             "Crontab Generator",
             "Chmod Calculator"
         ],
         "Security & Auth": [
             "JWT Builder - Codelab",
-            "JWT Decoder \u2014 Totil Studio",
+            "JWT Decoder \u2014 TRutiL Studio",
             "JWT Inspector",
             "CSP Generator"
         ],
@@ -46,7 +46,7 @@
             "GitHub README Generator"
         ],
         "Utilities": [
-            "Fake Data Generator \u2014 Totil Studio",
+            "Fake Data Generator \u2014 TRutiL Studio",
             "Browser Window Size Checker",
             "User Agent Parser"
         ]
@@ -63,7 +63,7 @@
             "ROT13 Cipher",
             "MD2 Hash Generator",
             "MD4 Hash Generator",
-            "Hash Generator \u2014 Totil Studio"
+            "Hash Generator \u2014 TRutiL Studio"
         ],
         "Network Analysis": [
             "DNS Lookup",
@@ -77,7 +77,7 @@
         "Passwords & Access": [
             "Password Generator",
             "Random Password Generator",
-            "Password Strength Checker \u2014 Totil Studio",
+            "Password Strength Checker \u2014 TRutiL Studio",
             "Password Strength Tester",
             "htpasswd Generator"
         ],
@@ -96,7 +96,7 @@
         ],
         "Personal Finance & Loans": [
             "Auto Loan Calculator",
-            "EMI Calculator \u2014 Totil Studio",
+            "EMI Calculator \u2014 TRutiL Studio",
             "Mortgage Calculator",
             "Salary Calculator"
         ],
@@ -105,7 +105,7 @@
             "Sales Tax Calculator",
             "VAT Calculator Pro",
             "GST Invoice Generator",
-            "Invoice Generator \u2014 Totil Studio"
+            "Invoice Generator \u2014 TRutiL Studio"
         ],
         "Trading & Investment": [
             "ROI Calculator",
@@ -169,40 +169,40 @@
             "Social Media Image Resizer",
             "Image Resizer",
             "Image Cropper",
-            "Image Compressor \u2014 Totil Studio",
+            "Image Compressor \u2014 TRutiL Studio",
             "Image Converter",
-            "Image Converter \u2014 Totil Studio",
-            "Image Upscaler \u2014 Totil Studio",
-            "Background Remover \u2014 Totil Studio",
-            "Color Converter \u2014 Totil Studio",
-            "Color Palette Generator \u2014 Totil Studio",
+            "Image Converter \u2014 TRutiL Studio",
+            "Image Upscaler \u2014 TRutiL Studio",
+            "Background Remover \u2014 TRutiL Studio",
+            "Color Converter \u2014 TRutiL Studio",
+            "Color Palette Generator \u2014 TRutiL Studio",
             "Color Palette Generator",
             "Color Picker",
             "Color Contrast Checker",
-            "EXIF Editor \u2014 Totil Studio",
+            "EXIF Editor \u2014 TRutiL Studio",
             "EXIF Remover - MediaWorks",
             "EXIF Viewer - MediaWorks",
             "Image Watermark"
         ],
         "PDF & Documents": [
-            "PDF Splitter \u2014 Totil Studio",
-            "PDF Merger \u2014 Totil Studio",
+            "PDF Splitter \u2014 TRutiL Studio",
+            "PDF Merger \u2014 TRutiL Studio",
             "PDF Watermark",
             "PDF Signer",
             "PDF OCR Converter",
             "DOCX \u2194 PDF Converter",
             "PPT \u2194 PDF Converter",
             "Base64 to Image",
-            "PDF Compressor \u2014 Totil Studio",
+            "PDF Compressor \u2014 TRutiL Studio",
             "PDF Password Remover",
-            "PDF to Image \u2014 Totil Studio"
+            "PDF to Image \u2014 TRutiL Studio"
         ],
         "Audio & Video": [
-            "Audio Converter \u2014 Totil Studio",
+            "Audio Converter \u2014 TRutiL Studio",
             "Video Converter",
             "Audio Trimmer",
             "Video Trimmer",
-            "Video Compressor \u2014 Totil Studio",
+            "Video Compressor \u2014 TRutiL Studio",
             "Screen Recorder",
             "Webcam Recorder",
             "Voice Recorder",
@@ -215,8 +215,8 @@
         ],
         "CSS & SVG": [
             "SVG Optimizer",
-            "SVG Optimizer \u2014 Totil Studio",
-            "CSS Gradient Generator \u2014 Totil Studio",
+            "SVG Optimizer \u2014 TRutiL Studio",
+            "CSS Gradient Generator \u2014 TRutiL Studio",
             "REM to PX Converter",
             "CSS to LESS Converter"
         ],
@@ -233,9 +233,9 @@
             "CSV to JSON Converter",
             "JSON to CSV Converter",
             "JSON to XML Converter",
-            "XML to JSON Converter \u2014 Totil Studio",
-            "YAML \u2194 JSON Converter \u2014 Totil Studio",
-            "Base64 Codec \u2014 Totil Studio",
+            "XML to JSON Converter \u2014 TRutiL Studio",
+            "YAML \u2194 JSON Converter \u2014 TRutiL Studio",
+            "Base64 Codec \u2014 TRutiL Studio",
             "Base64 Encode",
             "Base64 Decode",
             "ASCII Converter",
@@ -252,7 +252,7 @@
             "Binary Calculator",
             "Hex Calculator",
             "CSV Cleaner & Optimizer",
-            "CSV Editor \u2014 Totil Studio"
+            "CSV Editor \u2014 TRutiL Studio"
         ],
         "Text Formatting": [
             "Camel Case",
@@ -269,13 +269,13 @@
             "Reverse Lines",
             "Shuffle Text",
             "Shuffle Lines",
-            "Fancy Text Generator \u2014 Totil Studio",
+            "Fancy Text Generator \u2014 TRutiL Studio",
             "Upside Down Text Generator"
         ],
         "Writing & Editing": [
-            "Markdown Editor \u2014 Totil Studio",
+            "Markdown Editor \u2014 TRutiL Studio",
             "Markdown Editor Pro",
-            "Diff Checker \u2014 Totil Studio",
+            "Diff Checker \u2014 TRutiL Studio",
             "Diff Checker Pro",
             "Word Counter",
             "Line Counter",
@@ -284,9 +284,9 @@
             "Speech to Text"
         ],
         "Advanced Processing": [
-            "Regex Tester \u2014 Totil Studio",
+            "Regex Tester \u2014 TRutiL Studio",
             "RegEx Tester Pro",
-            "OCR Text Extractor \u2014 Totil Studio",
+            "OCR Text Extractor \u2014 TRutiL Studio",
             "JSON Escape/Unescape",
             "Zalgo Text Generator",
             "URL Decoder",
@@ -325,18 +325,18 @@
             "Pomodoro Timer",
             "Stopwatch",
             "World Clock",
-            "Timestamp Converter \u2014 Totil Studio",
+            "Timestamp Converter \u2014 TRutiL Studio",
             "Countdown Timer"
         ],
         "Health & Fitness": [
-            "BMI Calculator \u2014 Totil Studio",
-            "Age Calculator \u2014 Totil Studio",
-            "Percentage Calculator \u2014 Totil Studio",
+            "BMI Calculator \u2014 TRutiL Studio",
+            "Age Calculator \u2014 TRutiL Studio",
+            "Percentage Calculator \u2014 TRutiL Studio",
             "Calories Burned Calculator",
             "Running Pace Calculator"
         ],
         "Math & Probability": [
-            "Scientific Calculator \u2014 Totil Studio",
+            "Scientific Calculator \u2014 TRutiL Studio",
             "Fraction Calculator",
             "Probability Calculator",
             "Dice Roller",
@@ -360,7 +360,7 @@
         ],
         "Generators & Readers": [
             "Random Number Generator",
-            "UUID Generator \u2014 Totil Studio",
+            "UUID Generator \u2014 TRutiL Studio",
             "UUID/GUID Generator",
             "Barcode Generator",
             "Barcode Reader",
@@ -371,10 +371,10 @@
         "Files & Misc": [
             "ZIP Extractor & Creator",
             "EPUB Converter",
-            "Clipboard History \u2014 Totil Studio",
-            "Typing Speed Test \u2014 Totil Studio",
-            "Metadata Remover \u2014 Totil Studio",
-            "Spreadsheet Formulas \u2014 Totil Studio"
+            "Clipboard History \u2014 TRutiL Studio",
+            "Typing Speed Test \u2014 TRutiL Studio",
+            "Metadata Remover \u2014 TRutiL Studio",
+            "Spreadsheet Formulas \u2014 TRutiL Studio"
         ]
     }
 }

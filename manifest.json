@@ -1,6 +1,6 @@
 {
-  "name": "Totil Studio",
-  "short_name": "Totil Studio",
+  "name": "TRutiL Studio",
+  "short_name": "TRutiL Studio",
   "description": "Your all-in-one client-side digital toolkit.",
   "start_url": "/index.html",
   "display": "standalone",

@@ -268,7 +268,7 @@
             monaco.editor.setModelLanguage(outputEditor.getModel(), lang);
         });
         
-        // Listen to theme changes from Totil Studio ecosystem
+        // Listen to theme changes from TRutiL Studio ecosystem
         const observer = new MutationObserver(() => {
             const isLight = document.documentElement.getAttribute('data-theme') === 'light';
             monaco.editor.setTheme(isLight ? 'vs' : 'vs-dark');

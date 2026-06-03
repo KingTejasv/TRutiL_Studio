@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>PDF Signer – Totil Studio</title>
+    <title>PDF Signer – TRutiL Studio</title>
     <meta content="Draw or upload your signature to digitally sign PDF documents." name="description"/>
     <link href="../../../style.css" rel="stylesheet"/>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
@@ -63,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const pdfDoc = await PDFLib.PDFDocument.create();
             const page = pdfDoc.addPage([600, 400]);
-            page.drawText('This document has been digitally signed using Totil Studio.', { x: 50, y: 350, size: 15 });
+            page.drawText('This document has been digitally signed using TRutiL Studio.', { x: 50, y: 350, size: 15 });
             
             const pdfBytes = await pdfDoc.save();
             const blob = new Blob([pdfBytes], { type: 'application/pdf' });

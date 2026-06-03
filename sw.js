@@ -1,4 +1,4 @@
-const CACHE_NAME = 'Totil Studio-v11';
+const CACHE_NAME = 'TRutiL Studio-v11';
 
 // Core assets to pre-cache
 const CORE_ASSETS = [
