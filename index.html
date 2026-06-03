@@ -6,7 +6,7 @@
 <title>TRutiL Studio - The Ultimate Developer Toolset</title>
 <link rel="stylesheet" href="hub.css">
 <script src="theme.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2/dist/fuse.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.6.2/fuse.min.js"></script>
 </head>
 <body>
     <div class="bg-mesh"></div>
@@ -134,78 +134,100 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
-        const searchInput = document.getElementById('universal-search');
-        const categoriesHeader = document.getElementById('categories-header');
-        const categoriesGrid = document.getElementById('categories-grid');
-        const statsBar = document.getElementById('stats-bar');
-        const searchContainer = document.getElementById('search-results-container');
-        const searchGrid = document.getElementById('search-results-grid');
-        const searchTitle = document.getElementById('search-results-title');
+        try {
+            const searchInput = document.getElementById('universal-search');
+            const categoriesHeader = document.getElementById('categories-header');
+            const categoriesGrid = document.getElementById('categories-grid');
+            const statsBar = document.getElementById('stats-bar');
+            const searchContainer = document.getElementById('search-results-container');
+            const searchGrid = document.getElementById('search-results-grid');
+            const searchTitle = document.getElementById('search-results-title');
 
-        if (!searchInput || !window.navData) return;
-
-        // Flatten navData into a searchable array
-        const allTools = [];
-        for (const [mainCategory, subCategories] of Object.entries(window.navData)) {
-            for (const [subCategory, tools] of Object.entries(subCategories)) {
-                for (const tool of tools) {
-                    allTools.push({
-                        name: tool.name,
-                        path: 'tools/' + tool.path.replace(/\\/g, '/'),
-                        category: mainCategory,
-                        subCategory: subCategory
-                    });
-                }
+            if (!searchInput) return;
+            
+            if (!window.navData) {
+                searchInput.placeholder = "ERROR: Tool data (navData) failed to load!";
+                searchInput.style.border = "2px solid red";
+                return;
             }
-        }
-
-        // Initialize Fuse.js for fuzzy searching
-        const fuse = new Fuse(allTools, {
-            keys: ['name', 'category', 'subCategory'],
-            threshold: 0.4, // High tolerance for typos
-            distance: 100,
-            ignoreLocation: true
-        });
-
-        searchInput.addEventListener('input', (e) => {
-            const term = e.target.value.trim();
-            if (!term) {
-                // Restore default view
-                categoriesHeader.style.display = 'block';
-                categoriesGrid.style.display = 'grid';
-                statsBar.style.display = 'flex';
-                searchContainer.style.display = 'none';
+            if (typeof Fuse === 'undefined') {
+                searchInput.placeholder = "ERROR: Search engine (Fuse.js) failed to load from CDN!";
+                searchInput.style.border = "2px solid red";
                 return;
             }
 
-            // Perform search
-            const results = fuse.search(term);
-            
-            // Hide categories, show search results
-            categoriesHeader.style.display = 'none';
-            categoriesGrid.style.display = 'none';
-            statsBar.style.display = 'none';
-            searchContainer.style.display = 'block';
-            searchTitle.textContent = results.length > 0 ? `Found ${results.length} tools for "${term}"` : `No tools found for "${term}"`;
-            // Render results
-            searchGrid.innerHTML = '';
-            results.forEach(result => {
-                const tool = result.item;
-                const card = document.createElement('a');
-                card.href = tool.path;
-                card.className = 'premium-card';
-                card.innerHTML = `
-                    <div class="card-icon">⚡</div>
-                    <h3 class="card-title">${tool.name}</h3>
-                    <p class="card-desc">${tool.category} / ${tool.subCategory}</p>
-                    <div class="card-footer">
-                        <span class="card-tag">Launch Tool</span>
-                        <span class="card-arrow">Explore →</span>
-                    </div>
-                `;
-                searchGrid.appendChild(card);
+            // Flatten navData into a searchable array
+            const allTools = [];
+            for (const [mainCategory, subCategories] of Object.entries(window.navData)) {
+                for (const [subCategory, tools] of Object.entries(subCategories)) {
+                    for (const tool of tools) {
+                        allTools.push({
+                            name: tool.name,
+                            path: 'tools/' + tool.path.replace(/\\/g, '/'),
+                            category: mainCategory,
+                            subCategory: subCategory
+                        });
+                    }
+                }
+            }
+
+            // Initialize Fuse.js for fuzzy searching
+            const fuse = new Fuse(allTools, {
+                keys: ['name', 'category', 'subCategory'],
+                threshold: 0.4, // High tolerance for typos
+                distance: 100,
+                ignoreLocation: true
             });
-        });
+
+            searchInput.addEventListener('input', (e) => {
+                const term = e.target.value.trim();
+                if (!term) {
+                    // Restore default view
+                    categoriesHeader.style.display = 'block';
+                    categoriesGrid.style.display = 'grid';
+                    statsBar.style.display = 'flex';
+                    searchContainer.style.display = 'none';
+                    return;
+                }
+
+                // Perform search
+                const results = fuse.search(term);
+                
+                // Hide categories, show search results
+                categoriesHeader.style.display = 'none';
+                categoriesGrid.style.display = 'none';
+                statsBar.style.display = 'none';
+                searchContainer.style.display = 'block';
+                
+                searchTitle.textContent = results.length > 0 ? `Found ${results.length} tools for "${term}"` : `No tools found for "${term}"`;
+                
+                // Render results
+                searchGrid.innerHTML = '';
+                results.forEach(result => {
+                    const tool = result.item;
+                    const card = document.createElement('a');
+                    card.href = tool.path;
+                    card.className = 'premium-card';
+                    card.innerHTML = `
+                        <div class="card-icon">⚡</div>
+                        <h3 class="card-title">${tool.name}</h3>
+                        <p class="card-desc">${tool.category} / ${tool.subCategory}</p>
+                        <div class="card-footer">
+                            <span class="card-tag">Launch Tool</span>
+                            <span class="card-arrow">Explore →</span>
+                        </div>
+                    `;
+                    searchGrid.appendChild(card);
+                });
+            });
+            
+        } catch (err) {
+            const searchInput = document.getElementById('universal-search');
+            if (searchInput) {
+                searchInput.placeholder = "FATAL ERROR: " + err.message;
+                searchInput.style.border = "2px solid red";
+            }
+        }
     });
 </script>
 </body>
