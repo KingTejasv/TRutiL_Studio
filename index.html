@@ -168,7 +168,11 @@
                 }
                 
                 pinned.forEach(pinnedPath => {
-                    const toolInfo = allTools.find(t => t.path.replace(/\\/g, '/') === pinnedPath);
+                    const normalizedPinned = pinnedPath.replace(/\.html$/, '').replace(/\/$/, '');
+                    const toolInfo = allTools.find(t => {
+                        const normalizedTool = t.path.replace(/\\/g, '/').replace(/\.html$/, '').replace(/\/$/, '');
+                        return normalizedTool === normalizedPinned;
+                    });
                     if (toolInfo) {
                         const card = document.createElement('a');
                         card.href = 'tools/' + toolInfo.path;
