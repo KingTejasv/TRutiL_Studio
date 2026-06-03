@@ -191,7 +191,14 @@
                 });
             }
             
-            renderPinnedTools();
+            function tryRender() {
+                if (window.navData) {
+                    renderPinnedTools();
+                } else {
+                    setTimeout(tryRender, 50);
+                }
+            }
+            tryRender();
             
             window.addEventListener('storage', (e) => {
                 if (e.key === 'TRutiL_PinnedTools') {
