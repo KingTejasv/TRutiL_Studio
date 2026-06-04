@@ -10,7 +10,7 @@
     document.documentElement.setAttribute('data-accent', savedAccent);
 
     // Desktop App Detection
-    if (typeof process !== 'undefined' && process.versions && process.versions.electron) {
+    if (window.location.search.includes('appMode=1')) {
         if (!window.location.pathname.endsWith('app-shell.html')) {
             document.documentElement.classList.add('is-desktop-app');
         }
@@ -76,11 +76,25 @@
             /* Hide website headers when running inside the desktop app shell */
             .is-desktop-app .tv-navbar,
             .is-desktop-app .app-header,
-            .is-desktop-app .tv-footer {
+            .is-desktop-app .tv-footer,
+            .is-desktop-app .sidebar,
+            .is-desktop-app .sidebar-toggle-btn,
+            .is-desktop-app #tv-hamburger {
                 display: none !important;
             }
-            .is-desktop-app body {
+            .is-desktop-app body,
+            .is-desktop-app body.has-sidebar,
+            .is-desktop-app body.has-sidebar.sidebar-min-body {
                 padding-top: 1rem !important;
+                padding-left: 0 !important;
+                padding-right: 0 !important;
+                user-select: none;
+                -webkit-user-select: none;
+            }
+            /* Hide the hero section on the hub page in desktop mode so it looks like an app dashboard */
+            .is-desktop-app .hero {
+                display: none !important;
+            }
                 user-select: none;
                 -webkit-user-select: none;
             }

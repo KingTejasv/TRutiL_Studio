@@ -146,6 +146,12 @@
         background: transparent;
     }
 
+    /* Force dark scrollbars everywhere */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #0a0a0a; }
+    ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #555; }
+
     .hub-link {
         padding: 1rem;
         display: flex;
@@ -181,7 +187,7 @@
 
         <!-- Main Workspace (WebView) -->
         <div class="app-content">
-            <webview id="workspace" src="index.html" nodeintegration></webview>
+            <webview id="workspace" src="index.html?appMode=1" nodeintegration webpreferences="contextIsolation=no"></webview>
         </div>
     </div>
 
@@ -191,7 +197,11 @@
         
         function loadTool(path, element) {
             // Update webview src
-            workspace.src = path;
+            if (path.includes('?')) {
+                workspace.src = path + '&appMode=1';
+            } else {
+                workspace.src = path + '?appMode=1';
+            }
             
             // Update active state in sidebar
             document.querySelectorAll('.tool-link, .hub-link').forEach(el => el.classList.remove('active'));
@@ -210,14 +220,14 @@
                 const header = document.createElement('div');
                 header.className = 'acc-header';
                 header.innerHTML = `
-                    <span>${mainCat}</span>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                    <span style="pointer-events: none;">${mainCat}</span>
+                    <svg style="pointer-events: none;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
                 `;
-                header.onclick = () => {
+                header.addEventListener('click', (e) => {
                     const isOpen = group.classList.contains('open');
                     document.querySelectorAll('.acc-group').forEach(g => g.classList.remove('open'));
-                    if(!isOpen) group.classList.add('open');
-                };
+                    if (!isOpen) group.classList.add('open');
+                });
 
                 // Content
                 const content = document.createElement('div');
@@ -245,10 +255,43 @@
             }
         }
 
-        // Intercept navigation inside webview to keep sidebar in sync if needed
-        workspace.addEventListener('did-navigate', (e) => {
-            // Optional: highlight the correct sidebar item based on URL
-        });
+        // Inject CSS into the webview directly to hide the inner sidebar & navbar
+        const HIDE_CSS = `
+            .sidebar, .sidebar-toggle-btn, #tv-hamburger,
+            .tv-navbar, .app-header, .tv-footer, .hero {
+                display: none !important;
+            }
+            body, body.has-sidebar, body.has-sidebar.sidebar-min-body {
+                padding-top: 1rem !important;
+                padding-left: 1.5rem !important;
+                padding-right: 1.5rem !important;
+                margin-left: 0 !important;
+                margin-top: 0 !important;
+            }
+            .main-content, .page-content, .app-layout {
+                margin-left: 0 !important;
+                padding-left: 0 !important;
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+            .tool-layout-container, .split-pane {
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+            ::-webkit-scrollbar { width: 8px !important; height: 8px !important; }
+            ::-webkit-scrollbar-track { background: #111 !important; }
+            ::-webkit-scrollbar-thumb { background: #444 !important; border-radius: 4px !important; }
+            ::-webkit-scrollbar-thumb:hover { background: #666 !important; }
+        `;
+
+        function injectCSS() {
+            workspace.insertCSS(HIDE_CSS).catch(() => {});
+            workspace.setZoomFactor(1.15);
+        }
+
+        workspace.addEventListener('dom-ready', injectCSS);
+        workspace.addEventListener('did-navigate', injectCSS);
+        workspace.addEventListener('did-navigate-in-page', injectCSS);
     </script>
 </body>
 </html>
