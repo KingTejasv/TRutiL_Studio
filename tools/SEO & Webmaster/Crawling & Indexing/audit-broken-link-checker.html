@@ -27,18 +27,19 @@
                         <div class="panel-title">Broken Link Checker Interface</div>
                         
                         <div class="form-group">
-                            <label class="form-label">Input Data</label>
-                            <textarea class="form-textarea" id="tool-input" placeholder="Enter your data, configure your settings, or upload a file..."></textarea>
+                            <label class="form-label">Target Website URL</label>
+                            <input type="url" id="tool-input" class="form-input" placeholder="https://example.com" />
                         </div>
                         
                         <div style="margin-top: 15px; margin-bottom: 25px;">
-                            <button class="btn btn-primary" id="action-btn">Process / Execute Tool</button>
-                            <button class="btn btn-ghost" id="clear-btn">Clear</button>
+                            <button class="btn btn-primary" id="action-btn" style="width: 100%;">Spider Website for Broken Links</button>
                         </div>
 
+                        <div id="status-text" style="font-size: 14px; font-weight: 500; text-align: center; margin-bottom: 15px; color: var(--accent);"></div>
+
                         <div class="form-group">
-                            <label class="form-label">Result Output</label>
-                            <div class="result-card" id="tool-output" style="min-height: 120px; background: var(--bg-elevated); color: var(--text-primary); border: 1px solid var(--border);">
+                            <label class="form-label">Crawl Results</label>
+                            <div class="result-card" id="tool-output" style="min-height: 200px; background: var(--bg-elevated); color: var(--text-primary); border: 1px solid var(--border); overflow: auto;">
                                 <span style="color: var(--text-muted); font-size: 14px;">Results will appear here...</span>
                             </div>
                         </div>
@@ -48,42 +49,204 @@
         </div>
     </div>
     <script>
-
 document.addEventListener('DOMContentLoaded', () => {
     const actionBtn = document.getElementById('action-btn');
     const inputData = document.getElementById('tool-input');
     const outputData = document.getElementById('tool-output');
+    const statusText = document.getElementById('status-text');
+
+    let http, https, URLModule, cheerio;
+    try {
+        http = require('http');
+        https = require('https');
+        URLModule = require('url').URL;
+        cheerio = require('cheerio');
+    } catch(err) {
+        console.error(err);
+        statusText.innerHTML = `<span style='color:red;'>Node Integration Error: ${err.message}</span>`;
+    }
+
+    function fetchUrl(targetUrl, method = 'GET') {
+        return new Promise((resolve, reject) => {
+            let parsedUrl;
+            try { parsedUrl = new URLModule(targetUrl); } catch(e) { return reject(e); }
+            
+            const client = parsedUrl.protocol === 'https:' ? https : http;
+            const options = {
+                method: method,
+                headers: { 'User-Agent': 'TRutiL-Studio-Bot/1.0' },
+                timeout: 10000
+            };
+            
+            const req = client.request(targetUrl, options, (res) => {
+                // If redirect, we can consider it alive but note the redirect
+                if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+                    resolve({ status: res.statusCode, data: '', redirect: res.headers.location });
+                    return;
+                }
+                
+                let data = '';
+                res.on('data', chunk => data += chunk);
+                res.on('end', () => resolve({ status: res.statusCode, data }));
+            });
+            
+            req.on('error', (err) => resolve({ status: 'ERROR', error: err.message }));
+            req.on('timeout', () => { req.abort(); resolve({ status: 'TIMEOUT' }); });
+            req.end();
+        });
+    }
 
     actionBtn.addEventListener('click', async () => {
-        if(!inputData.value) {
-            outputData.innerHTML = `<span style="color: var(--accent-red); font-size: 14px;">Please enter a URL to check.</span>`;
+        let targetUrl = inputData.value.trim();
+        if(!targetUrl) {
+            statusText.innerHTML = `<span style="color: var(--accent-red);">Please enter a URL to check.</span>`;
             return;
         }
+        if (!/^https?:\/\//i.test(targetUrl)) {
+            targetUrl = 'https://' + targetUrl;
+            inputData.value = targetUrl;
+        }
         
-        outputData.innerHTML = '<span style="color: var(--tv-primary); font-size: 14px;">Scanning links... (CORS policies may block some requests)</span>';
+        actionBtn.disabled = true;
+        outputData.innerHTML = '';
+        statusText.innerHTML = `<span style="color: var(--tv-primary);">Fetching main page...</span>`;
         
         try {
-            const url = inputData.value;
-            const res = await fetch(url, {mode: 'no-cors'});
+            const res = await fetchUrl(targetUrl, 'GET');
             
+            if (res.status !== 200 || !res.data) {
+                statusText.innerHTML = `<span style="color: var(--accent-red);">Failed to fetch main page (Status: ${res.status})</span>`;
+                actionBtn.disabled = false;
+                return;
+            }
+
+            statusText.innerHTML = `<span style="color: var(--tv-primary);">Parsing HTML for links...</span>`;
+            const $ = cheerio.load(res.data);
+            const links = new Set();
+            
+            $('a').each((_, el) => {
+                let href = $(el).attr('href');
+                if (href && !href.startsWith('mailto:') && !href.startsWith('tel:') && !href.startsWith('#')) {
+                    try {
+                        const absoluteUrl = new URLModule(href, targetUrl).href;
+                        links.add(absoluteUrl);
+                    } catch(e) {} // ignore invalid URLs
+                }
+            });
+            
+            const uniqueLinks = Array.from(links);
+            if (uniqueLinks.length === 0) {
+                statusText.innerHTML = `<span style="color: var(--accent-green);">No links found on this page.</span>`;
+                actionBtn.disabled = false;
+                return;
+            }
+            
+            statusText.innerHTML = `<span style="color: var(--tv-primary);">Scanning ${uniqueLinks.length} unique links...</span>`;
+            
+            // Build the table shell
             outputData.innerHTML = `
-                <div style="display:flex; flex-direction:column; gap: 10px;">
-                    <span style="color: #00FF25; font-size: 16px; font-weight: bold;">✓ Scan Complete</span>
-                    <p>Due to browser CORS restrictions, a full deep crawl cannot be completed purely client-side.</p>
-                    <table style="width: 100%; border-collapse: collapse; text-align: left;">
-                        <tr style="border-bottom: 1px solid var(--border);"><th>URL</th><th>Status</th></tr>
-                        <tr><td>${url}</td><td><span style="color:#00FF25">OK (200)</span></td></tr>
-                        <tr><td>${url}/about</td><td><span style="color:#f59e0b">Unknown (CORS)</span></td></tr>
-                        <tr><td>${url}/broken-link</td><td><span style="color:#ef4444">404 Not Found</span></td></tr>
-                    </table>
-                </div>
+                <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid var(--border);">
+                            <th style="padding: 8px;">URL</th>
+                            <th style="padding: 8px; width: 120px;">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="results-tbody">
+                    </tbody>
+                </table>
             `;
+            const tbody = document.getElementById('results-tbody');
+            
+            let brokenCount = 0;
+            let checkedCount = 0;
+            
+            // We use a simple concurrency limit approach so we don't spam
+            const concurrencyLimit = 5;
+            let index = 0;
+            
+            async function worker() {
+                while(index < uniqueLinks.length) {
+                    const currentIndex = index++;
+                    const link = uniqueLinks[currentIndex];
+                    
+                    const row = document.createElement('tr');
+                    row.style.borderBottom = '1px solid var(--border)';
+                    row.innerHTML = `<td style="padding: 8px; word-break: break-all;">${link}</td><td style="padding: 8px;"><span style="color:var(--text-muted)">Checking...</span></td>`;
+                    tbody.appendChild(row);
+                    
+                    const statusTd = row.querySelectorAll('td')[1];
+                    
+                    const linkRes = await fetchUrl(link, 'HEAD');
+                    checkedCount++;
+                    statusText.innerHTML = `<span style="color: var(--tv-primary);">Checked ${checkedCount} / ${uniqueLinks.length} links...</span>`;
+                    
+                    if (linkRes.status === 200) {
+                        statusTd.innerHTML = `<span style="color:#00FF25">200 OK</span>`;
+                    } else if (typeof linkRes.status === 'number' && linkRes.status >= 300 && linkRes.status < 400) {
+                        statusTd.innerHTML = `<span style="color:#f59e0b">${linkRes.status} Redirect</span>`;
+                    } else {
+                        statusTd.innerHTML = `<span style="color:#ef4444; font-weight:bold;">${linkRes.status} ${linkRes.error || 'Broken'}</span>`;
+                        brokenCount++;
+                    }
+                }
+            }
+            
+            const workers = [];
+            for (let i = 0; i < concurrencyLimit; i++) {
+                workers.push(worker());
+            }
+            
+            await Promise.all(workers);
+            
+            statusText.innerHTML = `<span style="color: var(--accent-green);">Scan Complete! Found ${brokenCount} broken links out of ${uniqueLinks.length} total.</span>`;
+            
         } catch(e) {
-            outputData.innerHTML = `<span style="color: var(--accent-red); font-size: 14px;">Fetch Error: ${e.message}. Note that browsers block cross-origin requests.</span>`;
+            statusText.innerHTML = `<span style="color: var(--accent-red);">Error: ${e.message}</span>`;
         }
+        
+        actionBtn.disabled = false;
     });
 });
-
 </script>
+
+    <!-- Desktop Engine Guard -->
+    <script>
+        if (typeof require === 'undefined' || !window.process || !window.process.versions || !window.process.versions.electron) {
+            const appLayout = document.getElementById('app-layout');
+            if (appLayout) {
+                appLayout.style.filter = 'blur(8px)';
+                appLayout.style.pointerEvents = 'none';
+                appLayout.style.userSelect = 'none';
+            }
+            const overlay = document.createElement('div');
+            overlay.style.position = 'fixed';
+            overlay.style.top = '0';
+            overlay.style.left = '0';
+            overlay.style.width = '100vw';
+            overlay.style.height = '100vh';
+            overlay.style.backgroundColor = 'rgba(15, 23, 42, 0.85)';
+            overlay.style.backdropFilter = 'blur(4px)';
+            overlay.style.zIndex = '999999';
+            overlay.style.display = 'flex';
+            overlay.style.flexDirection = 'column';
+            overlay.style.alignItems = 'center';
+            overlay.style.justifyContent = 'center';
+            overlay.style.color = 'white';
+            overlay.style.fontFamily = 'Inter, sans-serif';
+            overlay.style.textAlign = 'center';
+            overlay.style.padding = '20px';
+            
+            overlay.innerHTML = `
+                <div style="background: var(--bg-card, #1e293b); padding: 40px; border-radius: 20px; border: 1px solid var(--border, #334155); max-width: 500px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
+                    <div style="font-size: 48px; margin-bottom: 20px;">⚡</div>
+                    <h2 style="font-size: 24px; font-weight: 700; margin: 0 0 15px 0;">Desktop Engine Required</h2>
+                    <p style="font-size: 16px; color: #94a3b8; line-height: 1.6; margin: 0 0 25px 0;">This advanced feature requires a local engine. It is available exclusively on the TRutiL Studio Desktop App <strong style="color: white;">FOR FREE</strong>.</p>
+                    <button style="font-size: 16px; padding: 12px 24px; cursor: pointer; background: #3b82f6; color: white; border: none; border-radius: 8px; font-weight: 600;" onclick="window.history.back();">Return</button>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+        }
+    </script>
 </body>
 </html>

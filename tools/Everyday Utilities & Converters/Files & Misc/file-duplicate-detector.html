@@ -1,68 +1,261 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Duplicate File Detector – TRutiL Studio</title>
-<meta content="Find and remove duplicate files based on content hashes." name="description"/>
-<link href="../../../style.css?v=3" rel="stylesheet"/>
-<script src="../../../theme.js?v=3"></script>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Duplicate File Detector – TRutiL Studio</title>
+    <meta content="Find duplicate files based on content hashes locally." name="description"/>
+    <link href="../../../style.css?v=3" rel="stylesheet"/>
+    <script src="../../../theme.js?v=3"></script>
+    <style>
+        .drop-zone {
+            border: 2px dashed var(--border);
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            background: var(--bg-elevated);
+            color: var(--text-muted);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+        .drop-zone.dragover {
+            border-color: var(--accent);
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--text-primary);
+        }
+        .progress-bar {
+            height: 8px;
+            background: var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 15px;
+            display: none;
+        }
+        .progress-fill {
+            height: 100%;
+            background: var(--accent);
+            width: 0%;
+            transition: width 0.2s;
+        }
+        .duplicate-group {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        .duplicate-group h4 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            color: var(--accent-red);
+            font-size: 14px;
+        }
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 12px;
+            background: var(--bg-elevated);
+            border-radius: 6px;
+            margin-bottom: 5px;
+            font-family: monospace;
+            font-size: 13px;
+        }
+    </style>
 </head>
 <body>
-<div class="app-layout" id="app-layout">
-<div class="main-content">
-<div class="page-content">
-<div class="app-header">
-<div class="app-icon" style="background:linear-gradient(135deg, #3b82f6, #1d4ed8);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:24px;">⚙️</div>
-<div>
-<h1>Duplicate File Detector</h1>
-<p>Find and remove duplicate files based on content hashes.</p>
-</div>
-</div>
-<div class="tool-workspace">
-<div class="panel">
-<div class="panel-title">Duplicate File Detector Interface</div>
-<div class="form-group">
-<label class="form-label">Input Data</label>
-<textarea class="form-textarea" id="tool-input" placeholder="Enter your data, configure your settings, or upload a file..."></textarea>
-</div>
-<div style="margin-top: 15px; margin-bottom: 25px;">
-<button class="btn btn-primary" id="action-btn">Process / Execute Tool</button>
-<button class="btn btn-ghost btn-primary" id="clear-btn">Clear</button>
-</div>
-<div class="form-group">
-<label class="form-label">Result Output</label>
-<div class="result-card" id="tool-output" style="min-height: 120px; background: var(--bg-elevated); color: var(--text-primary); border: 1px solid var(--border);">
-<span style="color: var(--text-muted); font-size: 14px;">Results will appear here...</span>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-<script>
+    <div class="app-layout" id="app-layout">
+        <div class="main-content">
+            <div class="page-content">
+                <div class="app-header">
+                    <div class="app-icon" style="background:linear-gradient(135deg, #f43f5e, #e11d48);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:24px;">👯</div>
+                    <div>
+                        <h1>Duplicate File Detector</h1>
+                        <p>Find duplicate files purely offline by scanning their contents (SHA-256).</p>
+                    </div>
+                </div>
+                <div class="tool-workspace">
+                    <div class="panel">
+                        <div class="panel-title">Upload Files</div>
+                        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 15px;">
+                            Select multiple files or a folder to scan. Files are processed locally and never uploaded anywhere.
+                        </p>
+                        
+                        <div class="drop-zone" id="drop-zone">
+                            <div style="font-size: 32px; margin-bottom: 10px;">📁</div>
+                            <div style="font-weight: 600; margin-bottom: 5px;">Drag & Drop files here</div>
+                            <div style="font-size: 13px;">or click to browse</div>
+                            <input type="file" id="file-input" multiple style="display: none;" />
+                        </div>
+                        
+                        <div id="status-text" style="font-size: 14px; font-weight: 500;"></div>
+                        <div class="progress-bar" id="progress-bar">
+                            <div class="progress-fill" id="progress-fill"></div>
+                        </div>
+                        
+                        <div style="margin-top: 20px;">
+                            <button class="btn btn-primary" id="scan-btn" disabled>Scan Files</button>
+                            <button class="btn btn-ghost" id="clear-btn">Clear</button>
+                        </div>
+                    </div>
+                    
+                    <div class="panel" id="results-panel" style="display: none;">
+                        <div class="panel-title">Scan Results</div>
+                        <div id="results-summary" style="margin-bottom: 15px; font-weight: 600;"></div>
+                        <div id="duplicates-container"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const actionBtn = document.getElementById('action-btn');
+            const dropZone = document.getElementById('drop-zone');
+            const fileInput = document.getElementById('file-input');
+            const scanBtn = document.getElementById('scan-btn');
             const clearBtn = document.getElementById('clear-btn');
-            const inputData = document.getElementById('tool-input');
-            const outputData = document.getElementById('tool-output');
+            const statusText = document.getElementById('status-text');
+            const progressBar = document.getElementById('progress-bar');
+            const progressFill = document.getElementById('progress-fill');
+            const resultsPanel = document.getElementById('results-panel');
+            const duplicatesContainer = document.getElementById('duplicates-container');
+            const resultsSummary = document.getElementById('results-summary');
+            
+            let selectedFiles = [];
 
-            actionBtn.addEventListener('click', () => {
-                // Standard placeholder functionality for these generated SEO pages
-                // In production, real WebAssembly/API logic is injected here.
-                if(!inputData.value.trim()) {
-                    outputData.innerHTML = `<span style="color: var(--accent-red); font-size: 14px;">Please enter some input data first.</span>`;
-                    return;
+            // Drag and drop handlers
+            dropZone.addEventListener('click', () => fileInput.click());
+            
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.classList.add('dragover');
+            });
+            
+            dropZone.addEventListener('dragleave', () => {
+                dropZone.classList.remove('dragover');
+            });
+            
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('dragover');
+                if (e.dataTransfer.files.length > 0) {
+                    addFiles(e.dataTransfer.files);
                 }
-                
-                outputData.innerHTML = `<span style="color: var(--accent-green); font-size: 14px;">Processing completed! [This is a fully-styled, functional-ready frontend for <strong>Duplicate File Detector</strong>. Add backend or heavy WebAssembly logic to process the data.]</span>`;
+            });
+            
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    addFiles(e.target.files);
+                }
             });
 
+            function addFiles(files) {
+                selectedFiles = Array.from(files);
+                statusText.textContent = `${selectedFiles.length} file(s) selected. Ready to scan.`;
+                scanBtn.disabled = selectedFiles.length < 2;
+                if(selectedFiles.length < 2) {
+                    statusText.textContent = `${selectedFiles.length} file(s) selected. Please select at least 2 files to find duplicates.`;
+                }
+                resultsPanel.style.display = 'none';
+            }
+
             clearBtn.addEventListener('click', () => {
-                inputData.value = '';
-                outputData.innerHTML = `<span style="color: var(--text-muted); font-size: 14px;">Results will appear here...</span>`;
+                selectedFiles = [];
+                fileInput.value = '';
+                statusText.textContent = '';
+                scanBtn.disabled = true;
+                progressBar.style.display = 'none';
+                resultsPanel.style.display = 'none';
+                progressFill.style.width = '0%';
+            });
+
+            async function hashFile(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = async (e) => {
+                        try {
+                            const buffer = e.target.result;
+                            const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+                            const hashArray = Array.from(new Uint8Array(hashBuffer));
+                            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+                            resolve(hashHex);
+                        } catch (err) {
+                            reject(err);
+                        }
+                    };
+                    reader.onerror = () => reject(reader.error);
+                    reader.readAsArrayBuffer(file);
+                });
+            }
+
+            function formatBytes(bytes) {
+                if (bytes === 0) return '0 Bytes';
+                const k = 1024;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            }
+
+            scanBtn.addEventListener('click', async () => {
+                if (selectedFiles.length < 2) return;
+                
+                scanBtn.disabled = true;
+                clearBtn.disabled = true;
+                progressBar.style.display = 'block';
+                resultsPanel.style.display = 'none';
+                duplicatesContainer.innerHTML = '';
+                
+                const fileHashes = {}; // hash -> [files]
+                
+                for (let i = 0; i < selectedFiles.length; i++) {
+                    const file = selectedFiles[i];
+                    statusText.textContent = `Scanning ${i + 1} of ${selectedFiles.length}: ${file.name}...`;
+                    progressFill.style.width = `${((i + 1) / selectedFiles.length) * 100}%`;
+                    
+                    try {
+                        const hash = await hashFile(file);
+                        if (!fileHashes[hash]) fileHashes[hash] = [];
+                        fileHashes[hash].push(file);
+                    } catch (err) {
+                        console.error('Failed to hash file', file.name, err);
+                    }
+                }
+                
+                statusText.textContent = 'Scan complete!';
+                
+                // Filter duplicates
+                const duplicates = Object.values(fileHashes).filter(group => group.length > 1);
+                
+                resultsPanel.style.display = 'block';
+                
+                if (duplicates.length === 0) {
+                    resultsSummary.innerHTML = '<span style="color:var(--accent-green)">No duplicate files found!</span>';
+                } else {
+                    let totalWasted = 0;
+                    duplicates.forEach((group, index) => {
+                        const fileSize = group[0].size;
+                        totalWasted += fileSize * (group.length - 1);
+                        
+                        const groupDiv = document.createElement('div');
+                        groupDiv.className = 'duplicate-group';
+                        groupDiv.innerHTML = `<h4>Duplicate Group ${index + 1} (${group.length} exact matches) - ${formatBytes(fileSize)} each</h4>`;
+                        
+                        group.forEach(f => {
+                            const item = document.createElement('div');
+                            item.className = 'file-item';
+                            item.innerHTML = `<span>📄 ${f.name}</span> <span style="color:var(--text-muted)">${f.lastModifiedDate ? f.lastModifiedDate.toLocaleDateString() : ''}</span>`;
+                            groupDiv.appendChild(item);
+                        });
+                        
+                        duplicatesContainer.appendChild(groupDiv);
+                    });
+                    
+                    resultsSummary.innerHTML = `<span style="color:var(--accent-red)">Found ${duplicates.length} duplicate groups. You can save ${formatBytes(totalWasted)} by removing the duplicates.</span>`;
+                }
+                
+                scanBtn.disabled = false;
+                clearBtn.disabled = false;
             });
         });
     </script>

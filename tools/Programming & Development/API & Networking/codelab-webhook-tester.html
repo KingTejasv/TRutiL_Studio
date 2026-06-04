@@ -3,11 +3,9 @@
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>Webhook Tester – TRutiL Studio</title>
-    <meta content="Generate unique URLs to test webhooks." name="description"/>
+    <title>Webhook Request Builder – TRutiL Studio</title>
+    <meta content="Build and send custom HTTP requests to test webhooks and APIs." name="description"/>
     <link href="../../../style.css?v=3" rel="stylesheet"/>
-    
-
     <script src="../../../theme.js?v=3"></script>
 </head>
 <body>
@@ -15,34 +13,143 @@
         <div class="main-content">
             <div class="page-content">
                 <div class="app-header">
-                    <div class="app-icon">👨‍💻</div>
+                    <div class="app-icon" style="background:linear-gradient(135deg, #8b5cf6, #6d28d9);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:24px;">🌐</div>
                     <div>
-                        <h1>Webhook Tester</h1>
-                        <p>Generate unique URLs to test webhooks.</p>
+                        <h1>Webhook Request Builder</h1>
+                        <p>Build and send custom HTTP requests to test your webhooks and APIs.</p>
                     </div>
                 </div>
                 <div class="tool-workspace">
-                    
-<div class="panel" style="text-align: center; padding: 40px;">
-    <h2 style="margin-bottom: 20px;">Your unique Webhook URL:</h2>
-    <div style="background: var(--bg-elevated); border: 1px solid var(--border); padding: 15px; border-radius: 8px; font-family: monospace; font-size: 18px; color: var(--accent); margin-bottom: 20px;">
-        https://hook.TRutiL Studio.app/api/v1/hook/x9f8b2c4
-    </div>
-    <p style="color: var(--text-muted); margin-bottom: 30px;">Copy this URL and use it in your application. Incoming requests will appear below in real-time.</p>
-    
-    <div style="text-align: left; background: var(--bg-card); padding: 20px; border-radius: 10px; border: 1px dashed var(--border-hover); min-height: 200px;">
-        <div style="display:flex; justify-content:center; align-items:center; height: 160px; color: var(--text-muted);">
-            <div class="status-dot">Waiting for incoming payloads...</div>
-        </div>
-    </div>
-</div>
-
+                    <div class="split-pane">
+                        <div class="panel">
+                            <div class="panel-title">Request Configuration</div>
+                            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                                <select id="req-method" class="form-input" style="width: 100px;">
+                                    <option value="GET">GET</option>
+                                    <option value="POST" selected>POST</option>
+                                    <option value="PUT">PUT</option>
+                                    <option value="DELETE">DELETE</option>
+                                    <option value="PATCH">PATCH</option>
+                                </select>
+                                <input type="text" id="req-url" class="form-input" style="flex: 1;" placeholder="https://api.example.com/webhook" />
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Headers (JSON format)</label>
+                                <textarea id="req-headers" class="form-textarea" style="font-family: monospace; height: 100px;" placeholder='{&#10;  "Content-Type": "application/json"&#10;}'></textarea>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Body (JSON or Text)</label>
+                                <textarea id="req-body" class="form-textarea" style="font-family: monospace; height: 150px;" placeholder='{&#10;  "event": "user.created",&#10;  "data": {&#10;    "id": 123&#10;  }&#10;}'></textarea>
+                            </div>
+                            
+                            <button id="send-btn" class="btn btn-primary" style="width: 100%;">Send Request</button>
+                        </div>
+                        
+                        <div class="panel">
+                            <div class="panel-title">Response</div>
+                            <div id="res-status" style="margin-bottom: 15px; font-weight: 600; font-size: 1.1rem;">Waiting for request...</div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Response Headers</label>
+                                <div id="res-headers" class="result-card" style="font-family: monospace; font-size: 13px; min-height: 80px; background: var(--bg-elevated); border: 1px solid var(--border); overflow-x: auto; white-space: pre;"></div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Response Body</label>
+                                <div id="res-body" class="result-card" style="font-family: monospace; font-size: 13px; min-height: 200px; background: var(--bg-elevated); border: 1px solid var(--border); overflow-x: auto; white-space: pre;"></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+    
     <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const sendBtn = document.getElementById('send-btn');
+            const reqMethod = document.getElementById('req-method');
+            const reqUrl = document.getElementById('req-url');
+            const reqHeaders = document.getElementById('req-headers');
+            const reqBody = document.getElementById('req-body');
+            
+            const resStatus = document.getElementById('res-status');
+            const resHeaders = document.getElementById('res-headers');
+            const resBody = document.getElementById('res-body');
 
+            // Default headers
+            reqHeaders.value = JSON.stringify({ "Content-Type": "application/json" }, null, 2);
+
+            sendBtn.addEventListener('click', async () => {
+                const url = reqUrl.value.trim();
+                const method = reqMethod.value;
+                let headersObj = {};
+                
+                if (!url) {
+                    resStatus.innerHTML = '<span style="color:var(--accent-red)">Error: URL is required.</span>';
+                    return;
+                }
+
+                try {
+                    const hText = reqHeaders.value.trim();
+                    if (hText) {
+                        headersObj = JSON.parse(hText);
+                    }
+                } catch (e) {
+                    resStatus.innerHTML = '<span style="color:var(--accent-red)">Error: Invalid JSON in Headers.</span>';
+                    return;
+                }
+
+                const options = {
+                    method: method,
+                    headers: headersObj
+                };
+
+                if (method !== 'GET' && method !== 'HEAD') {
+                    options.body = reqBody.value;
+                }
+
+                sendBtn.disabled = true;
+                sendBtn.textContent = 'Sending...';
+                resStatus.innerHTML = '<span style="color:var(--text-muted)">Sending request...</span>';
+                resHeaders.textContent = '';
+                resBody.textContent = '';
+
+                try {
+                    const response = await fetch(url, options);
+                    
+                    // Format Status
+                    const color = response.ok ? 'var(--accent-green)' : 'var(--accent-red)';
+                    resStatus.innerHTML = `<span style="color:${color}">Status: ${response.status} ${response.statusText}</span>`;
+                    
+                    // Format Headers
+                    let headersStr = '';
+                    response.headers.forEach((value, name) => {
+                        headersStr += `${name}: ${value}\n`;
+                    });
+                    resHeaders.textContent = headersStr || 'No headers returned.';
+                    
+                    // Format Body
+                    const text = await response.text();
+                    try {
+                        // Try pretty-printing JSON
+                        const json = JSON.parse(text);
+                        resBody.textContent = JSON.stringify(json, null, 2);
+                    } catch (e) {
+                        resBody.textContent = text || 'No response body.';
+                    }
+                    
+                } catch (error) {
+                    resStatus.innerHTML = `<span style="color:var(--accent-red)">Request Failed</span>`;
+                    resBody.textContent = error.toString() + "\n\nNote: If you are making requests to a different domain, CORS policy might block the request in the browser unless the server allows it.";
+                } finally {
+                    sendBtn.disabled = false;
+                    sendBtn.textContent = 'Send Request';
+                }
+            });
+        });
     </script>
 </body>
 </html>

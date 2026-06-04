@@ -1,69 +1,174 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Kubernetes YAML Validator – TRutiL Studio</title>
-<meta content="Validate your Kubernetes YAML configuration files for syntax and schema errors." name="description"/>
-<link href="../../../style.css?v=3" rel="stylesheet"/>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
-<script src="../../../theme.js?v=3"></script>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Kubernetes YAML Validator – TRutiL Studio</title>
+    <meta content="Validate Kubernetes YAML syntax and schema offline." name="description"/>
+    <link href="../../../style.css?v=3" rel="stylesheet"/>
+    <script src="../../../theme.js?v=3"></script>
+    <script src="js-yaml.min.js"></script>
+    <style>
+        .split-pane {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 768px) {
+            .split-pane { grid-template-columns: 1fr; }
+        }
+        .yaml-editor {
+            font-family: monospace;
+            font-size: 14px;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            height: 400px;
+            width: 100%;
+            resize: vertical;
+        }
+        .validation-item {
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--bg-elevated);
+            border-left: 4px solid var(--border);
+        }
+        .validation-item.pass {
+            border-left-color: var(--accent-green);
+        }
+        .validation-item.fail {
+            border-left-color: var(--accent-red);
+        }
+        .validation-item.warn {
+            border-left-color: #f59e0b;
+        }
+        .icon-pass { color: var(--accent-green); font-weight: bold; }
+        .icon-fail { color: var(--accent-red); font-weight: bold; }
+        .icon-warn { color: #f59e0b; font-weight: bold; }
+    </style>
 </head>
 <body>
-<div class="app-layout" id="app-layout">
-<div class="main-content">
-<div class="page-content">
-<div class="app-header">
-<div class="app-icon" style="background:linear-gradient(135deg, #3b82f6, #1d4ed8);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:24px;">⚙️</div>
-<div>
-<h1>Kubernetes YAML Validator</h1>
-<p>Validate your Kubernetes YAML configuration files for syntax and schema errors.</p>
-</div>
-</div>
-<div class="tool-workspace">
-<div class="panel">
-<div class="panel-title">Kubernetes YAML Validator Interface</div>
-<div class="form-group">
-<label class="form-label">Input Data</label>
-<textarea class="form-textarea" id="tool-input" placeholder="Enter your data, configure your settings, or upload a file..."></textarea>
-</div>
-<div style="margin-top: 15px; margin-bottom: 25px;">
-<button class="btn btn-primary" id="action-btn">Process / Execute Tool</button>
-<button class="btn btn-ghost btn-primary" id="clear-btn">Clear</button>
-</div>
-<div class="form-group">
-<label class="form-label">Result Output</label>
-<div class="result-card" id="tool-output" style="min-height: 120px; background: var(--bg-elevated); color: var(--text-primary); border: 1px solid var(--border);">
-<span style="color: var(--text-muted); font-size: 14px;">Results will appear here...</span>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-<script>
+    <div class="app-layout" id="app-layout">
+        <div class="main-content">
+            <div class="page-content">
+                <div class="app-header">
+                    <div class="app-icon" style="background:linear-gradient(135deg, #0ea5e9, #0284c7);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:24px;">⎈</div>
+                    <div>
+                        <h1>Kubernetes YAML Validator</h1>
+                        <p>Validate your Kubernetes YAML syntax and check for required fields purely offline.</p>
+                    </div>
+                </div>
+                <div class="tool-workspace">
+                    
+                    <div class="split-pane">
+                        <div class="panel">
+                            <div class="panel-title">YAML Input</div>
+                            <textarea class="yaml-editor" id="yaml-input" placeholder="apiVersion: v1&#10;kind: Pod&#10;metadata:&#10;  name: nginx&#10;spec:&#10;  containers:&#10;  - name: nginx&#10;    image: nginx:1.14.2&#10;    ports:&#10;    - containerPort: 80"></textarea>
+                            <div style="margin-top: 15px;">
+                                <button class="btn btn-primary" id="validate-btn" style="width: 100%;">Validate YAML</button>
+                            </div>
+                        </div>
+                        
+                        <div class="panel">
+                            <div class="panel-title">Validation Results</div>
+                            <div id="results-container">
+                                <div style="color: var(--text-muted); text-align: center; margin-top: 40px;">
+                                    Click "Validate YAML" to see results.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const actionBtn = document.getElementById('action-btn');
-            const clearBtn = document.getElementById('clear-btn');
-            const inputData = document.getElementById('tool-input');
-            const outputData = document.getElementById('tool-output');
+            const yamlInput = document.getElementById('yaml-input');
+            const validateBtn = document.getElementById('validate-btn');
+            const resultsContainer = document.getElementById('results-container');
+            
+            function createResult(status, text) {
+                const div = document.createElement('div');
+                div.className = `validation-item ${status}`;
+                const icon = status === 'pass' ? '✓' : status === 'fail' ? '✗' : '⚠';
+                div.innerHTML = `<span class="icon-${status}">${icon}</span> <span>${text}</span>`;
+                return div;
+            }
 
-            actionBtn.addEventListener('click', () => {
-                // Standard placeholder functionality for these generated SEO pages
-                // In production, real WebAssembly/API logic is injected here.
-                if(!inputData.value.trim()) {
-                    outputData.innerHTML = `<span style="color: var(--accent-red); font-size: 14px;">Please enter some input data first.</span>`;
+            validateBtn.addEventListener('click', () => {
+                const text = yamlInput.value.trim();
+                resultsContainer.innerHTML = '';
+                
+                if (!text) {
+                    resultsContainer.appendChild(createResult('fail', 'Input is empty.'));
                     return;
                 }
                 
-                outputData.innerHTML = `<span style="color: var(--accent-green); font-size: 14px;">Processing completed! [This is a fully-styled, functional-ready frontend for <strong>Kubernetes YAML Validator</strong>. Add backend or heavy WebAssembly logic to process the data.]</span>`;
-            });
+                if (typeof jsyaml === 'undefined') {
+                    resultsContainer.appendChild(createResult('fail', 'Failed to load YAML parser library. Make sure you are running the app correctly.'));
+                    return;
+                }
 
-            clearBtn.addEventListener('click', () => {
-                inputData.value = '';
-                outputData.innerHTML = `<span style="color: var(--text-muted); font-size: 14px;">Results will appear here...</span>`;
+                let docs = [];
+                try {
+                    docs = jsyaml.loadAll(text);
+                    resultsContainer.appendChild(createResult('pass', 'Valid YAML syntax.'));
+                } catch (e) {
+                    resultsContainer.appendChild(createResult('fail', `YAML Syntax Error: ${e.message}`));
+                    return;
+                }
+                
+                if (docs.length === 0 || docs.every(d => d === null)) {
+                    resultsContainer.appendChild(createResult('fail', 'No YAML documents found.'));
+                    return;
+                }
+
+                docs.forEach((doc, index) => {
+                    if (!doc || typeof doc !== 'object') return;
+                    
+                    const prefix = docs.length > 1 ? `[Doc ${index + 1}] ` : '';
+                    
+                    // Check required fields
+                    if (!doc.apiVersion) {
+                        resultsContainer.appendChild(createResult('fail', `${prefix}Missing required field: apiVersion`));
+                    } else {
+                        resultsContainer.appendChild(createResult('pass', `${prefix}Found apiVersion: ${doc.apiVersion}`));
+                    }
+                    
+                    if (!doc.kind) {
+                        resultsContainer.appendChild(createResult('fail', `${prefix}Missing required field: kind`));
+                    } else {
+                        resultsContainer.appendChild(createResult('pass', `${prefix}Found kind: ${doc.kind}`));
+                    }
+                    
+                    if (!doc.metadata || !doc.metadata.name) {
+                        resultsContainer.appendChild(createResult('fail', `${prefix}Missing required field: metadata.name`));
+                    } else {
+                        resultsContainer.appendChild(createResult('pass', `${prefix}Found metadata.name: ${doc.metadata.name}`));
+                    }
+                    
+                    // Specific kind checks
+                    if (doc.kind === 'Deployment' || doc.kind === 'ReplicaSet' || doc.kind === 'StatefulSet' || doc.kind === 'DaemonSet') {
+                        if (!doc.spec || !doc.spec.template) {
+                            resultsContainer.appendChild(createResult('fail', `${prefix}Missing spec.template for ${doc.kind}`));
+                        }
+                    }
+                    
+                    if (doc.kind === 'Service') {
+                        if (!doc.spec || !doc.spec.ports || doc.spec.ports.length === 0) {
+                            resultsContainer.appendChild(createResult('warn', `${prefix}Service typically requires spec.ports`));
+                        }
+                    }
+                });
             });
         });
     </script>

@@ -1,0 +1,8 @@
+node_modules/
+dist/
+tools/ffmpeg/
+*.exe
+*.dll
+.DS_Store
+*.log
+.env

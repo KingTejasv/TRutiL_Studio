@@ -6,8 +6,6 @@
     <title>PDF OCR Converter – TRutiL Studio</title>
     <meta content="Extract text from scanned PDFs and images using Optical Character Recognition (OCR)." name="description"/>
     <link href="../../../style.css?v=3" rel="stylesheet"/>
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 
     <script src="../../../theme.js?v=3"></script>
 </head>
@@ -27,21 +25,32 @@
                     <div class="panel">
                         <div class="panel-title">PDF OCR Converter Interface</div>
                         
-                        <div class="form-group">
-                            <label class="form-label">Input Data</label>
-                            <textarea class="form-textarea" id="tool-input" placeholder="Enter your data, configure your settings, or upload a file..."></textarea>
+                        <div class="drop-zone" id="drop-zone" style="border: 2px dashed var(--border); border-radius: 12px; padding: 40px; text-align: center; background: var(--bg-elevated); cursor: pointer; transition: all 0.3s ease;">
+                            <div style="font-size: 32px; margin-bottom: 10px;">📄</div>
+                            <div style="font-weight: 600; margin-bottom: 5px;">Drag & Drop PDF or Image here</div>
+                            <div style="font-size: 13px; color: var(--text-muted);">Supports PDF, PNG, JPG</div>
+                            <input type="file" id="file-input" accept=".pdf,image/*" style="display: none;" />
                         </div>
                         
-                        <div style="margin-top: 15px; margin-bottom: 25px;">
-                            <button class="btn btn-primary" id="action-btn">Process / Execute Tool</button>
-                            <button class="btn btn-ghost" id="clear-btn">Clear</button>
+                        <div id="file-info" style="margin-bottom: 20px; margin-top: 15px; font-weight: 500; text-align: center; color: var(--accent);"></div>
+
+                        <div class="form-group" style="display:none;" id="page-controls">
+                            <label class="form-label">Extract Pages</label>
+                            <input type="text" id="page-input" class="form-input" placeholder="e.g. 1-3, 5, or leave blank for all" />
+                        </div>
+                        
+                        <div id="status-text" style="font-size: 14px; font-weight: 500; text-align: center; margin-top: 15px;"></div>
+                        <div class="progress-bar" id="progress-bar" style="height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; margin-top: 15px; display: none;">
+                            <div class="progress-fill" id="progress-fill" style="height: 100%; background: var(--accent); width: 0%; transition: width 0.2s;"></div>
+                        </div>
+
+                        <div style="margin-top: 25px; margin-bottom: 25px;">
+                            <button class="btn btn-primary" id="action-btn" disabled style="width:100%;">Run OCR Extraction</button>
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">Result Output</label>
-                            <div class="result-card" id="tool-output" style="min-height: 120px; background: var(--bg-elevated); color: var(--text-primary); border: 1px solid var(--border);">
-                                <span style="color: var(--text-muted); font-size: 14px;">Results will appear here...</span>
-                            </div>
+                            <label class="form-label">Extracted Text</label>
+                            <textarea class="form-textarea" id="tool-output" style="min-height: 250px;" placeholder="Results will appear here..."></textarea>
                         </div>
                     </div>
                 </div>
@@ -49,42 +58,201 @@
         </div>
     </div>
     <script>
-
 document.addEventListener('DOMContentLoaded', () => {
-    // Add Tesseract JS dynamically
-    const script = document.createElement('script');
-    script.src = "https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js";
-    document.head.appendChild(script);
-
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('file-input');
+    const fileInfo = document.getElementById('file-info');
     const actionBtn = document.getElementById('action-btn');
-    const inputData = document.getElementById('tool-input');
     const outputData = document.getElementById('tool-output');
+    const statusText = document.getElementById('status-text');
+    const progressBar = document.getElementById('progress-bar');
+    const progressFill = document.getElementById('progress-fill');
+    const pageControls = document.getElementById('page-controls');
+    const pageInput = document.getElementById('page-input');
+
+    let selectedFile = null;
+    let Tesseract = null;
+    let pdfjsLib = null;
+    let fs = null;
+    let { webUtils } = require('electron');
+
+    try {
+        Tesseract = require('tesseract.js');
+        pdfjsLib = require('pdfjs-dist/legacy/build/pdf.js');
+        pdfjsLib.GlobalWorkerOptions.workerSrc = '../../../node_modules/pdfjs-dist/legacy/build/pdf.worker.js';
+        fs = require('fs');
+    } catch(err) {
+        console.error(err);
+        statusText.innerHTML = `<span style='color:red;'>Engine Init Error: ${err.message}</span>`;
+    }
+
+    dropZone.addEventListener('click', () => fileInput.click());
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.style.borderColor = 'var(--accent)'; });
+    dropZone.addEventListener('dragleave', () => { dropZone.style.borderColor = 'var(--border)'; });
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.style.borderColor = 'var(--border)';
+        if (e.dataTransfer.files.length > 0) setFile(e.dataTransfer.files[0]);
+    });
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) setFile(e.target.files[0]);
+    });
+
+    function setFile(file) {
+        selectedFile = file;
+        fileInfo.textContent = `Selected: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+        actionBtn.disabled = false;
+        outputData.value = "";
+        
+        if (file.name.toLowerCase().endsWith('.pdf')) {
+            pageControls.style.display = 'block';
+        } else {
+            pageControls.style.display = 'none';
+        }
+    }
+
+    // Convert PDF page to a canvas and return dataURL
+    async function renderPageToImage(pdf, pageNum) {
+        const page = await pdf.getPage(pageNum);
+        const viewport = page.getViewport({ scale: 2.0 }); // 2x scale for better OCR
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;
+        
+        const renderContext = { canvasContext: ctx, viewport: viewport };
+        await page.render(renderContext).promise;
+        return canvas.toDataURL('image/png');
+    }
+
+    // Helper to parse page range string like "1-3, 5"
+    function parsePageRange(rangeStr, totalPages) {
+        if (!rangeStr.trim()) return Array.from({length: totalPages}, (_, i) => i + 1);
+        const pages = new Set();
+        const parts = rangeStr.split(',');
+        for (let part of parts) {
+            part = part.trim();
+            if (part.includes('-')) {
+                const [start, end] = part.split('-').map(Number);
+                if (start > 0 && end >= start) {
+                    for (let i = start; i <= end; i++) if (i <= totalPages) pages.add(i);
+                }
+            } else {
+                const p = Number(part);
+                if (p > 0 && p <= totalPages) pages.add(p);
+            }
+        }
+        return Array.from(pages).sort((a,b) => a - b);
+    }
 
     actionBtn.addEventListener('click', async () => {
-        if(!inputData.value) {
-            outputData.innerHTML = `<span style="color: var(--accent-red); font-size: 14px;">Please enter an image URL to OCR. (PDF OCR requires server, Image OCR works in browser)</span>`;
+        if (!selectedFile) return;
+        
+        const filePath = webUtils.getPathForFile(selectedFile);
+        if (!filePath) {
+            statusText.innerHTML = `<span style='color:red;'>Cannot read file path. Please drag again.</span>`;
             return;
         }
-        
-        outputData.innerHTML = '<span style="color: var(--tv-primary); font-size: 14px;">Loading Tesseract.js OCR Engine... This may take a moment.</span>';
+
+        actionBtn.disabled = true;
+        progressBar.style.display = 'block';
+        progressFill.style.width = '0%';
+        outputData.value = "";
         
         try {
-            const worker = await Tesseract.createWorker('eng');
-            outputData.innerHTML = '<span style="color: var(--tv-primary); font-size: 14px;">Recognizing text...</span>';
-            const ret = await worker.recognize(inputData.value);
-            outputData.innerHTML = `
-                <div style="display:flex; flex-direction:column; gap: 10px;">
-                    <span style="color: #00FF25; font-size: 16px; font-weight: bold;">✓ OCR Complete!</span>
-                    <textarea class="form-textarea" style="min-height: 150px;">${ret.data.text}</textarea>
-                </div>
-            `;
+            statusText.textContent = "Loading Tesseract OCR Engine...";
+            
+            // Create a worker and report progress
+            const worker = await Tesseract.createWorker({
+                logger: m => {
+                    if (m.status === 'recognizing text') {
+                        const pct = Math.round(m.progress * 100);
+                        statusText.textContent = `Recognizing text: ${pct}%`;
+                        progressFill.style.width = `${pct}%`;
+                    }
+                }
+            });
+            await worker.loadLanguage('eng');
+            await worker.initialize('eng');
+
+            if (selectedFile.name.toLowerCase().endsWith('.pdf')) {
+                statusText.textContent = "Reading PDF document...";
+                const fileBuffer = fs.readFileSync(filePath);
+                const pdfData = new Uint8Array(fileBuffer);
+                const pdf = await pdfjsLib.getDocument({ data: pdfData }).promise;
+                
+                const pagesToScan = parsePageRange(pageInput.value, pdf.numPages);
+                let fullText = "";
+                
+                for (let i = 0; i < pagesToScan.length; i++) {
+                    const pageNum = pagesToScan[i];
+                    statusText.textContent = `Rendering page ${pageNum}/${pdf.numPages}...`;
+                    progressFill.style.width = '10%';
+                    
+                    const imgDataUrl = await renderPageToImage(pdf, pageNum);
+                    const { data: { text } } = await worker.recognize(imgDataUrl);
+                    
+                    fullText += `--- Page ${pageNum} ---\n${text}\n\n`;
+                    outputData.value = fullText;
+                }
+                statusText.innerHTML = `<span style='color:var(--accent-green);'>OCR Complete! Scanned ${pagesToScan.length} pages.</span>`;
+            } else {
+                // It's an image
+                const { data: { text } } = await worker.recognize(filePath);
+                outputData.value = text;
+                statusText.innerHTML = `<span style='color:var(--accent-green);'>OCR Complete!</span>`;
+            }
+            
             await worker.terminate();
+            progressFill.style.width = '100%';
         } catch(e) {
-            outputData.innerHTML = `<span style="color: var(--accent-red); font-size: 14px;">Error: ${e.message}</span>`;
+            console.error(e);
+            statusText.innerHTML = `<span style="color: var(--accent-red); font-size: 14px;">Error: ${e.message}</span>`;
+            progressBar.style.display = 'none';
         }
+        
+        actionBtn.disabled = false;
     });
 });
-
 </script>
+
+    <!-- Desktop Engine Guard -->
+    <script>
+        if (typeof require === 'undefined' || !window.process || !window.process.versions || !window.process.versions.electron) {
+            const appLayout = document.getElementById('app-layout');
+            if (appLayout) {
+                appLayout.style.filter = 'blur(8px)';
+                appLayout.style.pointerEvents = 'none';
+                appLayout.style.userSelect = 'none';
+            }
+            const overlay = document.createElement('div');
+            overlay.style.position = 'fixed';
+            overlay.style.top = '0';
+            overlay.style.left = '0';
+            overlay.style.width = '100vw';
+            overlay.style.height = '100vh';
+            overlay.style.backgroundColor = 'rgba(15, 23, 42, 0.85)';
+            overlay.style.backdropFilter = 'blur(4px)';
+            overlay.style.zIndex = '999999';
+            overlay.style.display = 'flex';
+            overlay.style.flexDirection = 'column';
+            overlay.style.alignItems = 'center';
+            overlay.style.justifyContent = 'center';
+            overlay.style.color = 'white';
+            overlay.style.fontFamily = 'Inter, sans-serif';
+            overlay.style.textAlign = 'center';
+            overlay.style.padding = '20px';
+            
+            overlay.innerHTML = `
+                <div style="background: var(--bg-card, #1e293b); padding: 40px; border-radius: 20px; border: 1px solid var(--border, #334155); max-width: 500px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
+                    <div style="font-size: 48px; margin-bottom: 20px;">⚡</div>
+                    <h2 style="font-size: 24px; font-weight: 700; margin: 0 0 15px 0;">Desktop Engine Required</h2>
+                    <p style="font-size: 16px; color: #94a3b8; line-height: 1.6; margin: 0 0 25px 0;">This advanced feature requires a local engine. It is available exclusively on the TRutiL Studio Desktop App <strong style="color: white;">FOR FREE</strong>.</p>
+                    <button style="font-size: 16px; padding: 12px 24px; cursor: pointer; background: #3b82f6; color: white; border: none; border-radius: 8px; font-weight: 600;" onclick="window.history.back();">Return</button>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+        }
+    </script>
 </body>
 </html>

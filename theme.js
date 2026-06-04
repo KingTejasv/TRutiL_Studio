@@ -858,8 +858,12 @@
     "Media & Design": {
         "Audio & Video": [
             {
-                "name": "Audio Analyzer",
-                "path": "Media & Design/Audio & Video/mediaworks-mp3-converter.html"
+                "name": "Universal Audio Converter",
+                "path": "Media & Design/Audio & Video/mediaworks-audio-converter.html"
+            },
+            {
+                "name": "Universal Video Converter",
+                "path": "Media & Design/Audio & Video/mediaworks-video-converter.html"
             },
             
             {
@@ -895,6 +899,10 @@
             {
                 "name": "Image Processing Studio",
                 "path": "Media & Design/Image & Color Tools/image-processing-studio.html"
+            },
+            {
+                "name": "Universal Image Converter",
+                "path": "Media & Design/Image & Color Tools/_components/mediaworks-image-converter.html"
             }
         ],
         "PDF & Documents": [

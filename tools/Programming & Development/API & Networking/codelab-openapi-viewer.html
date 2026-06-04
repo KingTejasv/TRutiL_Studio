@@ -6,8 +6,8 @@
     <title>OpenAPI Viewer – TRutiL Studio</title>
     <meta content="View and interact with OpenAPI/Swagger specifications." name="description"/>
     <link href="../../../style.css?v=3" rel="stylesheet"/>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.9.1/swagger-ui-bundle.js"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.9.1/swagger-ui.css" rel="stylesheet"/>
+    <link href="../../../node_modules/swagger-ui-dist/swagger-ui.css" rel="stylesheet"/>
+    <script src="../../../node_modules/swagger-ui-dist/swagger-ui-bundle.js"></script>
 
     <script src="../../../theme.js?v=3"></script>
 </head>
@@ -28,19 +28,18 @@
                         <div class="panel-title">OpenAPI Viewer Interface</div>
                         
                         <div class="form-group">
-                            <label class="form-label">Input Data</label>
-                            <textarea class="form-textarea" id="tool-input" placeholder="Enter your data, configure your settings, or upload a file..."></textarea>
+                            <label class="form-label">Paste OpenAPI Specification (JSON or YAML)</label>
+                            <textarea class="form-textarea" id="tool-input" placeholder="openapi: 3.0.0&#10;info:&#10;  title: Sample API&#10;  version: 1.0.0..." style="min-height: 250px; font-family: monospace;"></textarea>
                         </div>
                         
                         <div style="margin-top: 15px; margin-bottom: 25px;">
-                            <button class="btn btn-primary" id="action-btn">Process / Execute Tool</button>
-                            <button class="btn btn-ghost" id="clear-btn">Clear</button>
+                            <button class="btn btn-primary" id="action-btn" style="width: 100%;">Render Documentation UI</button>
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">Result Output</label>
-                            <div class="result-card" id="tool-output" style="min-height: 120px; background: var(--bg-elevated); color: var(--text-primary); border: 1px solid var(--border);">
-                                <span style="color: var(--text-muted); font-size: 14px;">Results will appear here...</span>
+                            <label class="form-label">Interactive Documentation</label>
+                            <div class="result-card" id="tool-output" style="min-height: 120px; background: white; border-radius: 8px; padding: 15px; border: 1px solid var(--border);">
+                                <span style="color: var(--text-muted); font-size: 14px;">Swagger UI will render here...</span>
                             </div>
                         </div>
                     </div>
@@ -49,42 +48,55 @@
         </div>
     </div>
     <script>
-
 document.addEventListener('DOMContentLoaded', () => {
     const actionBtn = document.getElementById('action-btn');
     const inputData = document.getElementById('tool-input');
     const outputData = document.getElementById('tool-output');
+    
+    let yaml = null;
+    try {
+        yaml = require('js-yaml');
+    } catch(err) {
+        console.error("js-yaml not found", err);
+    }
 
     actionBtn.addEventListener('click', () => {
-        if(!inputData.value) {
-            outputData.innerHTML = `<span style="color: var(--accent-red); font-size: 14px;">Please paste an OpenAPI JSON/YAML spec.</span>`;
+        if(!inputData.value.trim()) {
+            outputData.innerHTML = `<span style="color: var(--accent-red); font-size: 14px;">Please paste an OpenAPI JSON or YAML spec.</span>`;
             return;
         }
         
-        outputData.innerHTML = `
-            <div style="background: white; border-radius: 8px; padding: 10px; height: 500px; overflow: auto;">
-                <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui.css" />
-                <div id="swagger-ui"></div>
-            </div>
-        `;
+        outputData.innerHTML = `<div id="swagger-ui"></div>`;
         
-        const script = document.createElement('script');
-        script.src = "https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui-bundle.js";
-        script.onload = () => {
-            try {
-                let spec = JSON.parse(inputData.value);
-                SwaggerUIBundle({
-                    spec: spec,
-                    dom_id: '#swagger-ui',
-                });
-            } catch(e) {
-                document.getElementById('swagger-ui').innerText = "Error parsing JSON: " + e.message;
+        try {
+            let specObj;
+            const content = inputData.value.trim();
+            
+            // Try parsing as JSON first
+            if (content.startsWith('{')) {
+                specObj = JSON.parse(content);
+            } else if (yaml) {
+                // Parse as YAML
+                specObj = yaml.load(content);
+            } else {
+                throw new Error("Content appears to be YAML but js-yaml parser is missing.");
             }
-        };
-        document.head.appendChild(script);
+            
+            SwaggerUIBundle({
+                spec: specObj,
+                dom_id: '#swagger-ui',
+                presets: [
+                    SwaggerUIBundle.presets.apis,
+                    SwaggerUIBundle.SwaggerUIStandalonePreset
+                ],
+                layout: "BaseLayout"
+            });
+            
+        } catch(e) {
+            outputData.innerHTML = `<span style="color: var(--accent-red); font-size: 14px;">Error parsing specification: ${e.message}</span>`;
+        }
     });
 });
-
 </script>
 </body>
 </html>
