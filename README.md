@@ -1,6 +1,5 @@
 # TRutiL Studio
 
-![TRutiL Studio Banner](https://trutilstudio.netlify.app/apple-touch-icon.png)
 
 Welcome to **TRutiL Studio**, the ultimate, privacy-first developer and SEO toolkit on the web. 
 
@@ -12,7 +11,7 @@ Built for speed and simplicity, TRutiL Studio provides a massive collection of o
 
 ## 🚀 Features
 
-- **200+ Specialized Tools**: Everything from JSON validators, CSS minifiers, JWT decoders to comprehensive SEO audits and image converters.
+- **140+ Specialized Tools**: Everything from JSON validators, CSS minifiers, JWT decoders to comprehensive SEO audits and image converters.
 - **100% Client-Side Processing**: Privacy is our priority. Almost all tools process data entirely within your local browser. Your code, API keys, files, and inputs never leave your device.
 - **Lightning Fast UI**: Built with pure HTML, vanilla JavaScript, and lightweight CSS. No bloated frameworks, ensuring zero lag.
 - **Dark Mode Support**: A beautiful, fully integrated dark theme for late-night coding sessions.
