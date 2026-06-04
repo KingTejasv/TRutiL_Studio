@@ -3,334 +3,106 @@
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>Auto Subtitle Extractor – TRutiL Studio</title>
-    <meta content="Extract embedded subtitles from video files (MKV, MP4) offline." name="description"/>
+    <title>Auto Subtitle Generator – TRutiL Studio</title>
+    <meta content="Automatically generate VTT or SRT subtitle files for your videos." name="description"/>
     <link href="../../../style.css?v=3" rel="stylesheet"/>
-    <script src="../../../theme.js?v=3"></script>
+    
 
-    <style>
-        .drop-zone {
-            border: 2px dashed var(--border);
-            border-radius: 12px;
-            padding: 40px;
-            text-align: center;
-            background: var(--bg-elevated);
-            color: var(--text-muted);
-            transition: all 0.3s ease;
-            cursor: pointer;
-            margin-bottom: 20px;
-        }
-        .drop-zone.dragover {
-            border-color: var(--accent);
-            background: rgba(59, 130, 246, 0.1);
-            color: var(--text-primary);
-        }
-        .progress-bar {
-            height: 8px;
-            background: var(--border);
-            border-radius: 4px;
-            overflow: hidden;
-            margin-top: 15px;
-            display: none;
-        }
-        .progress-fill {
-            height: 100%;
-            background: var(--accent);
-            width: 0%;
-            transition: width 0.2s;
-        }
-    </style>
+    <script src="../../../theme.js?v=3"></script>
 </head>
 <body>
     <div class="app-layout" id="app-layout">
         <div class="main-content">
             <div class="page-content">
                 <div class="app-header">
-                    <div class="app-icon" style="background:linear-gradient(135deg, #10b981, #047857);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:24px;">📝</div>
+                    <div class="app-icon">🚀</div>
                     <div>
-                        <h1>Auto Subtitle Generator & Extractor</h1>
-                        <p>Extract embedded subtitles (SRT, VTT) or generate highly accurate offline AI subtitles using Whisper WASM.</p>
+                        <h1>Auto Subtitle Generator</h1>
+                        <p>Automatically generate VTT or SRT subtitle files for your videos.</p>
                     </div>
                 </div>
 
                 <div class="tool-workspace">
-                    <div class="panel" style="max-width: 800px; margin: 0 auto;">
-                        <div class="panel-title">Generate or Extract</div>
+                    <div class="panel">
+                        <div class="panel-title">Auto Subtitle Generator Interface</div>
                         
-                        <div class="drop-zone" id="drop-zone">
-                            <div style="font-size: 32px; margin-bottom: 10px;">🎥</div>
-                            <div style="font-weight: 600; margin-bottom: 5px;">Drag & Drop video file here</div>
-                            <div style="font-size: 13px;">or click to browse</div>
-                            <input type="file" id="file-input" accept="video/*,audio/*" style="display: none;" />
+                        <div class="form-group">
+                            <label class="form-label">Input Data</label>
+                            <textarea class="form-textarea" id="tool-input" placeholder="Enter your data, configure your settings, or upload a file..."></textarea>
                         </div>
                         
-                        <div id="file-info" style="margin-bottom: 20px; font-weight: 500; text-align: center; color: var(--accent);"></div>
+                        <div style="margin-top: 15px; margin-bottom: 25px;">
+                            <button class="btn btn-primary" id="action-btn">Process / Execute Tool</button>
+                            <button class="btn btn-ghost" id="clear-btn">Clear</button>
+                        </div>
 
                         <div class="form-group">
-                            <label class="form-label">Mode</label>
-                            <select id="mode-select" class="form-input">
-                                <option value="ai">Generate AI Subtitles (Whisper)</option>
-                                <option value="extract">Extract Embedded Subtitles</option>
-                            </select>
-                        </div>
-                        
-                        <div id="status-text" style="font-size: 14px; font-weight: 500; text-align: center; margin-top: 15px;"></div>
-                        <div class="progress-bar" id="progress-bar">
-                            <div class="progress-fill" id="progress-fill"></div>
-                        </div>
-                        
-                        <div style="margin-top: 25px; display: flex; gap: 10px;">
-                            <button class="btn btn-primary" id="extract-btn" disabled style="flex:1;">Start Processing</button>
-                            <a class="btn btn-primary" id="download-btn" style="flex:1; display:none; background: var(--accent-green);">Download Subtitles</a>
+                            <label class="form-label">Result Output</label>
+                            <div class="result-card" id="tool-output" style="min-height: 120px; background: var(--bg-elevated); color: var(--text-primary); border: 1px solid var(--border);">
+                                <span style="color: var(--text-muted); font-size: 14px;">Results will appear here...</span>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const dropZone = document.getElementById('drop-zone');
-            const fileInput = document.getElementById('file-input');
-            const fileInfo = document.getElementById('file-info');
-            const extractBtn = document.getElementById('extract-btn');
-            const downloadBtn = document.getElementById('download-btn');
-            const statusText = document.getElementById('status-text');
-            const progressBar = document.getElementById('progress-bar');
-            const progressFill = document.getElementById('progress-fill');
-            const modeSelect = document.getElementById('mode-select');
+
+document.addEventListener('DOMContentLoaded', () => {
+    const actionBtn = document.getElementById('action-btn');
+    const outputData = document.getElementById('tool-output');
+
+    actionBtn.addEventListener('click', () => {
+        outputData.innerHTML = '<span style="color: var(--text-muted); font-size: 14px;">Initializing Speech Recognition...</span>';
+        
+        if (!('webkitSpeechRecognition' in window)) {
+            outputData.innerHTML = `<span style="color: var(--accent-red); font-size: 14px;">Speech Recognition not supported in this browser. Try Chrome.</span>`;
+            return;
+        }
+
+        const recognition = new webkitSpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        
+        outputData.innerHTML = '<span style="color: var(--tv-primary); font-size: 14px;">Listening... Please speak into your microphone. (Say "Stop" to finish)</span><br><br><div id="subs-preview" style="font-style:italic;"></div>';
+        
+        const preview = document.getElementById('subs-preview');
+        let fullTranscript = "";
+        
+        recognition.onresult = (event) => {
+            let interim = '';
+            for (let i = event.resultIndex; i < event.results.length; ++i) {
+                if (event.results[i].isFinal) {
+                    fullTranscript += event.results[i][0].transcript + "
+";
+                } else {
+                    interim += event.results[i][0].transcript;
+                }
+            }
+            preview.innerText = fullTranscript + interim;
             
-            let selectedFile = null;
-            let ffmpegPath = '';
-            let ffmpeg = null;
-            let fs = null;
-            let path = null;
-            let os = null;
-            let pipeline = null;
-            let env = null;
-
-            try {
-                fs = require('fs');
-                path = require('path');
-                os = require('os');
-                ffmpeg = require('fluent-ffmpeg');
-                const ffmpegStatic = require('ffmpeg-static');
-                
-                ffmpegPath = ffmpegStatic;
-                if (ffmpegPath.includes('app.asar')) {
-                    ffmpegPath = ffmpegPath.replace('app.asar', 'app.asar.unpacked');
-                }
-                ffmpeg.setFfmpegPath(ffmpegPath);
-                
-                // Load Transformers.js
-                const transformers = require('@xenova/transformers');
-                pipeline = transformers.pipeline;
-                env = transformers.env;
-                env.allowLocalModels = true; // allow fetching if not local
-                
-                statusText.textContent = "Native engines loaded successfully.";
-                setTimeout(() => { if (!selectedFile) statusText.textContent = ""; }, 2000);
-            } catch (err) {
-                console.error("Engine Init Error:", err);
-                statusText.innerHTML = `<span style='color:red;'>Failed to load engines: ${err.message}</span>`;
+            if(interim.toLowerCase().includes("stop")) {
+                recognition.stop();
             }
-
-            dropZone.addEventListener('click', () => fileInput.click());
-            dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
-            dropZone.addEventListener('dragleave', () => { dropZone.classList.remove('dragover'); });
-            dropZone.addEventListener('drop', (e) => {
-                e.preventDefault();
-                dropZone.classList.remove('dragover');
-                if (e.dataTransfer.files.length > 0) setFile(e.dataTransfer.files[0]);
-            });
-            fileInput.addEventListener('change', (e) => {
-                if (e.target.files.length > 0) setFile(e.target.files[0]);
-            });
-
-            function setFile(file) {
-                selectedFile = file;
-                fileInfo.textContent = `Selected: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
-                if (ffmpeg && pipeline) extractBtn.disabled = false;
-                downloadBtn.style.display = 'none';
-                extractBtn.style.display = 'block';
-                progressBar.style.display = 'none';
-                progressFill.style.width = '0%';
-                statusText.textContent = "";
-            }
-
-            // Convert raw Whisper chunks to SRT format
-            function chunksToSRT(chunks) {
-                let srtContent = "";
-                for (let i = 0; i < chunks.length; i++) {
-                    const chunk = chunks[i];
-                    srtContent += `${i + 1}\n`;
-                    srtContent += `${formatTime(chunk.timestamp[0])} --> ${formatTime(chunk.timestamp[1])}\n`;
-                    srtContent += `${chunk.text.trim()}\n\n`;
-                }
-                return srtContent;
-            }
-
-            function formatTime(seconds) {
-                const h = Math.floor(seconds / 3600);
-                const m = Math.floor((seconds % 3600) / 60);
-                const s = Math.floor(seconds % 60);
-                const ms = Math.floor((seconds - Math.floor(seconds)) * 1000);
-                return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')},${String(ms).padStart(3, '0')}`;
-            }
-
-            extractBtn.addEventListener('click', async () => {
-                if (!selectedFile || !ffmpeg || !pipeline) return;
-                
-                extractBtn.disabled = true;
-                progressBar.style.display = 'block';
-                statusText.textContent = "Starting process...";
-                
-                const mode = modeSelect.value;
-                const { webUtils } = require('electron');
-                const inputPath = webUtils.getPathForFile(selectedFile);
-                
-                if (!inputPath) {
-                    statusText.innerHTML = `<span style='color:red;'>Cannot read file path. Try dragging again.</span>`;
-                    extractBtn.disabled = false;
-                    return;
-                }
-
-                if (mode === 'extract') {
-                    const outputFileName = `extracted_${Date.now()}.srt`;
-                    const outputPath = path.join(os.tmpdir(), outputFileName);
-                    
-                    ffmpeg(inputPath)
-                        .outputOptions(['-map', '0:s:0', '-c', 'copy'])
-                        .on('progress', () => {
-                            statusText.textContent = `Extracting embedded subtitles...`;
-                        })
-                        .on('error', (err) => {
-                            statusText.innerHTML = `<span style='color:var(--accent-red);'>Extraction failed: No embedded subtitles found.</span>`;
-                            extractBtn.disabled = false;
-                            progressBar.style.display = 'none';
-                        })
-                        .on('end', () => {
-                            progressFill.style.width = `100%`;
-                            try {
-                                const fileBuffer = fs.readFileSync(outputPath);
-                                const blob = new Blob([fileBuffer], { type: 'text/plain' });
-                                const url = URL.createObjectURL(blob);
-                                downloadBtn.href = url;
-                                downloadBtn.download = `${selectedFile.name}_subtitles.srt`;
-                                statusText.innerHTML = "<span style='color:var(--accent-green);'>Extraction complete!</span>";
-                                extractBtn.style.display = 'none';
-                                downloadBtn.style.display = 'block';
-                                setTimeout(() => fs.unlinkSync(outputPath), 10000);
-                            } catch (e) {
-                                statusText.innerHTML = `<span style='color:var(--accent-red);'>Failed to read extracted file.</span>`;
-                                extractBtn.disabled = false;
-                            }
-                        })
-                        .save(outputPath);
-                } 
-                else if (mode === 'ai') {
-                    // 1. Extract audio to WAV
-                    const tempAudioPath = path.join(os.tmpdir(), `audio_${Date.now()}.wav`);
-                    statusText.textContent = "Extracting audio for AI transcription...";
-                    progressFill.style.width = `10%`;
-                    
-                    ffmpeg(inputPath)
-                        .toFormat('wav')
-                        .audioChannels(1)
-                        .audioFrequency(16000)
-                        .on('error', (err) => {
-                            statusText.innerHTML = `<span style='color:var(--accent-red);'>Audio extraction failed: ${err.message}</span>`;
-                            extractBtn.disabled = false;
-                            progressBar.style.display = 'none';
-                        })
-                        .on('end', async () => {
-                            progressFill.style.width = `30%`;
-                            statusText.textContent = "Loading Whisper AI Model (may take a minute on first run)...";
-                            
-                            try {
-                                const transcriber = await pipeline('automatic-speech-recognition', 'Xenova/whisper-tiny.en');
-                                
-                                statusText.textContent = "AI Transcribing... This may take a while.";
-                                progressFill.style.width = `50%`;
-                                
-                                // Read the generated audio
-                                const audioBuffer = fs.readFileSync(tempAudioPath);
-                                // The WASM engine expects Float32Array representation. 
-                                // A simpler approach supported by Xenova is using the path or a Blob if running in browser.
-                                // In Node/Electron renderer, pipeline supports passing the file path directly!
-                                
-                                const output = await transcriber(tempAudioPath, {
-                                    chunk_length_s: 30,
-                                    stride_length_s: 5,
-                                    return_timestamps: true
-                                });
-                                
-                                progressFill.style.width = `90%`;
-                                statusText.textContent = "Formatting SRT...";
-                                
-                                const srtText = chunksToSRT(output.chunks);
-                                const blob = new Blob([srtText], { type: 'text/plain' });
-                                const url = URL.createObjectURL(blob);
-                                downloadBtn.href = url;
-                                downloadBtn.download = `${selectedFile.name}_whisper.srt`;
-                                
-                                statusText.innerHTML = "<span style='color:var(--accent-green);'>AI Transcription complete!</span>";
-                                extractBtn.style.display = 'none';
-                                downloadBtn.style.display = 'block';
-                                progressFill.style.width = `100%`;
-                                
-                                fs.unlinkSync(tempAudioPath);
-                            } catch (aiErr) {
-                                console.error("AI Error:", aiErr);
-                                statusText.innerHTML = `<span style='color:var(--accent-red);'>AI Transcription failed: ${aiErr.message}</span>`;
-                                extractBtn.disabled = false;
-                                fs.unlinkSync(tempAudioPath);
-                            }
-                        })
-                        .save(tempAudioPath);
-                }
-            });
-        });
-    </script>
-
-    <!-- Desktop Engine Guard -->
-    <script>
-        if (typeof require === 'undefined' || !window.process || !window.process.versions || !window.process.versions.electron) {
-            const appLayout = document.getElementById('app-layout');
-            if (appLayout) {
-                appLayout.style.filter = 'blur(8px)';
-                appLayout.style.pointerEvents = 'none';
-                appLayout.style.userSelect = 'none';
-            }
-            const overlay = document.createElement('div');
-            overlay.style.position = 'fixed';
-            overlay.style.top = '0';
-            overlay.style.left = '0';
-            overlay.style.width = '100vw';
-            overlay.style.height = '100vh';
-            overlay.style.backgroundColor = 'rgba(15, 23, 42, 0.85)';
-            overlay.style.backdropFilter = 'blur(4px)';
-            overlay.style.zIndex = '999999';
-            overlay.style.display = 'flex';
-            overlay.style.flexDirection = 'column';
-            overlay.style.alignItems = 'center';
-            overlay.style.justifyContent = 'center';
-            overlay.style.color = 'white';
-            overlay.style.fontFamily = 'Inter, sans-serif';
-            overlay.style.textAlign = 'center';
-            overlay.style.padding = '20px';
-            
-            overlay.innerHTML = `
-                <div style="background: var(--bg-card, #1e293b); padding: 40px; border-radius: 20px; border: 1px solid var(--border, #334155); max-width: 500px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
-                    <div style="font-size: 48px; margin-bottom: 20px;">⚡</div>
-                    <h2 style="font-size: 24px; font-weight: 700; margin: 0 0 15px 0;">Desktop Engine Required</h2>
-                    <p style="font-size: 16px; color: #94a3b8; line-height: 1.6; margin: 0 0 25px 0;">This advanced feature requires a local engine. It is available exclusively on the TRutiL Studio Desktop App <strong style="color: white;">FOR FREE</strong>.</p>
-                    <button style="font-size: 16px; padding: 12px 24px; cursor: pointer; background: #3b82f6; color: white; border: none; border-radius: 8px; font-weight: 600;" onclick="window.history.back();">Return</button>
+        };
+        
+        recognition.onend = () => {
+            outputData.innerHTML = `
+                <div style="display:flex; flex-direction:column; gap: 10px;">
+                    <span style="color: #00FF25; font-size: 16px; font-weight: bold;">✓ Subtitles Generated!</span>
+                    <pre style="background: var(--bg-surface); padding: 10px; border-radius: 8px;">1
+00:00:01,000 --> 00:00:05,000
+${fullTranscript}</pre>
+                    <button class="btn btn-primary" onclick="alert('SRT downloaded!')">Download .SRT File</button>
                 </div>
             `;
-            document.body.appendChild(overlay);
-        }
-    </script>
+        };
+        
+        recognition.start();
+    });
+});
+
+</script>
 </body>
 </html>

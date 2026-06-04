@@ -9,13 +9,6 @@
     const savedAccent = localStorage.getItem('TRutiL Studio_accent') || 'blue';
     document.documentElement.setAttribute('data-accent', savedAccent);
 
-    // Desktop App Detection
-    if (window.location.search.includes('appMode=1')) {
-        if (!window.location.pathname.endsWith('app-shell.html')) {
-            document.documentElement.classList.add('is-desktop-app');
-        }
-    }
-
     // 2. Inject floating customizer UI and Navbar after DOM is ready
     window.addEventListener('DOMContentLoaded', () => {
         if (!document.getElementById('tv-loader')) {
@@ -73,40 +66,6 @@
                 grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)) !important;
                 gap: 1.5rem;
                 width: 100% !important;
-            /* Hide website headers when running inside the desktop app shell */
-            .is-desktop-app .tv-navbar,
-            .is-desktop-app .app-header,
-            .is-desktop-app .tv-footer,
-            .is-desktop-app .sidebar,
-            .is-desktop-app .sidebar-toggle-btn,
-            .is-desktop-app #tv-hamburger {
-                display: none !important;
-            }
-            .is-desktop-app body,
-            .is-desktop-app body.has-sidebar,
-            .is-desktop-app body.has-sidebar.sidebar-min-body {
-                padding-top: 1rem !important;
-                padding-left: 0 !important;
-                padding-right: 0 !important;
-                user-select: none;
-                -webkit-user-select: none;
-            }
-            /* Hide the hero section on the hub page in desktop mode so it looks like an app dashboard */
-            .is-desktop-app .hero {
-                display: none !important;
-            }
-                user-select: none;
-                -webkit-user-select: none;
-            }
-            .is-desktop-app .form-input, 
-            .is-desktop-app .form-textarea, 
-            .is-desktop-app input, 
-            .is-desktop-app textarea, 
-            .is-desktop-app [contenteditable], 
-            .is-desktop-app pre, 
-            .is-desktop-app code {
-                user-select: text;
-                -webkit-user-select: text;
             }
 
             .tv-navbar {
@@ -899,12 +858,8 @@
     "Media & Design": {
         "Audio & Video": [
             {
-                "name": "Universal Audio Converter",
-                "path": "Media & Design/Audio & Video/mediaworks-audio-converter.html"
-            },
-            {
-                "name": "Universal Video Converter",
-                "path": "Media & Design/Audio & Video/mediaworks-video-converter.html"
+                "name": "Audio Analyzer",
+                "path": "Media & Design/Audio & Video/mediaworks-mp3-converter.html"
             },
             
             {
@@ -940,10 +895,6 @@
             {
                 "name": "Image Processing Studio",
                 "path": "Media & Design/Image & Color Tools/image-processing-studio.html"
-            },
-            {
-                "name": "Universal Image Converter",
-                "path": "Media & Design/Image & Color Tools/_components/mediaworks-image-converter.html"
             }
         ],
         "PDF & Documents": [

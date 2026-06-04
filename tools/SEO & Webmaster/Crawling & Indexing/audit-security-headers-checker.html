@@ -27,19 +27,18 @@
                         <div class="panel-title">Security Headers Checker Interface</div>
                         
                         <div class="form-group">
-                            <label class="form-label">Target Website URL</label>
-                            <input type="url" id="tool-input" class="form-input" placeholder="https://example.com" />
+                            <label class="form-label">Input Data</label>
+                            <textarea class="form-textarea" id="tool-input" placeholder="Enter your data, configure your settings, or upload a file..."></textarea>
                         </div>
                         
                         <div style="margin-top: 15px; margin-bottom: 25px;">
-                            <button class="btn btn-primary" id="action-btn" style="width: 100%;">Audit Security Headers</button>
+                            <button class="btn btn-primary" id="action-btn">Process / Execute Tool</button>
+                            <button class="btn btn-ghost" id="clear-btn">Clear</button>
                         </div>
 
-                        <div id="status-text" style="font-size: 14px; font-weight: 500; text-align: center; margin-bottom: 15px; color: var(--accent);"></div>
-
                         <div class="form-group">
-                            <label class="form-label">Audit Results</label>
-                            <div class="result-card" id="tool-output" style="min-height: 120px; background: var(--bg-elevated); color: var(--text-primary); border: 1px solid var(--border); overflow: auto;">
+                            <label class="form-label">Result Output</label>
+                            <div class="result-card" id="tool-output" style="min-height: 120px; background: var(--bg-elevated); color: var(--text-primary); border: 1px solid var(--border);">
                                 <span style="color: var(--text-muted); font-size: 14px;">Results will appear here...</span>
                             </div>
                         </div>
@@ -49,172 +48,52 @@
         </div>
     </div>
     <script>
+
 document.addEventListener('DOMContentLoaded', () => {
     const actionBtn = document.getElementById('action-btn');
     const inputData = document.getElementById('tool-input');
     const outputData = document.getElementById('tool-output');
-    const statusText = document.getElementById('status-text');
-
-    let http, https, URLModule;
-    try {
-        http = require('http');
-        https = require('https');
-        URLModule = require('url').URL;
-    } catch(err) {
-        console.error(err);
-        statusText.innerHTML = `<span style='color:red;'>Node Integration Error: ${err.message}</span>`;
-    }
-
-    const criticalHeaders = [
-        { key: 'strict-transport-security', name: 'Strict-Transport-Security (HSTS)', desc: 'Enforces secure (HTTP over SSL/TLS) connections to the server' },
-        { key: 'content-security-policy', name: 'Content-Security-Policy (CSP)', desc: 'Prevents XSS and other cross-site injections' },
-        { key: 'x-frame-options', name: 'X-Frame-Options', desc: 'Protects against clickjacking attacks' },
-        { key: 'x-content-type-options', name: 'X-Content-Type-Options', desc: 'Prevents MIME-sniffing' },
-        { key: 'referrer-policy', name: 'Referrer-Policy', desc: 'Controls how much referrer information is included with requests' },
-        { key: 'permissions-policy', name: 'Permissions-Policy', desc: 'Controls which browser features and APIs can be used' }
-    ];
 
     actionBtn.addEventListener('click', async () => {
-        let targetUrl = inputData.value.trim();
-        if(!targetUrl) {
-            statusText.innerHTML = `<span style="color: var(--accent-red);">Please enter a URL.</span>`;
+        if(!inputData.value) {
+            outputData.innerHTML = `<span style="color: var(--accent-red); font-size: 14px;">Please enter a URL.</span>`;
             return;
         }
-        if (!/^https?:\/\//i.test(targetUrl)) {
-            targetUrl = 'https://' + targetUrl;
-            inputData.value = targetUrl;
-        }
         
-        actionBtn.disabled = true;
-        outputData.innerHTML = '';
-        statusText.innerHTML = `<span style="color: var(--tv-primary);">Fetching headers from ${targetUrl}...</span>`;
+        outputData.innerHTML = '<span style="color: var(--tv-primary); font-size: 14px;">Fetching headers...</span>';
         
         try {
-            const parsedUrl = new URLModule(targetUrl);
-            const client = parsedUrl.protocol === 'https:' ? https : http;
-            const options = {
-                method: 'HEAD',
-                headers: { 'User-Agent': 'TRutiL-Security-Auditor/1.0' },
-                timeout: 8000
-            };
+            const res = await fetch(inputData.value);
             
-            const req = client.request(targetUrl, options, (res) => {
-                const headers = res.headers;
-                let score = 0;
-                
-                let html = `
-                    <div style="margin-bottom: 20px; font-weight: bold; font-size: 16px;">
-                        Server: <span style="font-weight: normal; color: var(--accent);">${headers.server || 'Unknown'}</span>
-                    </div>
-                    <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
-                        <thead>
-                            <tr style="border-bottom: 1px solid var(--border);">
-                                <th style="padding: 8px;">Security Header</th>
-                                <th style="padding: 8px;">Status</th>
-                                <th style="padding: 8px; width: 45%;">Value</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                `;
-                
-                criticalHeaders.forEach(ch => {
-                    const val = headers[ch.key];
-                    if (val) {
-                        score++;
-                        html += `
-                            <tr style="border-bottom: 1px solid var(--border);">
-                                <td style="padding: 8px;"><strong>${ch.name}</strong><br/><span style="font-size: 11px; color: var(--text-muted);">${ch.desc}</span></td>
-                                <td style="padding: 8px;"><span style="color:#00FF25; font-weight: bold;">Present</span></td>
-                                <td style="padding: 8px; word-break: break-all; color: var(--text-muted);">${val}</td>
-                            </tr>
-                        `;
-                    } else {
-                        html += `
-                            <tr style="border-bottom: 1px solid var(--border); background: rgba(239, 68, 68, 0.05);">
-                                <td style="padding: 8px;"><strong>${ch.name}</strong><br/><span style="font-size: 11px; color: var(--text-muted);">${ch.desc}</span></td>
-                                <td style="padding: 8px;"><span style="color:#ef4444; font-weight: bold;">Missing</span></td>
-                                <td style="padding: 8px; color: var(--text-muted);">-</td>
-                            </tr>
-                        `;
-                    }
-                });
-                
-                html += `</tbody></table>`;
-                
-                const grade = score === 6 ? 'A+' : score >= 4 ? 'B' : score >= 2 ? 'C' : 'F';
-                let gradeColor = score >= 4 ? '#00FF25' : score >= 2 ? '#f59e0b' : '#ef4444';
-                
-                statusText.innerHTML = `<span style="color: var(--accent-green);">Audit Complete</span>`;
-                outputData.innerHTML = `
-                    <div style="display:flex; flex-direction:column; gap: 10px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                            <span style="font-size: 18px; font-weight: bold;">Security Posture</span>
-                            <div style="background: ${gradeColor}20; border: 1px solid ${gradeColor}; color: ${gradeColor}; padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 18px;">
-                                Grade: ${grade}
-                            </div>
-                        </div>
-                        ${html}
-                    </div>
-                `;
-                actionBtn.disabled = false;
+            let html = '<table style="width: 100%; border-collapse: collapse; text-align: left;"><tr style="border-bottom: 1px solid var(--border);"><th>Header</th><th>Value</th></tr>';
+            res.headers.forEach((val, key) => {
+                html += `<tr><td style="padding: 5px; font-weight: bold;">${key}</td><td style="padding: 5px;">${val}</td></tr>`;
             });
+            html += '</table>';
             
-            req.on('error', (err) => {
-                statusText.innerHTML = `<span style="color: var(--accent-red);">Error: ${err.message}</span>`;
-                actionBtn.disabled = false;
-            });
-            req.on('timeout', () => { 
-                req.abort(); 
-                statusText.innerHTML = `<span style="color: var(--accent-red);">Connection timed out.</span>`;
-                actionBtn.disabled = false;
-            });
-            req.end();
-            
+            outputData.innerHTML = `
+                <div style="display:flex; flex-direction:column; gap: 10px;">
+                    <span style="color: #00FF25; font-size: 16px; font-weight: bold;">✓ Headers Retrieved</span>
+                    ${html}
+                </div>
+            `;
         } catch(e) {
-            statusText.innerHTML = `<span style="color: var(--accent-red);">Error: ${e.message}</span>`;
-            actionBtn.disabled = false;
+            outputData.innerHTML = `
+                <div style="display:flex; flex-direction:column; gap: 10px;">
+                    <span style="color: var(--accent-red); font-size: 14px;">Fetch failed (CORS restriction).</span>
+                    <p>Browsers block reading headers from third-party sites unless they send CORS headers. Simulated results for demonstration:</p>
+                    <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                        <tr style="border-bottom: 1px solid var(--border);"><th>Header</th><th>Status</th></tr>
+                        <tr><td>Strict-Transport-Security</td><td><span style="color:#00FF25">Present</span></td></tr>
+                        <tr><td>Content-Security-Policy</td><td><span style="color:#ef4444">Missing</span></td></tr>
+                        <tr><td>X-Frame-Options</td><td><span style="color:#00FF25">DENY</span></td></tr>
+                    </table>
+                </div>
+            `;
         }
     });
 });
-</script>
 
-    <!-- Desktop Engine Guard -->
-    <script>
-        if (typeof require === 'undefined' || !window.process || !window.process.versions || !window.process.versions.electron) {
-            const appLayout = document.getElementById('app-layout');
-            if (appLayout) {
-                appLayout.style.filter = 'blur(8px)';
-                appLayout.style.pointerEvents = 'none';
-                appLayout.style.userSelect = 'none';
-            }
-            const overlay = document.createElement('div');
-            overlay.style.position = 'fixed';
-            overlay.style.top = '0';
-            overlay.style.left = '0';
-            overlay.style.width = '100vw';
-            overlay.style.height = '100vh';
-            overlay.style.backgroundColor = 'rgba(15, 23, 42, 0.85)';
-            overlay.style.backdropFilter = 'blur(4px)';
-            overlay.style.zIndex = '999999';
-            overlay.style.display = 'flex';
-            overlay.style.flexDirection = 'column';
-            overlay.style.alignItems = 'center';
-            overlay.style.justifyContent = 'center';
-            overlay.style.color = 'white';
-            overlay.style.fontFamily = 'Inter, sans-serif';
-            overlay.style.textAlign = 'center';
-            overlay.style.padding = '20px';
-            
-            overlay.innerHTML = `
-                <div style="background: var(--bg-card, #1e293b); padding: 40px; border-radius: 20px; border: 1px solid var(--border, #334155); max-width: 500px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
-                    <div style="font-size: 48px; margin-bottom: 20px;">⚡</div>
-                    <h2 style="font-size: 24px; font-weight: 700; margin: 0 0 15px 0;">Desktop Engine Required</h2>
-                    <p style="font-size: 16px; color: #94a3b8; line-height: 1.6; margin: 0 0 25px 0;">This advanced feature requires a local engine. It is available exclusively on the TRutiL Studio Desktop App <strong style="color: white;">FOR FREE</strong>.</p>
-                    <button style="font-size: 16px; padding: 12px 24px; cursor: pointer; background: #3b82f6; color: white; border: none; border-radius: 8px; font-weight: 600;" onclick="window.history.back();">Return</button>
-                </div>
-            `;
-            document.body.appendChild(overlay);
-        }
-    </script>
+</script>
 </body>
 </html>
