@@ -532,11 +532,12 @@
                 mainContainerForAd.appendChild(bottomAd);
             }
 
-            // 2. Skyscraper Right Rail Ad
+            // 2. Skyscraper Right Rail Ad (REMOVED BY USER REQUEST)
+            /*
             const rightAd = document.createElement('div');
             rightAd.className = 'tv-right-rail-ad';
             rightAd.style.cssText = 'position: fixed; right: 10px; top: 50%; transform: translateY(-50%); z-index: 90;';
-            rightAd.innerHTML = `
+            rightAd.innerHTML = \`
                 <style>
                     .tv-right-rail-ad { display: none; }
                     @media (min-width: 1300px) {
@@ -549,12 +550,14 @@
                         .ad-skyscraper-small { display: none; }
                     }
                 </style>
-                <iframe src="${prefix}ads/banner-160x600.html" width="160" height="600" scrolling="no" class="ad-skyscraper-large" style="border:none; background:transparent;"></iframe>
-                <iframe src="${prefix}ads/banner-160x300.html" width="160" height="300" scrolling="no" class="ad-skyscraper-small" style="border:none; background:transparent;"></iframe>
-            `;
+                <iframe src="\${prefix}ads/banner-160x600.html" width="160" height="600" scrolling="no" class="ad-skyscraper-large" style="border:none; background:transparent;"></iframe>
+                <iframe src="\${prefix}ads/banner-160x300.html" width="160" height="300" scrolling="no" class="ad-skyscraper-small" style="border:none; background:transparent;"></iframe>
+            \`;
             document.body.appendChild(rightAd);
+            */
 
-            // 3. Asynchronous Popunders
+            // 3. Asynchronous Popunders (REMOVED BY USER REQUEST)
+            /*
             const injectAsyncScript = (src) => {
                 const s = document.createElement('script');
                 s.src = src;
@@ -563,8 +566,10 @@
             };
             injectAsyncScript('https://pl29637444.effectivecpmnetwork.com/be/5b/3c/be5b3c01efbe4b8c5d1991f05b0386e6.js');
             injectAsyncScript('https://pl29637447.effectivecpmnetwork.com/e0/b9/18/e0b9187da6449ccff91995b61ecc8bb5.js');
+            */
             
-            // 4. Native In-feed Ad
+            // 4. Native In-feed Ad (REMOVED BY USER REQUEST)
+            /*
             const nativeAd = document.createElement('div');
             nativeAd.id = 'container-7f325836a1527e8007557cb927b0a1be';
             nativeAd.style.cssText = 'width: 100%; text-align: center; margin: 20px 0;';
@@ -576,6 +581,7 @@
             sNative.async = true;
             sNative.dataset.cfasync = 'false';
             document.body.appendChild(sNative);
+            */
         }
 
         // Logic
