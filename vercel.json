@@ -1,7 +1,4 @@
 {
-  "version": 2,
-  "buildCommand": null,
-  "outputDirectory": ".",
-  "cleanUrls": false,
-  "trailingSlash": false
+  "buildCommand": "echo 'No build command needed for Vercel. Static site.'",
+  "outputDirectory": "."
 }
