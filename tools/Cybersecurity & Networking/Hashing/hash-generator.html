@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Universal Hash Generator — TRutiL Studio</title>
+<link href="../../../style.css?v=3" rel="stylesheet"/>
+<link href="../../../custom-tools.css?v=3" rel="stylesheet"/>
+<script src="../../../theme.js?v=3"></script>
+<!-- CryptoJS for basic hashes -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+<!-- jsSHA for extended SHA family -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jssha/3.3.0/sha.min.js"></script>
+
+<style>
+    .panel-container { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 20px; }
+    .panel { flex: 1; min-width: 300px; display: flex; flex-direction: column; gap: 10px; }
+    textarea { width: 100%; height: 120px; resize: vertical; padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg-input); color: var(--text-primary); font-family: 'Fira Code', monospace; }
+    
+    .hash-list { display: flex; flex-direction: column; gap: 10px; max-height: 500px; overflow-y: auto; padding-right: 10px; }
+    .hash-item { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px; position: relative; transition: border-color 0.2s; }
+    .hash-item:hover { border-color: var(--primary-color); }
+    .hash-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .hash-name { font-weight: 600; font-size: 0.95rem; color: var(--text-primary); }
+    .hash-value { font-family: 'Fira Code', monospace; font-size: 0.85rem; color: var(--text-muted); word-break: break-all; background: rgba(0,0,0,0.05); padding: 8px; border-radius: 4px; }
+    [data-theme="dark"] .hash-value { background: rgba(255,255,255,0.05); }
+    .copy-btn { background: transparent; border: 1px solid var(--border); color: var(--text-primary); padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.75rem; transition: background 0.2s; }
+    .copy-btn:hover { background: var(--primary-color); color: white; border-color: var(--primary-color); }
+    
+    .search-box { width: 100%; padding: 10px 15px; border-radius: 20px; border: 1px solid var(--border); background: var(--bg-input); color: var(--text-primary); font-size: 0.95rem; margin-bottom: 10px; }
+    
+    .hash-list::-webkit-scrollbar { width: 6px; }
+    .hash-list::-webkit-scrollbar-track { background: transparent; }
+    .hash-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+</style>
+</head>
+<body>
+<div class="app-layout" id="app-layout">
+<div class="main-content">
+<div class="page-content">
+    <div class="app-header">
+        <div class="app-icon" style="background:linear-gradient(135deg,#ef4444,#dc2626);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:24px;">#</div>
+        <div>
+            <h1>Universal Hash Generator</h1>
+            <p>Top-notch hashing experience. Compute over 15 algorithms instantly. Search if the list gets too long!</p>
+        </div>
+    </div>
+    
+    <div class="panel-container">
+        <div class="panel" style="flex: 0.4;">
+            <h3>Input Text</h3>
+            <textarea id="input-text" placeholder="Type or paste your text here to generate hashes instantly..."></textarea>
+            <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: -5px;">Hashes update automatically as you type.</div>
+        </div>
+        <div class="panel" style="flex: 0.6;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3>Computed Hashes</h3>
+                <input type="text" id="hash-search" class="search-box" style="width: 200px; margin: 0;" placeholder="Search algorithms...">
+            </div>
+            <div class="hash-list" id="hash-list">
+                <!-- Hashes injected here -->
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+</div>
+<script>
+    const input = document.getElementById('input-text');
+    const hashList = document.getElementById('hash-list');
+    const search = document.getElementById('hash-search');
+    
+    const algorithms = [
+        { id: 'md5', name: 'MD5', compute: txt => CryptoJS.MD5(txt).toString() },
+        { id: 'sha1', name: 'SHA-1', compute: txt => CryptoJS.SHA1(txt).toString() },
+        { id: 'sha224', name: 'SHA-224', compute: txt => CryptoJS.SHA224(txt).toString() },
+        { id: 'sha256', name: 'SHA-256', compute: txt => CryptoJS.SHA256(txt).toString() },
+        { id: 'sha384', name: 'SHA-384', compute: txt => CryptoJS.SHA384(txt).toString() },
+        { id: 'sha512', name: 'SHA-512', compute: txt => CryptoJS.SHA512(txt).toString() },
+        { id: 'sha3', name: 'SHA-3', compute: txt => CryptoJS.SHA3(txt).toString() },
+        { id: 'ripemd160', name: 'RIPEMD-160', compute: txt => CryptoJS.RIPEMD160(txt).toString() },
+        { id: 'sha3-224', name: 'SHA3-224', compute: txt => { const s = new jsSHA("SHA3-224", "TEXT"); s.update(txt); return s.getHash("HEX"); } },
+        { id: 'sha3-256', name: 'SHA3-256', compute: txt => { const s = new jsSHA("SHA3-256", "TEXT"); s.update(txt); return s.getHash("HEX"); } },
+        { id: 'sha3-384', name: 'SHA3-384', compute: txt => { const s = new jsSHA("SHA3-384", "TEXT"); s.update(txt); return s.getHash("HEX"); } },
+        { id: 'sha3-512', name: 'SHA3-512', compute: txt => { const s = new jsSHA("SHA3-512", "TEXT"); s.update(txt); return s.getHash("HEX"); } },
+        { id: 'shake128', name: 'SHAKE128', compute: txt => { const s = new jsSHA("SHAKE128", "TEXT"); s.update(txt); return s.getHash("HEX", { outputLen: 256 }); } },
+        { id: 'shake256', name: 'SHAKE256', compute: txt => { const s = new jsSHA("SHAKE256", "TEXT"); s.update(txt); return s.getHash("HEX", { outputLen: 512 }); } }
+    ];
+
+    function initHashes() {
+        hashList.innerHTML = '';
+        algorithms.forEach(algo => {
+            const el = document.createElement('div');
+            el.className = 'hash-item';
+            el.dataset.name = algo.name.toLowerCase();
+            el.innerHTML = `
+                <div class="hash-header">
+                    <span class="hash-name">${algo.name}</span>
+                    <button class="copy-btn" onclick="copyHash('${algo.id}')">Copy</button>
+                </div>
+                <div class="hash-value" id="val-${algo.id}"></div>
+            `;
+            hashList.appendChild(el);
+        });
+        updateHashes();
+    }
+
+    function updateHashes() {
+        const txt = input.value;
+        algorithms.forEach(algo => {
+            const valEl = document.getElementById(`val-${algo.id}`);
+            if(!txt) {
+                valEl.textContent = '';
+                return;
+            }
+            try {
+                valEl.textContent = algo.compute(txt);
+            } catch(e) {
+                valEl.textContent = 'Error';
+            }
+        });
+    }
+
+    window.copyHash = function(id) {
+        const val = document.getElementById(`val-${id}`).textContent;
+        if(!val) return;
+        navigator.clipboard.writeText(val);
+        const btn = event.target;
+        btn.textContent = 'Copied!';
+        btn.style.background = 'var(--primary-color)';
+        btn.style.color = 'white';
+        setTimeout(() => {
+            btn.textContent = 'Copy';
+            btn.style.background = 'transparent';
+            btn.style.color = 'var(--text-primary)';
+        }, 1500);
+    };
+
+    search.addEventListener('input', (e) => {
+        const q = e.target.value.toLowerCase();
+        document.querySelectorAll('.hash-item').forEach(item => {
+            if(item.dataset.name.includes(q)) item.style.display = 'block';
+            else item.style.display = 'none';
+        });
+    });
+
+    input.addEventListener('input', updateHashes);
+    
+    // Initialize UI
+    initHashes();
+</script>
+</body>
+</html>

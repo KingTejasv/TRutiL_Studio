@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Coin Flipper</title>
+<link href="../../../style.css?v=3" rel="stylesheet"/>
+
+<link href="../../../custom-tools.css?v=3" rel="stylesheet"/>
+    <script src="../../../theme.js?v=3"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-essentials-coin-flipper">
+<div class="tool-layout-container">
+<header>
+<h1>🪙 Coin Flipper</h1>
+<p>A fair virtual coin toss for making decisions.</p>
+</header>
+<div class="card">
+<div class="coin-scene">
+<div class="coin" id="coin">
+<div class="coin-face coin-front">H</div>
+<div class="coin-face coin-back">T</div>
+</div>
+</div>
+<div class="result-text" id="result-text">Ready to flip!</div>
+<button class="btn-primary btn btn-primary" id="flip-btn" onclick="flipCoin()">🔄 Flip Coin</button>
+</div>
+<div class="stats-bar">
+<div class="stat-item">
+<span class="stat-label">Total Flips</span>
+<span class="stat-num" id="stat-total">0</span>
+</div>
+<div class="stat-item">
+<span class="stat-label">Heads</span>
+<span class="stat-num" id="stat-heads" style="color: #FBBF24;">0</span>
+</div>
+<div class="stat-item">
+<span class="stat-label">Tails</span>
+<span class="stat-num" id="stat-tails" style="color: #9CA3AF;">0</span>
+</div>
+</div>
+</div>
+<script>
+        let headsCount = 0;
+        let tailsCount = 0;
+        let totalFlips = 0;
+        let currentRotation = 0;
+
+        function flipCoin() {
+            const coin = document.getElementById('coin');
+            const btn = document.getElementById('flip-btn');
+            const resultText = document.getElementById('result-text');
+            
+            btn.disabled = true;
+            resultText.innerText = 'Flipping...';
+            
+            // Randomly choose heads (0) or tails (1)
+            const result = Math.floor(Math.random() * 2);
+            
+            // Calculate base spins (e.g., 5 full spins = 1800deg)
+            const baseSpins = 1800;
+            
+            let targetRotation = currentRotation + baseSpins;
+            const remainder = targetRotation % 360;
+            
+            if (result === 0) {
+                // We want Heads (0 mod 360)
+                if (remainder !== 0) {
+                    targetRotation += (360 - remainder);
+                }
+            } else {
+                // We want Tails (180 mod 360)
+                if (remainder !== 180) {
+                    targetRotation += (180 - remainder);
+                    if (targetRotation < currentRotation + baseSpins) {
+                        targetRotation += 360;
+                    }
+                }
+            }
+            
+            currentRotation = targetRotation;
+            coin.style.transform = `rotateY(${currentRotation}deg)`;
+            
+            setTimeout(() => {
+                totalFlips++;
+                if (result === 0) {
+                    headsCount++;
+                    resultText.innerText = 'It\'s Heads!';
+                    resultText.style.color = '#FBBF24';
+                } else {
+                    tailsCount++;
+                    resultText.innerText = 'It\'s Tails!';
+                    resultText.style.color = '#9CA3AF';
+                }
+                
+                document.getElementById('stat-total').innerText = totalFlips;
+                document.getElementById('stat-heads').innerText = headsCount;
+                document.getElementById('stat-tails').innerText = tailsCount;
+                
+                btn.disabled = false;
+            }, 3000); // 3 seconds matches transition duration
+        }
+    </script>
+</div></div></div></div></body>
+</html>

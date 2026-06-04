@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Markdown Editor Pro</title>
+<link href="../../../style.css?v=3" rel="stylesheet"/>
+
+<link href="../../../custom-tools.css?v=3" rel="stylesheet"/>
+    <script src="../../../theme.js?v=3"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-protools-markdown-editor">
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+
+<div class="tool-layout-container">
+<div class="app-header">
+<h1>📝 Markdown Editor Pro</h1>
+<p>Real-time markdown previewer with syntax support.</p>
+</div>
+<div class="card" style="margin-bottom: 1rem;">
+<div class="toolbar">
+<button class="btn btn-primary" id="copy-html-btn">📋 Copy HTML</button>
+<button class="btn btn-primary" id="clear-btn" style="background: transparent; border-color: var(--text-muted); color: var(--text-muted);">Clear</button>
+</div>
+</div>
+<div class="grid-split">
+<div class="card">
+<label>Markdown Editor</label>
+<textarea class="form-input" id="md-input" placeholder="# Hello World
+
+Start typing markdown here..."></textarea>
+</div>
+<div class="card">
+<label>Live Preview</label>
+<div class="result-panel markdown-body" id="md-preview"></div>
+</div>
+</div>
+<div class="card" style="margin-top: 1.5rem;">
+<div class="stats-bar">
+<span id="md-stats">0 words | 0 characters</span>
+<span class="pill">Real-time Sync</span>
+</div>
+</div>
+</div>
+<script>
+    const input = document.getElementById('md-input');
+    const preview = document.getElementById('md-preview');
+    const stats = document.getElementById('md-stats');
+    
+    function updatePreview() {
+        const text = input.value;
+        const html = DOMPurify.sanitize(marked.parse(text));
+        preview.innerHTML = html;
+        
+        const chars = text.length;
+        const words = text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
+        stats.textContent = `${words} words | ${chars} characters`;
+    }
+
+    input.addEventListener('input', updatePreview);
+    
+    document.getElementById('copy-html-btn').addEventListener('click', () => {
+        navigator.clipboard.writeText(preview.innerHTML).then(() => {
+            const btn = document.getElementById('copy-html-btn');
+            const orig = btn.innerHTML;
+            btn.innerHTML = '✅ Copied!';
+            setTimeout(() => btn.innerHTML = orig, 2000);
+        });
+    });
+    
+    document.getElementById('clear-btn').addEventListener('click', () => {
+        input.value = '';
+        updatePreview();
+    });
+    
+    // Initial content
+    input.value = "# Welcome to Markdown Pro\n\nThis is a **real-time** markdown editor.\n\n- Write on the left\n- Preview on the right\n\n```javascript\nconsole.log('Syntax highlighting supported via CSS!');\n```\n\n> Enjoy writing!";
+    updatePreview();
+</script>
+</div></div></div></div></body>
+</html>

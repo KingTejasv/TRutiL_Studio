@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Area Converter</title>
+
+<link href="../../../style.css?v=3" rel="stylesheet"/><link href="../../../custom-tools.css?v=3" rel="stylesheet"/>
+    <script src="../../../theme.js?v=3"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-transform-area-conv">
+<div class="app-header">
+<h1>🗺️ Area Converter</h1>
+<p>Accurately convert between metric and imperial area units</p>
+</div>
+<div class="tool-layout-container">
+<div class="input-group">
+<input class="form-input" id="inputVal" step="any" type="number" value="1"/>
+<select class="form-input" id="inputUnit">
+<option selected="" value="sq_meter">Square Meters (m²)</option>
+<option value="sq_kilometer">Square Kilometers (km²)</option>
+<option value="sq_centimeter">Square Centimeters (cm²)</option>
+<option value="sq_millimeter">Square Millimeters (mm²)</option>
+<option value="hectare">Hectares (ha)</option>
+<option value="acre">Acres (ac)</option>
+<option value="sq_mile">Square Miles (mi²)</option>
+<option value="sq_yard">Square Yards (yd²)</option>
+<option value="sq_foot">Square Feet (ft²)</option>
+<option value="sq_inch">Square Inches (in²)</option>
+</select>
+</div>
+<button class="swap-btn btn btn-primary" id="swapBtn" title="Swap Units">
+<svg fill="none" height="20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="20">
+<path d="M7 10v12"></path>
+<path d="M15 5.88 14 5l-4 4"></path>
+<path d="m11 14 4-4 4 4"></path>
+<path d="M17 14V2"></path>
+<path d="M10 18.12 11 19l4-4"></path>
+<path d="M13 10 9 14 5 10"></path>
+</svg>
+</button>
+<div class="input-group">
+<input class="form-input" id="outputVal" readonly="" step="any" type="number"/>
+<select class="form-input" id="outputUnit">
+<option value="sq_meter">Square Meters (m²)</option>
+<option value="sq_kilometer">Square Kilometers (km²)</option>
+<option value="sq_centimeter">Square Centimeters (cm²)</option>
+<option value="sq_millimeter">Square Millimeters (mm²)</option>
+<option value="hectare">Hectares (ha)</option>
+<option value="acre">Acres (ac)</option>
+<option value="sq_mile">Square Miles (mi²)</option>
+<option value="sq_yard">Square Yards (yd²)</option>
+<option selected="" value="sq_foot">Square Feet (ft²)</option>
+<option value="sq_inch">Square Inches (in²)</option>
+</select>
+</div>
+<div class="formula" id="formulaDisplay">1 Square Meter = 10.7639 Square Feet</div>
+</div>
+<script>
+        const inputVal = document.getElementById('inputVal');
+        const outputVal = document.getElementById('outputVal');
+        const inputUnit = document.getElementById('inputUnit');
+        const outputUnit = document.getElementById('outputUnit');
+        const swapBtn = document.getElementById('swapBtn');
+        const formulaDisplay = document.getElementById('formulaDisplay');
+
+        // Conversion rates to Square Meters
+        const toSqMeters = {
+            sq_meter: 1,
+            sq_kilometer: 1000000,
+            sq_centimeter: 0.0001,
+            sq_millimeter: 0.000001,
+            hectare: 10000,
+            acre: 4046.8564224,
+            sq_mile: 2589988.110336,
+            sq_yard: 0.83612736,
+            sq_foot: 0.09290304,
+            sq_inch: 0.00064516
+        };
+
+        function formatNumber(num) {
+            if (num === 0) return 0;
+            if (num < 0.000001 || num > 1000000000) {
+                return num.toExponential(6);
+            }
+            // Limit precision to avoid floating point artifacts
+            return parseFloat(num.toPrecision(10));
+        }
+
+        function convert() {
+            const val = parseFloat(inputVal.value);
+            if (isNaN(val)) {
+                outputVal.value = '';
+                formulaDisplay.textContent = '';
+                return;
+            }
+
+            const from = inputUnit.value;
+            const to = outputUnit.value;
+
+            // Convert input to base (Square Meters)
+            const baseValue = val * toSqMeters[from];
+            
+            // Convert base to output unit
+            const result = baseValue / toSqMeters[to];
+
+            outputVal.value = formatNumber(result);
+
+            // Update text
+            const fromText = inputUnit.options[inputUnit.selectedIndex].text.split(' (')[0];
+            const toText = outputUnit.options[outputUnit.selectedIndex].text.split(' (')[0];
+            formulaDisplay.textContent = `${val} ${fromText} = ${formatNumber(result)} ${toText}`;
+        }
+
+        inputVal.addEventListener('input', convert);
+        inputUnit.addEventListener('change', convert);
+        outputUnit.addEventListener('change', convert);
+
+        swapBtn.addEventListener('click', () => {
+            const tempUnit = inputUnit.value;
+            inputUnit.value = outputUnit.value;
+            outputUnit.value = tempUnit;
+            
+            const tempVal = inputVal.value;
+            inputVal.value = outputVal.value;
+            
+            convert();
+        });
+
+        // Initial conversion
+        convert();
+    </script>
+</div></div></div></div></body>
+</html>

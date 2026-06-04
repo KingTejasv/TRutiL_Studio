@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Image Resizer</title>
+<link href="../../../../style.css?v=3" rel="stylesheet"/><link href="../../../../custom-tools.css?v=3" rel="stylesheet"/>
+<script src="../../../../theme.js?v=3"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-mediaworks-image-resizer">
+<div class="app-header">
+<div class="app-icon" style="background:linear-gradient(135deg, #3b82f6, #1d4ed8);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:24px;">📏</div>
+<div>
+<h1>Image Resizer</h1>
+<p>Resize images to exact dimensions in pixels.</p>
+</div>
+</div>
+<div class="tool-layout-container">
+<div class="panel">
+<label class="upload-area" id="drop-zone">
+<div>📁 Upload Image</div>
+<input accept="image/*" id="file-input" type="file"/>
+</label>
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+<div class="control-group">
+<label>Width (px)</label>
+<input class="form-input" disabled="" id="input-width" type="number"/>
+</div>
+<div class="control-group">
+<label>Height (px)</label>
+<input class="form-input" disabled="" id="input-height" type="number"/>
+</div>
+</div>
+<div class="checkbox-group">
+<input checked="" disabled="" id="keep-ratio" type="checkbox"/>
+<label for="keep-ratio">Keep Aspect Ratio</label>
+</div>
+<button class="btn btn-primary" disabled="" id="resize-btn">📏 Resize Image</button>
+</div>
+<div class="panel">
+<div class="preview-area" id="preview-container">
+<span style="color: var(--text-muted)">Preview</span>
+</div>
+<div class="stats-bar" id="stats-bar" style="display: none;">
+<span id="stat-info"></span>
+<span class="pill" id="stat-pill">Resized</span>
+</div>
+<a class="btn btn-primary" id="download-btn" style="display: none;">💾 Download</a>
+</div>
+</div>
+<script>
+    const fileInput = document.getElementById('file-input');
+    const inputWidth = document.getElementById('input-width');
+    const inputHeight = document.getElementById('input-height');
+    const keepRatio = document.getElementById('keep-ratio');
+    const resizeBtn = document.getElementById('resize-btn');
+    const previewContainer = document.getElementById('preview-container');
+    const statsBar = document.getElementById('stats-bar');
+    const statInfo = document.getElementById('stat-info');
+    const downloadBtn = document.getElementById('download-btn');
+    
+    let sourceImg = new Image();
+    let originalRatio = 1;
+    let currentFile = null;
+
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files.length) {
+        currentFile = e.target.files[0];
+        const url = URL.createObjectURL(currentFile);
+        sourceImg.src = url;
+        sourceImg.onload = () => {
+          originalRatio = sourceImg.naturalWidth / sourceImg.naturalHeight;
+          inputWidth.value = sourceImg.naturalWidth;
+          inputHeight.value = sourceImg.naturalHeight;
+          inputWidth.disabled = false;
+          inputHeight.disabled = false;
+          keepRatio.disabled = false;
+          resizeBtn.disabled = false;
+          document.getElementById('drop-zone').innerHTML = `<div style="color:var(--accent);">✓ ${currentFile.name}</div>`;
+        };
+      }
+    });
+
+    inputWidth.addEventListener('input', () => {
+      if (keepRatio.checked && inputWidth.value) {
+        inputHeight.value = Math.round(inputWidth.value / originalRatio);
+      }
+    });
+
+    inputHeight.addEventListener('input', () => {
+      if (keepRatio.checked && inputHeight.value) {
+        inputWidth.value = Math.round(inputHeight.value * originalRatio);
+      }
+    });
+
+    resizeBtn.addEventListener('click', () => {
+      const w = parseInt(inputWidth.value);
+      const h = parseInt(inputHeight.value);
+      if (!w || !h) return;
+      
+      const canvas = document.createElement('canvas');
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(sourceImg, 0, 0, w, h);
+      
+      const format = currentFile.type === 'image/jpeg' ? 'image/jpeg' : 'image/png';
+      
+      canvas.toBlob((blob) => {
+        const url = URL.createObjectURL(blob);
+        previewContainer.innerHTML = `<img src="${url}" alt="Resized">`;
+        downloadBtn.href = url;
+        downloadBtn.download = `resized_${w}x${h}_` + currentFile.name;
+        downloadBtn.style.display = 'inline-flex';
+        
+        statsBar.style.display = 'flex';
+        statInfo.textContent = `${w} x ${h} px • ${(blob.size/1024).toFixed(1)} KB`;
+      }, format, 0.9);
+    });
+  </script>
+</div></div></div></div></body>
+</html>

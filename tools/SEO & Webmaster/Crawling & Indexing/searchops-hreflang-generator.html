@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Hreflang Generator | SearchOps</title>
+
+<link href="../../../style.css?v=3" rel="stylesheet"/><link href="../../../custom-tools.css?v=3" rel="stylesheet"/>
+    <script src="../../../theme.js?v=3"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-searchops-hreflang-generator">
+<div class="tool-layout-container">
+<div class="app-header">
+<h1>🌐 Hreflang Generator</h1>
+<p>Generate valid HTML link tags or XML sitemap attributes for multi-language sites.</p>
+</div>
+<div class="grid">
+<!-- Inputs -->
+<div class="card">
+<div class="card-header">
+<h2>URL Variations</h2>
+</div>
+<div id="rowsContainer">
+<!-- Default Row -->
+<div class="row-item" id="row-0">
+<div>
+<label>URL</label>
+<input class="url-input form-input" placeholder="https://example.com/en" type="url" value="https://example.com/"/>
+</div>
+<div>
+<label>Language</label>
+<input class="lang-input form-input" placeholder="e.g. en, fr, x-default" type="text" value="x-default"/>
+</div>
+<div>
+<label>Region (Opt)</label>
+<input class="region-input form-input" placeholder="e.g. US, GB" type="text"/>
+</div>
+<div>
+<button class="btn-icon btn btn-primary" style="visibility: hidden;">×</button>
+</div>
+</div>
+<div class="row-item" id="row-1">
+<div>
+<label>URL</label>
+<input class="url-input form-input" placeholder="https://example.com/en-us" type="url" value="https://example.com/en-us"/>
+</div>
+<div>
+<label>Language</label>
+<input class="lang-input form-input" placeholder="e.g. en" type="text" value="en"/>
+</div>
+<div>
+<label>Region (Opt)</label>
+<input class="region-input form-input" placeholder="e.g. US" type="text" value="US"/>
+</div>
+<div>
+<button class="btn-icon delete-btn btn btn-primary" onclick="deleteRow(1)"><svg fill="none" height="20" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="20"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+</div>
+</div>
+</div>
+<button class="secondary btn btn-primary" onclick="addRow()">+ Add URL Variation</button>
+<button class="primary btn btn-primary" onclick="generateTags()">
+<svg fill="none" height="20" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="20"><path d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                    Generate Tags
+                </button>
+</div>
+<!-- Outputs -->
+<div class="card">
+<div class="card-header">
+<h2>HTML &lt;head&gt; Tags</h2>
+<button class="copy-btn btn btn-primary" onclick="copyToClipboard('htmlOutput')">
+<svg fill="none" height="16" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="16"><path d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round"></path></svg> Copy
+                    </button>
+</div>
+<textarea class="form-input" id="htmlOutput" placeholder="Click Generate..." readonly=""></textarea>
+<div class="card-header" style="margin-top: 1rem;">
+<h2>XML Sitemap Attributes</h2>
+<button class="copy-btn btn btn-primary" onclick="copyToClipboard('xmlOutput')">
+<svg fill="none" height="16" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="16"><path d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round"></path></svg> Copy
+                    </button>
+</div>
+<textarea class="form-input" id="xmlOutput" placeholder="Click Generate..." readonly=""></textarea>
+</div>
+</div>
+</div>
+<script>
+        let rowCount = 2;
+
+        function addRow() {
+            const container = document.getElementById('rowsContainer');
+            const rowId = `row-${rowCount}`;
+            const html = `
+                <div class="row-item" id="${rowId}">
+                    <div>
+                        <input type="url" class="url-input" placeholder="https://example.com/...">
+                    </div>
+                    <div>
+                        <input type="text" class="lang-input" placeholder="e.g. fr">
+                    </div>
+                    <div>
+                        <input type="text" class="region-input" placeholder="e.g. CA">
+                    </div>
+                    <div>
+                        <button class="btn-icon delete-btn" onclick="deleteRow(${rowCount})" style="margin-top: 0;"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
+                    </div>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', html);
+            rowCount++;
+        }
+
+        function deleteRow(id) {
+            const row = document.getElementById(`row-${id}`);
+            if (row) row.remove();
+        }
+
+        function getLangCode(lang, region) {
+            lang = lang.trim().toLowerCase();
+            region = region.trim().toUpperCase();
+            if (lang === 'x-default') return 'x-default';
+            if (!lang) return '';
+            return region ? `${lang}-${region}` : lang;
+        }
+
+        function generateTags() {
+            const rows = document.querySelectorAll('.row-item');
+            const data = [];
+
+            rows.forEach(row => {
+                const url = row.querySelector('.url-input').value.trim();
+                const lang = row.querySelector('.lang-input').value.trim();
+                const region = row.querySelector('.region-input').value.trim();
+                
+                if (url && lang) {
+                    data.push({
+                        url: url,
+                        hreflang: getLangCode(lang, region)
+                    });
+                }
+            });
+
+            if (data.length === 0) {
+                document.getElementById('htmlOutput').value = 'Please add at least one valid URL and language.';
+                document.getElementById('xmlOutput').value = '';
+                return;
+            }
+
+            // Generate HTML
+            let htmlResult = '<!-- Add these to the <head> section of EVERY page listed below -->\n';
+            data.forEach(item => {
+                htmlResult += `<link rel="alternate" hreflang="${item.hreflang}" href="${item.url}" />\n`;
+            });
+            document.getElementById('htmlOutput').value = htmlResult.trim();
+
+            // Generate XML
+            let xmlResult = '<!-- XML Sitemap representation -->\n';
+            data.forEach(mainItem => {
+                xmlResult += `<url>\n  <loc>${mainItem.url}</loc>\n`;
+                data.forEach(altItem => {
+                    xmlResult += `  <xhtml:link rel="alternate" hreflang="${altItem.hreflang}" href="${altItem.url}" />\n`;
+                });
+                xmlResult += `</url>\n`;
+            });
+            document.getElementById('xmlOutput').value = xmlResult.trim();
+        }
+
+        function copyToClipboard(elementId) {
+            const el = document.getElementById(elementId);
+            el.select();
+            document.execCommand('copy');
+            // Visual feedback could be added here
+        }
+
+        // Generate on load
+        generateTags();
+    </script>
+</div></div></div></div></body>
+</html>

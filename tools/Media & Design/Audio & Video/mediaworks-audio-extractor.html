@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tool Unavailable – TRutiL Studio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../../style.css?v=4">
+    <link rel="stylesheet" href="../../../custom-tools.css?v=4">
+    <style>
+        .desktop-exclusive-card {
+            background: rgba(13, 17, 23, 0.7);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 50px 40px;
+            text-align: center;
+            max-width: 600px;
+            margin: 80px auto;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+        .desktop-exclusive-icon {
+            font-size: 64px;
+            margin-bottom: 25px;
+            filter: drop-shadow(0 0 20px rgba(0, 255, 37, 0.4));
+        }
+        .desktop-exclusive-title {
+            font-size: 26px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 15px;
+        }
+        .desktop-exclusive-desc {
+            font-size: 16px;
+            color: var(--text-muted);
+            line-height: 1.6;
+            margin-bottom: 35px;
+        }
+        .download-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: var(--primary);
+            color: #000;
+            font-weight: 600;
+            padding: 14px 28px;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+        }
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 255, 37, 0.4);
+        }
+        .download-btn i { font-size: 20px; font-style: normal; }
+    </style>
+</head>
+<body>
+    <div class="app-layout" id="app-layout">
+        <div class="main-content">
+            <div class="page-content">
+                <div class="desktop-exclusive-card">
+                    <div class="desktop-exclusive-icon">⚡</div>
+                    <h2 class="desktop-exclusive-title">Desktop Exclusive Tool</h2>
+                    <p class="desktop-exclusive-desc">
+                        This tool utilizes a highly optimized native multimedia engine (FFmpeg) for lightning-fast, high-quality processing. Due to browser limitations, it is available exclusively on the <strong>TRutiL Studio Desktop Application</strong>.
+                    </p>
+                    <a href="https://github.com/KingTejasv/TRutiL_Studio" target="_blank" class="download-btn">
+                        <i>💻</i> Download Free Desktop App
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="../../../theme.js?v=4"></script>
+</body>
+</html>

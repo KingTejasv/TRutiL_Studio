@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Color Contrast Checker</title>
+<link href="../../../../style.css?v=3" rel="stylesheet"/>
+<link href="../../../../custom-tools.css?v=3" rel="stylesheet"/>
+<script src="../../../../theme.js?v=3"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-mediaworks-color-contrast-checker">
+<div class="tool-layout-container">
+<div class="app-header">
+<div class="app-icon" style="background:linear-gradient(135deg, #ec4899, #e11d48);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:24px;">⚖</div>
+<div>
+<h1>️ Color Contrast Checker</h1>
+<p>Ensure your colors meet WCAG accessibility standards.</p>
+</div>
+</div>
+<div class="main-grid">
+<div class="panel">
+<div class="input-group">
+<label>Text Color</label>
+<div class="color-input-wrapper">
+<input id="text-color-picker" type="color" value="#F1F5F9"/>
+<input class="form-input" id="text-color-hex" type="text" value="#F1F5F9"/>
+</div>
+</div>
+<button class="swap-btn btn btn-primary" id="swap-btn" title="Swap Colors">↕️ Swap</button>
+<div class="input-group">
+<label>Background Color</label>
+<div class="color-input-wrapper">
+<input id="bg-color-picker" type="color" value="#030712"/>
+<input class="form-input" id="bg-color-hex" type="text" value="#030712"/>
+</div>
+</div>
+</div>
+<div class="panel">
+<div class="preview-box" id="preview-box">
+<h2 id="preview-text-large">Large Text Preview</h2>
+<p id="preview-text-normal">This is what normal sized text looks like on this background. Readability is crucial for accessibility.</p>
+</div>
+<div>
+<h3 class="score-display" id="ratio-display">16.89:1</h3>
+<p class="score-subtitle">Contrast Ratio</p>
+</div>
+<div class="wcag-results">
+<div class="wcag-card">
+<h4>Normal Text (AA)</h4>
+<span class="wcag-status" id="normal-aa">Pass</span>
+<small>Requires 4.5:1</small>
+</div>
+<div class="wcag-card">
+<h4>Large Text (AA)</h4>
+<span class="wcag-status" id="large-aa">Pass</span>
+<small>Requires 3.0:1</small>
+</div>
+<div class="wcag-card">
+<h4>Normal Text (AAA)</h4>
+<span class="wcag-status" id="normal-aaa">Pass</span>
+<small>Requires 7.0:1</small>
+</div>
+<div class="wcag-card">
+<h4>Large Text (AAA)</h4>
+<span class="wcag-status" id="large-aaa">Pass</span>
+<small>Requires 4.5:1</small>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script>
+    const textColorPicker = document.getElementById('text-color-picker');
+    const textColorHex = document.getElementById('text-color-hex');
+    const bgColorPicker = document.getElementById('bg-color-picker');
+    const bgColorHex = document.getElementById('bg-color-hex');
+    const swapBtn = document.getElementById('swap-btn');
+    
+    const previewBox = document.getElementById('preview-box');
+    const previewTextLarge = document.getElementById('preview-text-large');
+    const previewTextNormal = document.getElementById('preview-text-normal');
+    const ratioDisplay = document.getElementById('ratio-display');
+    
+    const normalAa = document.getElementById('normal-aa');
+    const largeAa = document.getElementById('large-aa');
+    const normalAaa = document.getElementById('normal-aaa');
+    const largeAaa = document.getElementById('large-aaa');
+
+    function hexToRgb(hex) {
+        let shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
+        hex = hex.replace(shorthandRegex, function(m, r, g, b) {
+            return r + r + g + g + b + b;
+        });
+
+        let result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return result ? {
+            r: parseInt(result[1], 16),
+            g: parseInt(result[2], 16),
+            b: parseInt(result[3], 16)
+        } : null;
+    }
+
+    function luminance(r, g, b) {
+        let a = [r, g, b].map(function (v) {
+            v /= 255;
+            return v <= 0.03928
+                ? v / 12.92
+                : Math.pow( (v + 0.055) / 1.055, 2.4 );
+        });
+        return a[0] * 0.2126 + a[1] * 0.7152 + a[2] * 0.0722;
+    }
+
+    function calculateRatio(color1, color2) {
+        let rgb1 = hexToRgb(color1);
+        let rgb2 = hexToRgb(color2);
+        
+        if (!rgb1 || !rgb2) return 1;
+
+        let lum1 = luminance(rgb1.r, rgb1.g, rgb1.b);
+        let lum2 = luminance(rgb2.r, rgb2.g, rgb2.b);
+        
+        let brightest = Math.max(lum1, lum2);
+        let darkest = Math.min(lum1, lum2);
+        
+        return (brightest + 0.05) / (darkest + 0.05);
+    }
+
+    function updateStatus(el, ratio, required) {
+        if (ratio >= required) {
+            el.textContent = "Pass";
+            el.className = "wcag-status pass";
+        } else {
+            el.textContent = "Fail";
+            el.className = "wcag-status fail";
+        }
+    }
+
+    function update() {
+        let textCol = textColorPicker.value;
+        let bgCol = bgColorPicker.value;
+        
+        // Update hex inputs if valid
+        textColorHex.value = textCol.toUpperCase();
+        bgColorHex.value = bgCol.toUpperCase();
+        
+        // Update Preview
+        previewBox.style.backgroundColor = bgCol;
+        previewBox.style.color = textCol;
+        
+        // Calculate Ratio
+        let ratio = calculateRatio(textCol, bgCol);
+        ratioDisplay.textContent = ratio.toFixed(2) + ':1';
+        
+        // Update WCAG statuses
+        updateStatus(normalAa, ratio, 4.5);
+        updateStatus(largeAa, ratio, 3.0);
+        updateStatus(normalAaa, ratio, 7.0);
+        updateStatus(largeAaa, ratio, 4.5);
+    }
+
+    function handleHexInput(e, picker) {
+        let val = e.target.value;
+        if (/^#[0-9A-F]{6}$/i.test(val)) {
+            picker.value = val;
+            update();
+        }
+    }
+
+    textColorPicker.addEventListener('input', update);
+    bgColorPicker.addEventListener('input', update);
+    
+    textColorHex.addEventListener('input', (e) => handleHexInput(e, textColorPicker));
+    bgColorHex.addEventListener('input', (e) => handleHexInput(e, bgColorPicker));
+
+    swapBtn.addEventListener('click', () => {
+        let temp = textColorPicker.value;
+        textColorPicker.value = bgColorPicker.value;
+        bgColorPicker.value = temp;
+        update();
+    });
+
+    // Initialize
+    update();
+</script>
+</div></div></div></div></body>
+</html>

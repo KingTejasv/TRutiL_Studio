@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Audio Trimmer</title>
+<link href="../../../style.css?v=3" rel="stylesheet"/>
+
+<link href="../../../custom-tools.css?v=3" rel="stylesheet"/>
+    <script src="../../../theme.js?v=3"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-mediaworks-audio-trimmer">
+<div class="tool-layout-container">
+<div class="app-header">
+<h1>✂️ Audio Trimmer</h1>
+<p>Trim your audio files locally with precise controls.</p>
+</div>
+<div class="card">
+<div class="file-input-wrapper">
+<div class="file-input-btn" id="upload-btn-text">Drop an Audio File or Click to Browse</div>
+<input accept="audio/*" id="audio-file" type="file"/>
+</div>
+<div>
+<canvas id="waveform-canvas"></canvas>
+<audio controls="" id="audio-preview" style="display:none;"></audio>
+</div>
+<div class="controls">
+<div class="control-group">
+<label for="start-time">Start Time (seconds)</label>
+<input class="form-input" id="start-time" min="0" step="0.1" type="number" value="0"/>
+</div>
+<div class="control-group">
+<label for="end-time">End Time (seconds)</label>
+<input class="form-input" id="end-time" min="0" step="0.1" type="number" value="0"/>
+</div>
+</div>
+<button class="btn btn-primary" disabled="" id="trim-btn">⚡ Trim Audio</button>
+</div>
+<div class="card result-container" id="result-card">
+<h3>Result</h3>
+<audio controls="" id="result-audio"></audio>
+<button class="btn btn-primary" id="download-btn">💾 Download Trimmed Audio</button>
+<div class="stats-bar">
+<span id="duration-stat">Duration: 0s</span>
+<span class="pill" id="status-pill">Ready</span>
+</div>
+</div>
+</div>
+<script>
+    const fileInput = document.getElementById('audio-file');
+    const uploadBtnText = document.getElementById('upload-btn-text');
+    const startTimeInput = document.getElementById('start-time');
+    const endTimeInput = document.getElementById('end-time');
+    const trimBtn = document.getElementById('trim-btn');
+    const audioPreview = document.getElementById('audio-preview');
+    const waveformCanvas = document.getElementById('waveform-canvas');
+    const ctx = waveformCanvas.getContext('2d');
+    
+    const resultCard = document.getElementById('result-card');
+    const resultAudio = document.getElementById('result-audio');
+    const downloadBtn = document.getElementById('download-btn');
+    const durationStat = document.getElementById('duration-stat');
+    const statusPill = document.getElementById('status-pill');
+
+    let audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    let currentAudioBuffer = null;
+    let originalFile = null;
+    let trimmedBlob = null;
+
+    fileInput.addEventListener('change', function(e) {
+        if (e.target.files.length > 0) {
+            originalFile = e.target.files[0];
+            uploadBtnText.textContent = originalFile.name;
+            loadAudio(originalFile);
+        }
+    });
+
+    function loadAudio(file) {
+        trimBtn.disabled = true;
+        uploadBtnText.textContent = "Loading...";
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const arrayBuffer = e.target.result;
+            audioContext.decodeAudioData(arrayBuffer, function(buffer) {
+                currentAudioBuffer = buffer;
+                
+                audioPreview.src = URL.createObjectURL(file);
+                audioPreview.style.display = 'block';
+                
+                endTimeInput.value = buffer.duration.toFixed(2);
+                endTimeInput.max = buffer.duration.toFixed(2);
+                startTimeInput.max = buffer.duration.toFixed(2);
+                
+                drawWaveform(buffer);
+                uploadBtnText.textContent = file.name;
+                trimBtn.disabled = false;
+            }, function(err) {
+                alert("Error decoding audio data");
+                uploadBtnText.textContent = "Drop an Audio File or Click to Browse";
+            });
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
+    function drawWaveform(buffer) {
+        const width = waveformCanvas.width = waveformCanvas.offsetWidth;
+        const height = waveformCanvas.height = waveformCanvas.offsetHeight;
+        
+        const data = buffer.getChannelData(0);
+        const step = Math.ceil(data.length / width);
+        const amp = height / 2;
+        
+        ctx.fillStyle = '#0B0F19';
+        ctx.fillRect(0, 0, width, height);
+        ctx.fillStyle = '#06B6D4';
+        
+        for(let i=0; i < width; i++) {
+            let min = 1.0;
+            let max = -1.0;
+            for (let j=0; j<step; j++) {
+                const datum = data[(i*step)+j]; 
+                if (datum < min) min = datum;
+                if (datum > max) max = datum;
+            }
+            ctx.fillRect(i, (1+min)*amp, 1, Math.max(1, (max-min)*amp));
+        }
+    }
+
+    trimBtn.addEventListener('click', () => {
+        if (!currentAudioBuffer) return;
+        
+        const start = parseFloat(startTimeInput.value);
+        const end = parseFloat(endTimeInput.value);
+        
+        if (start >= end) {
+            alert("Start time must be less than end time.");
+            return;
+        }
+        
+        statusPill.textContent = "Processing...";
+        statusPill.style.color = "#F59E0B";
+        statusPill.style.background = "rgba(245, 158, 11, 0.15)";
+        
+        setTimeout(() => {
+            trimAudio(start, end);
+        }, 100);
+    });
+
+    function trimAudio(start, end) {
+        const sampleRate = currentAudioBuffer.sampleRate;
+        const channels = currentAudioBuffer.numberOfChannels;
+        
+        const startOffset = Math.floor(start * sampleRate);
+        const endOffset = Math.ceil(end * sampleRate);
+        const length = endOffset - startOffset;
+        
+        const trimmedBuffer = audioContext.createBuffer(channels, length, sampleRate);
+        
+        for (let i = 0; i < channels; i++) {
+            const channelData = currentAudioBuffer.getChannelData(i);
+            const trimmedData = trimmedBuffer.getChannelData(i);
+            for (let j = 0; j < length; j++) {
+                trimmedData[j] = channelData[startOffset + j];
+            }
+        }
+        
+        const wavBlob = bufferToWave(trimmedBuffer, length);
+        trimmedBlob = wavBlob;
+        
+        const url = URL.createObjectURL(wavBlob);
+        resultAudio.src = url;
+        resultCard.classList.add('active');
+        
+        durationStat.textContent = `Trimmed Duration: ${(end - start).toFixed(2)}s`;
+        statusPill.textContent = "Done";
+        statusPill.style.color = "#10B981";
+        statusPill.style.background = "rgba(16, 185, 129, 0.15)";
+    }
+
+    function bufferToWave(abuffer, len) {
+        let numOfChan = abuffer.numberOfChannels,
+            length = len * numOfChan * 2 + 44,
+            buffer = new ArrayBuffer(length),
+            view = new DataView(buffer),
+            channels = [], i, sample,
+            offset = 0,
+            pos = 0;
+
+        // write WAVE header
+        setUint32(0x46464952);                         // "RIFF"
+        setUint32(length - 8);                         // file length - 8
+        setUint32(0x45564157);                         // "WAVE"
+
+        setUint32(0x20746d66);                         // "fmt " chunk
+        setUint32(16);                                 // length = 16
+        setUint16(1);                                  // PCM (uncompressed)
+        setUint16(numOfChan);
+        setUint32(abuffer.sampleRate);
+        setUint32(abuffer.sampleRate * 2 * numOfChan); // avg. bytes/sec
+        setUint16(numOfChan * 2);                      // block-align
+        setUint16(16);                                 // 16-bit (hardcoded in this demo)
+
+        setUint32(0x61746164);                         // "data" - chunk
+        setUint32(length - pos - 4);                   // chunk length
+
+        for(i = 0; i < abuffer.numberOfChannels; i++)
+            channels.push(abuffer.getChannelData(i));
+
+        while(pos < length) {
+            for(i = 0; i < numOfChan; i++) {
+                sample = Math.max(-1, Math.min(1, channels[i][offset])); // clamp
+                sample = (0.5 + sample < 0 ? sample * 32768 : sample * 32767)|0; // scale to 16-bit signed int
+                view.setInt16(pos, sample, true);          // write 16-bit sample
+                pos += 2;
+            }
+            offset++                                     // next source sample
+        }
+
+        return new Blob([buffer], {type: "audio/wav"});
+
+        function setUint16(data) {
+            view.setUint16(pos, data, true);
+            pos += 2;
+        }
+        function setUint32(data) {
+            view.setUint32(pos, data, true);
+            pos += 4;
+        }
+    }
+
+    downloadBtn.addEventListener('click', () => {
+        if (!trimmedBlob) return;
+        const url = URL.createObjectURL(trimmedBlob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        const ext = "wav";
+        const originalName = originalFile ? originalFile.name.split('.')[0] : 'audio';
+        a.download = `${originalName}-trimmed.${ext}`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+    });
+
+</script>
+</div></div></div></div></body>
+</html>

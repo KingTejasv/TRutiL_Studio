@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Fraction & Probability Calculator – TRutiL Studio</title>
+    <meta content="Fraction operations and probability calculations." name="description"/>
+    <link href="../../../style.css?v=3" rel="stylesheet"/>
+    <link href="../../../custom-tools.css?v=3" rel="stylesheet"/>
+    <script src="../../../theme.js?v=3"></script>
+</head>
+<body>
+    <div class="app-layout" id="app-layout">
+        <div class="main-content">
+            <div class="page-content">
+                <div class="app-header">
+                    <div class="app-icon">🧮</div>
+                    <div>
+                        <h1>Fraction & Probability Calculator</h1>
+                        <p>Fraction operations and probability calculations.</p>
+                    </div>
+                </div>
+                <div class="tool-workspace">
+                    
+<div class="grid-2">
+    <!-- Fractions -->
+    <div class="panel">
+        <div class="panel-title">Fraction Calculator</div>
+        <div style="display:flex; align-items:center; gap:15px; margin-bottom: 20px;">
+            <div style="display:flex; flex-direction:column; width:60px;">
+                <input type="number" class="form-input" id="f1-num" placeholder="Num">
+                <hr style="margin:5px 0; border:1px solid var(--border-color);">
+                <input type="number" class="form-input" id="f1-den" placeholder="Den">
+            </div>
+            
+            <select class="form-select" id="f-op" style="width: 70px;">
+                <option value="+">+</option>
+                <option value="-">-</option>
+                <option value="*">×</option>
+                <option value="/">÷</option>
+            </select>
+            
+            <div style="display:flex; flex-direction:column; width:60px;">
+                <input type="number" class="form-input" id="f2-num" placeholder="Num">
+                <hr style="margin:5px 0; border:1px solid var(--border-color);">
+                <input type="number" class="form-input" id="f2-den" placeholder="Den">
+            </div>
+            
+            <div style="font-size:24px; font-weight:bold;">=</div>
+            
+            <div style="display:flex; flex-direction:column; width:80px; text-align:center; font-weight:bold; font-size:1.2rem;">
+                <div id="res-f-num">?</div>
+                <hr style="margin:5px 0; border:1px solid var(--border-color);">
+                <div id="res-f-den">?</div>
+            </div>
+        </div>
+        <button class="btn btn-primary w-full" id="btn-calc-frac">Calculate Fraction</button>
+        <div style="margin-top:15px; text-align:center; font-size:0.9rem; color:var(--text-muted);" id="res-f-dec">Decimal: 0.00</div>
+    </div>
+
+    <!-- Probability -->
+    <div class="panel">
+        <div class="panel-title">Probability Calculator</div>
+        <div class="form-group">
+            <label class="form-label">Probability of A (e.g. 0.5 or 50%)</label>
+            <input type="number" step="0.01" class="form-input" id="prob-a" placeholder="e.g. 0.5" value="0.5">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Probability of B (e.g. 0.3 or 30%)</label>
+            <input type="number" step="0.01" class="form-input" id="prob-b" placeholder="e.g. 0.3" value="0.3">
+        </div>
+        <button class="btn btn-primary w-full" id="btn-calc-prob">Calculate Combinations</button>
+        
+        <div class="grid-2" style="margin-top:20px;">
+            <div class="result-card">
+                <div style="font-size: 12px; opacity: 0.8;">P(A and B) [Independent]</div>
+                <div id="res-prob-and" style="font-size: 1.25rem; font-weight:bold;">0.15</div>
+            </div>
+            <div class="result-card">
+                <div style="font-size: 12px; opacity: 0.8;">P(A or B) [Mutually Exclusive]</div>
+                <div id="res-prob-or" style="font-size: 1.25rem; font-weight:bold;">0.80</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+
+function gcd(a, b) { return b ? gcd(b, a % b) : a; }
+document.getElementById('btn-calc-frac').addEventListener('click', () => {
+    let n1 = parseInt(document.getElementById('f1-num').value)||0;
+    let d1 = parseInt(document.getElementById('f1-den').value)||1;
+    let n2 = parseInt(document.getElementById('f2-num').value)||0;
+    let d2 = parseInt(document.getElementById('f2-den').value)||1;
+    let op = document.getElementById('f-op').value;
+    
+    let resN = 0, resD = 1;
+    if(op === '+') { resN = (n1*d2) + (n2*d1); resD = d1*d2; }
+    if(op === '-') { resN = (n1*d2) - (n2*d1); resD = d1*d2; }
+    if(op === '*') { resN = n1*n2; resD = d1*d2; }
+    if(op === '/') { resN = n1*d2; resD = d1*n2; }
+    
+    if(resD !== 0) {
+        let div = Math.abs(gcd(resN, resD));
+        resN /= div; resD /= div;
+        // Fix signs
+        if(resD < 0) { resN = -resN; resD = -resD; }
+        
+        document.getElementById('res-f-num').textContent = resN;
+        document.getElementById('res-f-den').textContent = resD;
+        document.getElementById('res-f-dec').textContent = "Decimal: " + (resN/resD).toFixed(4);
+    }
+});
+
+document.getElementById('btn-calc-prob').addEventListener('click', () => {
+    let pa = parseFloat(document.getElementById('prob-a').value) || 0;
+    let pb = parseFloat(document.getElementById('prob-b').value) || 0;
+    
+    if(pa > 1) pa /= 100;
+    if(pb > 1) pb /= 100;
+    
+    document.getElementById('res-prob-and').textContent = (pa * pb).toFixed(4);
+    document.getElementById('res-prob-or').textContent = (pa + pb - (pa*pb)).toFixed(4);
+});
+
+    </script>
+</body>
+</html>

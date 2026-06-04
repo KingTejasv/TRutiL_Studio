@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Fancy Text Generator — TRutiL Studio</title>
+<link href="../../../style.css?v=3" rel="stylesheet"/>
+<link href="../../../custom-tools.css?v=3" rel="stylesheet"/>
+<script src="../../../theme.js?v=3"></script>
+</head>
+<body>
+<div class="app-layout" id="app-layout">
+<div class="main-content">
+<div class="page-content"><div id="tool-fancytext">
+<div class="app-header">
+<div class="app-icon" style="background:linear-gradient(135deg, #3b82f6, #1d4ed8);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:24px;">⚙️</div>
+<div>
+<h1>Fancy Text Generator</h1>
+<p>Convert normal text into various Unicode styles suitable for social media, gaming, and more.</p>
+</div>
+</div>
+<div class="generator-layout">
+<div class="input-section">
+<label class="form-label" for="source-text">Enter your text:</label>
+<textarea class="form-input" id="source-text" placeholder="Type something fancy here..."></textarea>
+</div>
+<div>
+<h2 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-primary)">Generated Styles</h2>
+<div class="results-grid" id="results-container">
+<!-- Populated by JS -->
+</div>
+</div>
+</div>
+</div></div>
+</div>
+</div>
+<script>
+  const normalStr = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  const normalChars = [...normalStr];
+
+  const styles = [
+    { name: 'Fraktur', mapped: '𝔞𝔟𝔠𝔡𝔢𝔣𝔤𝔥𝔦𝔧𝔨𝔩𝔪𝔫𝔬𝔭𝔮𝔯𝔰𝔱𝔲𝔳𝔴𝔵𝔶𝔷𝔄𝔅ℭ𝔇𝔈𝔉𝔊ℌℑ𝔍𝔎𝔏𝔐𝔑𝔒𝔓𝔔ℜ𝔖𝔗𝔘𝔙𝔚𝔛𝔜ℨ0123456789' },
+    { name: 'Fraktur Bold', mapped: '𝖆𝖇𝖈𝖉𝖊𝖋𝖌𝖍𝖎𝖏𝖐𝖑𝖒𝖓𝖔𝖕𝖖𝖗𝖘𝖙𝖚𝖛𝖜𝖝𝖞𝖟𝕬𝕭𝕮𝕯𝕰𝕱𝕲𝕳𝕴𝕵𝕶𝕷𝕸𝕹𝕺𝕻𝕼𝕽𝕾𝕿𝖀𝖁𝖂𝖃𝖄𝖅0123456789' },
+    { name: 'Double Struck', mapped: '𝕒𝕓𝕔𝕕𝕖𝕗𝕘𝕙𝕚𝕛𝕜𝕝𝕞𝕟𝕠𝕡𝕢𝕣𝕤𝕥𝕦𝕧𝕨𝕩𝕪𝕫𝔸𝔹ℂ𝔻𝔼𝔽𝔾ℍ𝕀𝕁𝕂𝕃𝕄ℕ𝕆ℙℚℝ𝕊𝕋𝕌𝕍𝕎𝕏𝕐ℤ𝟘𝟙𝟚𝟛𝟜𝟝𝟞𝟟𝟠𝟡' },
+    { name: 'Script', mapped: '𝒶𝒷𝒸𝒹ℯ𝒻ℊ𝒽𝒾𝒿𝓀𝓁𝓂𝓃ℴ𝓅𝓆𝓇𝓈𝓉𝓊𝓋𝓌𝓍𝓎𝓏𝒜ℬ𝒞𝒟ℰℱ𝒢ℋℐ𝒥𝒦ℒℳ𝒩𝒪𝒫𝒬ℛ𝒮𝒯𝒰𝒱𝒲𝒳𝒴𝒵0123456789' },
+    { name: 'Script Bold', mapped: '𝓪𝓫𝓬𝓭𝓮𝓯𝓰𝓱𝓲𝓳𝓴𝓵𝓶𝓷𝓸𝓹𝓺𝓻𝓼𝓽𝓾𝓿𝔀𝔁𝔂𝔃𝓐𝓑𝓒𝓓𝓔𝓕𝓖𝓗𝓘𝓙𝓚𝓛𝓜𝓝𝓞𝓟𝓠𝓡𝓢𝓣𝓤𝓥𝓦𝓧𝓨𝓩0123456789' },
+    { name: 'Sans-Serif', mapped: '𝖺𝖻𝖼𝖽𝖾𝖿𝗀𝗁𝗂𝗃𝗄𝗅𝗆𝗇𝗈𝗉𝗊𝗋𝗌𝗍𝗎𝗏𝗐𝗑𝗒𝗓𝖠𝖡𝖢𝖣𝖤𝖥𝖦𝖧𝖨𝖩𝖪𝖫𝖬𝖭𝖮𝖯𝖰𝖱𝖲𝖳𝖴𝖵𝖶𝖷𝖸𝖹𝟢𝟣𝟤𝟥𝟦𝟧𝟨𝟩𝟪𝟫' },
+    { name: 'Sans-Serif Bold', mapped: '𝗮𝗯𝗰𝗱𝗲𝗳𝗴𝗵𝗶𝗷𝗸𝗹𝗺𝗻𝗼𝗽𝗾𝗿𝘀𝘁𝘂𝘃𝘄𝘅𝘆𝘇𝗔𝗕𝗖𝗗𝗘𝗙𝗚𝗛𝗜𝗝𝗞𝗟𝗠𝗡𝗢𝗣𝗤𝗥𝗦𝗧𝗨𝗩𝗪𝗫𝗬𝗭𝟬𝟭𝟮𝟯𝟰𝟱𝟲𝟳𝟴𝟵' },
+    { name: 'Sans-Serif Italic', mapped: '𝘢𝘣𝘤𝘥𝘦𝘧𝘨𝘩𝘪𝘫𝘬𝘭𝘮𝘯𝘰𝘱𝘲𝘳𝘴𝘵𝘶𝘷𝘸𝘹𝘺𝘻𝘈𝘉𝘊𝘋𝘌𝘍𝘎𝘏𝘐𝘑𝘒𝘓𝘔𝘕𝘖𝘗𝘘𝘙𝘚𝘛𝘜𝘝𝘞𝘟𝘠𝘡0123456789' },
+    { name: 'Sans-Serif Bold Italic', mapped: '𝙖𝙗𝙘𝙙𝙚𝙛𝙜𝙝𝙞𝙟𝙠𝙡𝙢𝙣𝙤𝙥𝙦𝙧𝙨𝙩𝙪𝙫𝙬𝙭𝙮𝙯𝘼𝘽𝘾𝘿𝙀𝙁𝙂𝙃𝙄𝙅𝙆𝙇𝙈𝙉𝙊𝙋𝙌𝙍𝙎𝙏𝙐𝙑𝙒𝙓𝙔𝙕0123456789' },
+    { name: 'Monospace', mapped: '𝚊𝚋𝚌𝚍𝚎𝚏𝚐𝚑𝚒𝚓𝚔𝚕𝚖𝚗𝚘𝚙𝚚𝚛𝚜𝚝𝚞𝚟𝚠𝚡𝚢𝚣𝙰𝙱𝙲𝙳𝙴𝙵𝙶𝙷𝙸𝙹𝙺𝙻𝙼𝙽𝙾𝙿𝚀𝚁𝚂𝚃𝚄𝚅𝚆𝚇𝚈𝚉𝟶𝟷𝟸𝟹𝟺𝟻𝟼𝟽𝟾𝟿' },
+    { name: 'Fullwidth', mapped: 'ａｂｃｄｅｆｇｈｉｊｋｌｍｎｏｐｑｒｓｔｕｖｗｘｙｚＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯＰＱＲＳＴＵＶＷＸＹＺ０１２３４５６７８９' },
+    { name: 'Circled', mapped: 'ⓐⓑⓒⓓⓔⓕⓖⓗⓘⓙⓚⓛⓜⓝⓞⓟⓠⓡⓢⓣⓤⓥⓦⓧⓨⓩⒶⒷⒸⒹⒺⒻⒼⒽⒾⒿⓀⓁⓂⓃⓄⓅⓆⓇⓈⓉⓊⓋⓌⓍⓎⓏ⓪①②③④⑤⑥⑦⑧⑨' },
+    { name: 'Circled Negative', mapped: '🅐🅑🅒🅓🅔🅕🅖🅗🅘🅙🅚🅛🅜🅝🅞🅟🅠🅡🅢🅣🅤🅥🅦🅧🅨🅩🅐🅑🅒🅓🅔🅕🅖🅗🅘🅙🅚🅛🅜🅝🅞🅟🅠🅡🅢🅣🅤🅥🅦🅧🅨🅩⓿❶❷❸❹❺❻❼❽❾' },
+    { name: 'Squared', mapped: '🄰🄱🄲🄳🄴🄵🄶🄷🄸🄹🄺🄻🄼🄽🄾🄿🅀🅁🅂🅃🅄🅅🅆🅇🅈🅉🄰🄱🄲🄳🄴🄵🄶🄷🄸🄹🄺🄻🄼🄽🄾🄿🅀🅁🅂🅃🅄🅅🅆🅇🅈🅉0123456789' },
+    { name: 'Squared Negative', mapped: '🅰🅱🅲🅳🅴🅵🅶🅷🅸🅹🅺🅻🅼🅽🅾🅿🆀🆁🆂🆃🆄🆅🆆🆇🆈🆉🅰🅱🅲🅳🅴🅵🅶🅷🅸🅹🅺🅻🅼🅽🅾🅿🆀🆁🆂🆃🆄🆅🆆🆇🆈🆉0123456789' },
+    { name: 'Flipped', mapped: 'ɐqɔpǝɟƃɥıɾʞlɯuodbɹsʇnʌʍxʎz∀𐐒ƆᗡƎℲ⅁HIſʞ˥WNOԀQᴚS⊥∩ΛMX⅄Z0ƖᄅƐㄣϛ9ㄥ86', reverse: true },
+    { name: 'Small Caps', mapped: 'ᴀʙᴄᴅᴇғɢʜɪᴊᴋʟᴍɴᴏᴘǫʀsᴛᴜᴠᴡxʏᴢABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789' },
+    { name: 'Underline', combine: '\u0332' },
+    { name: 'Double Underline', combine: '\u0333' },
+    { name: 'Strikethrough', combine: '\u0336' },
+    { name: 'Tilde Strike', combine: '\u0334' },
+    { name: 'Overline', combine: '\u0305' }
+  ];
+
+  const sourceText = document.getElementById('source-text');
+  const resultsContainer = document.getElementById('results-container');
+
+  function renderEmptyState() {
+    resultsContainer.innerHTML = '<div class="empty-state">Type something in the text box above to see fancy variations!</div>';
+  }
+
+  function generateFancyText(text, style) {
+    if (style.combine) {
+      let result = '';
+      for (const char of [...text]) {
+        if (char !== ' ' && char !== '\n') {
+          result += char + style.combine;
+        } else {
+          result += char;
+        }
+      }
+      return result;
+    }
+
+    const mappedChars = [...style.mapped];
+    const map = {};
+    for (let i = 0; i < normalChars.length; i++) {
+      map[normalChars[i]] = mappedChars[i];
+    }
+    
+    let result = '';
+    for (let char of [...text]) {
+      result += map[char] || char;
+    }
+    
+    if (style.reverse) {
+      result = [...result].reverse().join('');
+    }
+    return result;
+  }
+
+  function renderResults(text) {
+    if (!text.trim()) {
+      renderEmptyState();
+      return;
+    }
+
+    resultsContainer.innerHTML = '';
+    
+    styles.forEach((style) => {
+      const fancyText = generateFancyText(text, style);
+      
+      const card = document.createElement('div');
+      card.className = 'result-card';
+      
+      const header = document.createElement('div');
+      header.className = 'result-header';
+      
+      const title = document.createElement('div');
+      title.className = 'result-title';
+      title.textContent = style.name;
+      
+      const copyBtn = document.createElement('button');
+      copyBtn.className = 'btn btn-ghost btn-copy';
+      copyBtn.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+        Copy
+      `;
+      copyBtn.onclick = () => {
+        navigator.clipboard.writeText(fancyText).then(() => {
+          const originalHTML = copyBtn.innerHTML;
+          copyBtn.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            Copied!
+          `;
+          copyBtn.style.color = 'var(--accent)';
+          setTimeout(() => {
+            copyBtn.innerHTML = originalHTML;
+            copyBtn.style.color = '';
+          }, 2000);
+        });
+      };
+      
+      header.appendChild(title);
+      header.appendChild(copyBtn);
+      
+      const textOutput = document.createElement('div');
+      textOutput.className = 'result-text';
+      textOutput.textContent = fancyText;
+      
+      card.appendChild(header);
+      card.appendChild(textOutput);
+      
+      resultsContainer.appendChild(card);
+    });
+  }
+
+  sourceText.addEventListener('input', (e) => {
+    renderResults(e.target.value);
+  });
+
+  // Initial render
+  renderEmptyState();
+</script>
+</body>
+</html>

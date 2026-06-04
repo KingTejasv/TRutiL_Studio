@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>CURL ↔ Fetch Converter – TRutiL Studio</title>
+    <meta content="Convert CURL commands into JS Fetch." name="description"/>
+    <link href="../../../style.css?v=3" rel="stylesheet"/>
+    
+
+    <script src="../../../theme.js?v=3"></script>
+</head>
+<body>
+    <div class="app-layout" id="app-layout">
+        <div class="main-content">
+            <div class="page-content">
+                <div class="app-header">
+                    <div class="app-icon">👨‍💻</div>
+                    <div>
+                        <h1>CURL ↔ Fetch Converter</h1>
+                        <p>Convert CURL commands into JS Fetch.</p>
+                    </div>
+                </div>
+                <div class="tool-workspace">
+                    
+<div class="grid-2">
+    <div class="panel">
+        <div class="panel-title">CURL Command</div>
+        <textarea class="form-textarea" id="cf-input" placeholder="curl -X GET https://api.example.com -H 'Accept: application/json'" style="min-height: 250px; font-family: monospace;"></textarea>
+        <button class="btn btn-primary" id="btn-cf" style="margin-top:10px;">Convert to Fetch</button>
+    </div>
+    <div class="panel">
+        <div class="panel-title">JavaScript Fetch</div>
+        <pre id="cf-output" style="background: var(--bg-elevated); border: 1px solid var(--border); color: var(--accent-pink); min-height: 250px; padding: 15px; overflow: auto; margin:0; border-radius: var(--radius-sm);"></pre>
+    </div>
+</div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+
+document.getElementById('btn-cf').addEventListener('click', () => {
+    let curl = document.getElementById('cf-input').value;
+    let urlMatch = curl.match(/['"]?(https?:\/\/[^'"]+)['"]?/);
+    let url = urlMatch ? urlMatch[1] : "https://example.com";
+    
+    let method = "GET";
+    if (curl.includes("-X POST")) method = "POST";
+    if (curl.includes("-X PUT")) method = "PUT";
+    if (curl.includes("-X DELETE")) method = "DELETE";
+    
+    let headers = {};
+    let headerRegex = /-H\s+['"]([^:]+):\s+([^'"]+)['"]/g;
+    let match;
+    while((match = headerRegex.exec(curl)) !== null) {
+        headers[match[1]] = match[2];
+    }
+    
+    let fetchCode = `fetch("${url}", {\n  method: "${method}",\n`;
+    if(Object.keys(headers).length > 0) {
+        fetchCode += `  headers: ${JSON.stringify(headers, null, 4).replace(/\n/g, '\n  ')},\n`;
+    }
+    fetchCode += `})\n.then(res => res.json())\n.then(console.log);`;
+    document.getElementById('cf-output').textContent = fetchCode;
+});
+
+    </script>
+</body>
+</html>

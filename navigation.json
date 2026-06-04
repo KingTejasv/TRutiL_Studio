@@ -1,0 +1,42 @@
+{
+    "Business & Finance": {
+        "Calculators": [
+            {
+                "name": "Business Metrics Calculator",
+                "path": "Business & Finance/Calculators/business-metrics-calculator.html"
+            },
+            {
+                "name": "Freelance Rate Calculator",
+                "path": "Business & Finance/Calculators/freelance-rate-calculator.html"
+            },
+            {
+                "name": "GST Calculator",
+                "path": "Business & Finance/Calculators/gst-calculator.html"
+            },
+            {
+                "name": "Trading & Stock Calculator",
+                "path": "Business & Finance/Calculators/trading-calculator.html"
+            }
+        ],
+        "Invoicing & Taxation": [
+            {
+                "name": "Invoice Generator Pro — TRutiL Studio",
+                "path": "Business & Finance/Invoicing & Taxation/invoice-generator.html"
+            }
+        ]
+    },
+    "Cybersecurity & Networking": {},
+    "Everyday Utilities & Converters": {},
+    "Media & Design": {},
+    "Programming & Development": {
+        "Web Development": [
+            {
+                "name": "Code Minifier & Formatter",
+                "path": "Programming & Development/Web Development/code-minifier-formatter.html"
+            }
+        ]
+    },
+    "SEO & Webmaster": {},
+    "Social & Marketing": {},
+    "Text & Data Processing": {}
+}

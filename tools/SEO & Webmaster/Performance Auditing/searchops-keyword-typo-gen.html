@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Keyword Typo Generator</title>
+<link href="../../../style.css?v=3" rel="stylesheet"/><link href="../../../custom-tools.css?v=3" rel="stylesheet"/>
+<script src="../../../theme.js?v=3"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-searchops-keyword-typo-gen">
+<div class="app-header">
+<div class="app-icon" style="background:linear-gradient(135deg, #3b82f6, #1d4ed8);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:24px;">⌨</div>
+<div>
+<h1>️ Keyword Typo Generator</h1>
+<p>Generate common misspellings for PPC bidding or domain typo-squatting research.</p>
+</div>
+</div>
+<div class="tool-layout-container">
+<div class="panel">
+<div class="pane-header">Configuration</div>
+<div class="pane-body">
+<div>
+<label style="display:block; margin-bottom:0.5rem; color:var(--text-muted);">Seed Keyword</label>
+<input class="form-input" id="seedKeyword" placeholder="e.g. mortgage" style="flex-grow:0;" type="text"/>
+</div>
+<div class="controls" style="margin-top: 1rem;">
+<label><input checked="" id="skip" type="checkbox"/> Skip Letter (mortgage -&gt; mrtgage)</label>
+<label><input checked="" id="double" type="checkbox"/> Double Letter (mortgage -&gt; morrtgage)</label>
+<label><input checked="" id="reverse" type="checkbox"/> Reverse Letter (mortgage -&gt; mrotgage)</label>
+<label><input checked="" id="wrongKey" type="checkbox"/> Wrong Key (mortgage -&gt; mortgsge)</label>
+</div>
+<button class="btn btn-primary" id="btnGenerate" style="margin-top:auto;">⚡ Generate Typos</button>
+</div>
+</div>
+<div class="panel">
+<div class="pane-header">Generated Typos <button class="btn btn-primary" id="btnCopy" style="padding:4px 8px; font-size:0.75rem;">📋 Copy All</button></div>
+<div class="pane-body">
+<textarea class="form-input" id="outputTypos" placeholder="Results will appear here..." readonly=""></textarea>
+</div>
+</div>
+</div>
+<div class="stats-bar">
+<div class="stat-item"><span class="stat-label">Total Typos</span><span class="stat-num" id="totalTypos">0</span></div>
+</div>
+<script>
+        const qwertyMap = {
+            'q': 'wa', 'w': 'qeas', 'e': 'wrsd', 'r': 'etdf', 't': 'ryfg', 'y': 'tugh', 'u': 'yihj', 'i': 'uokj', 'o': 'iplk', 'p': 'ol',
+            'a': 'qwsz', 's': 'awedxz', 'd': 'serfcx', 'f': 'drtgvc', 'g': 'ftyhbv', 'h': 'gyujnb', 'j': 'huikmn', 'k': 'jiolm', 'l': 'kop',
+            'z': 'asx', 'x': 'zsdc', 'c': 'xdfv', 'v': 'cfgb', 'b': 'vghn', 'n': 'bhjm', 'm': 'njk'
+        };
+
+        document.getElementById('btnGenerate').addEventListener('click', () => {
+            const seed = document.getElementById('seedKeyword').value.trim().toLowerCase();
+            if(!seed) return;
+
+            const useSkip = document.getElementById('skip').checked;
+            const useDouble = document.getElementById('double').checked;
+            const useReverse = document.getElementById('reverse').checked;
+            const useWrongKey = document.getElementById('wrongKey').checked;
+
+            const typos = new Set();
+
+            if (useSkip) {
+                for(let i=0; i<seed.length; i++) {
+                    typos.add(seed.slice(0,i) + seed.slice(i+1));
+                }
+            }
+            if (useDouble) {
+                for(let i=0; i<seed.length; i++) {
+                    typos.add(seed.slice(0,i) + seed[i] + seed.slice(i));
+                }
+            }
+            if (useReverse) {
+                for(let i=0; i<seed.length-1; i++) {
+                    typos.add(seed.slice(0,i) + seed[i+1] + seed[i] + seed.slice(i+2));
+                }
+            }
+            if (useWrongKey) {
+                for(let i=0; i<seed.length; i++) {
+                    const char = seed[i];
+                    if(qwertyMap[char]) {
+                        for(let altChar of qwertyMap[char]) {
+                            typos.add(seed.slice(0,i) + altChar + seed.slice(i+1));
+                        }
+                    }
+                }
+            }
+
+            typos.delete(seed); // remove original
+            
+            const arr = Array.from(typos);
+            document.getElementById('outputTypos').value = arr.join('\n');
+            document.getElementById('totalTypos').textContent = arr.length;
+        });
+
+        document.getElementById('btnCopy').addEventListener('click', () => {
+            const out = document.getElementById('outputTypos');
+            out.select();
+            document.execCommand('copy');
+            const orig = document.getElementById('btnCopy').innerHTML;
+            document.getElementById('btnCopy').innerHTML = '✅ Copied!';
+            setTimeout(() => document.getElementById('btnCopy').innerHTML = orig, 1500);
+        });
+    </script>
+</div></div></div></div></body>
+</html>

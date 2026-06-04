@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>XML Sitemap Generator</title>
+
+<link href="../../../style.css?v=3" rel="stylesheet"/><link href="../../../custom-tools.css?v=3" rel="stylesheet"/>
+    <script src="../../../theme.js?v=3"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-searchops-sitemap-generator">
+<div class="app-header">
+<h1>🗺️ XML Sitemap Generator</h1>
+<p>Convert a list of URLs into a search-engine-ready sitemap.xml</p>
+</div>
+<div class="tool-layout-container">
+<div class="panel">
+<h2>🔗 URL List</h2>
+<div class="form-group">
+<label>Enter URLs (one per line)</label>
+<textarea class="form-input" id="urlInput" placeholder="https://example.com/
+https://example.com/about
+https://example.com/contact">https://example.com/
+https://example.com/about
+https://example.com/contact</textarea>
+</div>
+<div class="row">
+<div class="form-group">
+<label>Change Frequency</label>
+<select class="form-input" id="changeFreq">
+<option value="always">Always</option>
+<option value="hourly">Hourly</option>
+<option selected="" value="daily">Daily</option>
+<option value="weekly">Weekly</option>
+<option value="monthly">Monthly</option>
+<option value="yearly">Yearly</option>
+<option value="never">Never</option>
+</select>
+</div>
+<div class="form-group">
+<label>Priority (0.0 to 1.0)</label>
+<input class="form-input" id="priority" max="1" min="0" step="0.1" type="number" value="0.8"/>
+</div>
+</div>
+<button class="btn btn-primary" onclick="generateSitemap()">⚡ Generate Sitemap</button>
+</div>
+<div class="panel">
+<h2>📄 Generated XML</h2>
+<textarea class="form-input" id="xmlOutput" placeholder="Your XML sitemap will appear here..." readonly=""></textarea>
+</div>
+</div>
+<div class="stats-bar">
+<div>Total URLs processed: <span id="urlCount">0</span></div>
+<div class="stat-pill" id="downloadBtn" onclick="downloadSitemap()">💾 Download XML</div>
+</div>
+<script>
+function generateSitemap() {
+  const input = document.getElementById('urlInput').value;
+  const freq = document.getElementById('changeFreq').value;
+  const priority = document.getElementById('priority').value;
+  const dateStr = new Date().toISOString().split('T')[0];
+  
+  const urls = input.split('\\n').map(u => u.trim()).filter(u => u.length > 0);
+  document.getElementById('urlCount').textContent = urls.length;
+  
+  if (urls.length === 0) {
+    document.getElementById('xmlOutput').value = '';
+    return;
+  }
+  
+  let xml = '<?xml version="1.0" encoding="UTF-8"?>\\n';
+  xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\\n';
+  
+  for (let url of urls) {
+    let safeUrl = url.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
+    
+    xml += '  <url>\\n';
+    xml += \`    <loc>\${safeUrl}</loc>\\n\`;
+    xml += \`    <lastmod>\${dateStr}</lastmod>\\n\`;
+    xml += \`    <changefreq>\${freq}</changefreq>\\n\`;
+    xml += \`    <priority>\${priority}</priority>\\n\`;
+    xml += '  </url>\\n';
+  }
+  
+  xml += '</urlset>';
+  document.getElementById('xmlOutput').value = xml;
+}
+
+function downloadSitemap() {
+  const xml = document.getElementById('xmlOutput').value;
+  if (!xml) return;
+  const blob = new Blob([xml], { type: 'application/xml' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'sitemap.xml';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+generateSitemap();
+</script>
+</div></div></div></div></body>
+</html>

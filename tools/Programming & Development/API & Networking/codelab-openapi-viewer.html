@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>OpenAPI Viewer – TRutiL Studio</title>
+    <meta content="View and interact with OpenAPI/Swagger specifications." name="description"/>
+    <link href="../../../style.css?v=3" rel="stylesheet"/>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.9.1/swagger-ui-bundle.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.9.1/swagger-ui.css" rel="stylesheet"/>
+
+    <script src="../../../theme.js?v=3"></script>
+</head>
+<body>
+    <div class="app-layout" id="app-layout">
+        <div class="main-content">
+            <div class="page-content">
+                <div class="app-header">
+                    <div class="app-icon">🚀</div>
+                    <div>
+                        <h1>OpenAPI Viewer</h1>
+                        <p>View and interact with OpenAPI/Swagger specifications.</p>
+                    </div>
+                </div>
+
+                <div class="tool-workspace">
+                    <div class="panel">
+                        <div class="panel-title">OpenAPI Viewer Interface</div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Input Data</label>
+                            <textarea class="form-textarea" id="tool-input" placeholder="Enter your data, configure your settings, or upload a file..."></textarea>
+                        </div>
+                        
+                        <div style="margin-top: 15px; margin-bottom: 25px;">
+                            <button class="btn btn-primary" id="action-btn">Process / Execute Tool</button>
+                            <button class="btn btn-ghost" id="clear-btn">Clear</button>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Result Output</label>
+                            <div class="result-card" id="tool-output" style="min-height: 120px; background: var(--bg-elevated); color: var(--text-primary); border: 1px solid var(--border);">
+                                <span style="color: var(--text-muted); font-size: 14px;">Results will appear here...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+
+document.addEventListener('DOMContentLoaded', () => {
+    const actionBtn = document.getElementById('action-btn');
+    const inputData = document.getElementById('tool-input');
+    const outputData = document.getElementById('tool-output');
+
+    actionBtn.addEventListener('click', () => {
+        if(!inputData.value) {
+            outputData.innerHTML = `<span style="color: var(--accent-red); font-size: 14px;">Please paste an OpenAPI JSON/YAML spec.</span>`;
+            return;
+        }
+        
+        outputData.innerHTML = `
+            <div style="background: white; border-radius: 8px; padding: 10px; height: 500px; overflow: auto;">
+                <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui.css" />
+                <div id="swagger-ui"></div>
+            </div>
+        `;
+        
+        const script = document.createElement('script');
+        script.src = "https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui-bundle.js";
+        script.onload = () => {
+            try {
+                let spec = JSON.parse(inputData.value);
+                SwaggerUIBundle({
+                    spec: spec,
+                    dom_id: '#swagger-ui',
+                });
+            } catch(e) {
+                document.getElementById('swagger-ui').innerText = "Error parsing JSON: " + e.message;
+            }
+        };
+        document.head.appendChild(script);
+    });
+});
+
+</script>
+</body>
+</html>

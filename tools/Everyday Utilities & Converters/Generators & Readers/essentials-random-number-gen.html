@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Random Number Generator</title>
+<link href="../../../style.css?v=3" rel="stylesheet"/>
+
+<link href="../../../custom-tools.css?v=3" rel="stylesheet"/>
+    <script src="../../../theme.js?v=3"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-essentials-random-number-gen">
+<div class="app-header">
+<h1>🎲 Random Number Generator</h1>
+<p>Generate secure random numbers with customizable ranges.</p>
+</div>
+<div class="grid">
+<div class="panel">
+<div class="form-group">
+<label>Minimum Value</label>
+<input class="form-input" id="minVal" type="number" value="1"/>
+</div>
+<div class="form-group">
+<label>Maximum Value</label>
+<input class="form-input" id="maxVal" type="number" value="100"/>
+</div>
+<div class="form-group">
+<label>Count</label>
+<input class="form-input" id="count" max="1000" min="1" type="number" value="5"/>
+</div>
+<label class="checkbox-group">
+<input checked="" id="allowDuplicates" type="checkbox"/>
+<span>Allow Duplicates</span>
+</label>
+<div class="error-msg" id="error">Range is too small for unique numbers.</div>
+<button class="primary-btn btn btn-primary" onclick="generate()" style="margin-top: 0.5rem;">⚡ Generate Numbers</button>
+</div>
+<div class="panel output-pane">
+<div class="pane-header">
+<span>Generated Numbers</span>
+<button class="btn btn-primary" onclick="copyNumbers()" style="padding: 4px 8px; font-size: 0.8rem;">📋 Copy All</button>
+</div>
+<div class="output-area" id="outputArea">
+<!-- Numbers appear here -->
+</div>
+</div>
+</div>
+<div class="stats-bar">
+<div class="stat-pill">Sum: <span id="statSum">0</span></div>
+<div class="stat-pill">Average: <span id="statAvg">0</span></div>
+<div class="stat-pill">Min Generated: <span id="statMin">0</span></div>
+<div class="stat-pill">Max Generated: <span id="statMax">0</span></div>
+</div>
+<script>
+        function generate() {
+            const min = parseInt(document.getElementById('minVal').value);
+            const max = parseInt(document.getElementById('maxVal').value);
+            const count = parseInt(document.getElementById('count').value);
+            const allowDupes = document.getElementById('allowDuplicates').checked;
+            const error = document.getElementById('error');
+            const outArea = document.getElementById('outputArea');
+
+            error.style.display = 'none';
+
+            if (isNaN(min) || isNaN(max) || isNaN(count)) return;
+            if (min > max) {
+                error.textContent = "Min cannot be greater than Max.";
+                error.style.display = 'block';
+                return;
+            }
+
+            if (!allowDupes && (max - min + 1) < count) {
+                error.textContent = "Range is too small to generate unique numbers.";
+                error.style.display = 'block';
+                return;
+            }
+
+            let results = [];
+            
+            if (allowDupes) {
+                for(let i=0; i<count; i++){
+                    results.push(Math.floor(Math.random() * (max - min + 1)) + min);
+                }
+            } else {
+                let pool = [];
+                for(let i=min; i<=max; i++) pool.push(i);
+                for(let i=0; i<count; i++){
+                    const idx = Math.floor(Math.random() * pool.length);
+                    results.push(pool[idx]);
+                    pool.splice(idx, 1);
+                }
+            }
+
+            outArea.innerHTML = '';
+            let sum = 0;
+            let actualMin = Infinity;
+            let actualMax = -Infinity;
+
+            results.forEach(num => {
+                sum += num;
+                if(num < actualMin) actualMin = num;
+                if(num > actualMax) actualMax = num;
+
+                const div = document.createElement('div');
+                div.className = 'number-box';
+                div.textContent = num;
+                outArea.appendChild(div);
+            });
+
+            document.getElementById('statSum').textContent = sum;
+            document.getElementById('statAvg').textContent = (sum / count).toFixed(2);
+            document.getElementById('statMin').textContent = actualMin === Infinity ? 0 : actualMin;
+            document.getElementById('statMax').textContent = actualMax === -Infinity ? 0 : actualMax;
+        }
+
+        function copyNumbers() {
+            const boxes = document.querySelectorAll('.number-box');
+            if (boxes.length === 0) return;
+            const text = Array.from(boxes).map(b => b.textContent).join(', ');
+            navigator.clipboard.writeText(text);
+            const btn = document.querySelector('.pane-header button');
+            const orig = btn.innerHTML;
+            btn.innerHTML = '✅ Copied!';
+            setTimeout(() => btn.innerHTML = orig, 2000);
+        }
+
+        generate();
+    </script>
+</div></div></div></div></body>
+</html>

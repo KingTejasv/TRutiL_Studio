@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Schema Markup Generator</title>
+
+<link href="../../../style.css?v=3" rel="stylesheet"/><link href="../../../custom-tools.css?v=3" rel="stylesheet"/>
+    <script src="../../../theme.js?v=3"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-searchops-schema-markup-gen">
+<div class="app-header">
+<h1>🏷️ Schema Markup Generator</h1>
+<p>Create JSON-LD structured data for your website</p>
+</div>
+<div class="tool-layout-container">
+<div class="panel">
+<h2>🛠️ Configuration</h2>
+<div class="form-group">
+<label>Schema Type</label>
+<select class="form-input" id="schemaType">
+<option value="Article">Article</option>
+<option value="FAQPage">FAQ Page</option>
+<option value="LocalBusiness">Local Business</option>
+</select>
+</div>
+<div class="fields-container" id="dynamicFields">
+<!-- Generated based on schema type -->
+</div>
+</div>
+<div class="panel">
+<h2>💻 JSON-LD Output</h2>
+<textarea class="form-input" id="outputCode" readonly=""></textarea>
+</div>
+</div>
+<div class="stats-bar">
+<div id="statusText">Select a schema type and fill the fields</div>
+<div class="stat-pill" id="copyBtn" onclick="copyCode()">📋 Copy JSON-LD</div>
+</div>
+<script>
+const schemaDefinitions = {
+  Article: [
+    { id: 'headline', label: 'Headline', type: 'text', default: 'Example Article Title' },
+    { id: 'url', label: 'Article URL', type: 'url', default: 'https://example.com/article' },
+    { id: 'image', label: 'Image URL', type: 'url', default: 'https://example.com/image.jpg' },
+    { id: 'author', label: 'Author Name', type: 'text', default: 'John Doe' },
+    { id: 'publisher', label: 'Publisher Name', type: 'text', default: 'Example Corp' },
+    { id: 'pubDate', label: 'Publish Date', type: 'date', default: new Date().toISOString().split('T')[0] }
+  ],
+  LocalBusiness: [
+    { id: 'name', label: 'Business Name', type: 'text', default: 'Example Business' },
+    { id: 'image', label: 'Image URL', type: 'url', default: 'https://example.com/logo.jpg' },
+    { id: 'telephone', label: 'Telephone', type: 'text', default: '+1-555-555-5555' },
+    { id: 'street', label: 'Street Address', type: 'text', default: '123 Main St' },
+    { id: 'city', label: 'City', type: 'text', default: 'New York' },
+    { id: 'region', label: 'State/Region', type: 'text', default: 'NY' },
+    { id: 'postalCode', label: 'Postal Code', type: 'text', default: '10001' },
+    { id: 'country', label: 'Country Code', type: 'text', default: 'US' }
+  ],
+  FAQPage: [
+    { id: 'q1', label: 'Question 1', type: 'text', default: 'What is this?' },
+    { id: 'a1', label: 'Answer 1', type: 'text', default: 'This is an example.' },
+    { id: 'q2', label: 'Question 2', type: 'text', default: 'How does it work?' },
+    { id: 'a2', label: 'Answer 2', type: 'text', default: 'It works beautifully.' }
+  ]
+};
+
+function renderFields() {
+  const type = document.getElementById('schemaType').value;
+  const fields = schemaDefinitions[type];
+  const container = document.getElementById('dynamicFields');
+  
+  container.innerHTML = '';
+  fields.forEach(f => {
+    const group = document.createElement('div');
+    group.className = 'form-group';
+    group.innerHTML = \`
+      <label>\${f.label}</label>
+      <input type="\${f.type}" id="f_\${f.id}" value="\${f.default}" oninput="generateSchema()">
+    \`;
+    container.appendChild(group);
+  });
+  
+  generateSchema();
+}
+
+function generateSchema() {
+  const type = document.getElementById('schemaType').value;
+  let schema = {
+    "@context": "https://schema.org"
+  };
+  
+  if (type === 'Article') {
+    schema["@type"] = "Article";
+    schema.headline = document.getElementById('f_headline').value;
+    schema.url = document.getElementById('f_url').value;
+    schema.image = [document.getElementById('f_image').value];
+    schema.datePublished = document.getElementById('f_pubDate').value;
+    schema.author = {
+      "@type": "Person",
+      "name": document.getElementById('f_author').value
+    };
+    schema.publisher = {
+      "@type": "Organization",
+      "name": document.getElementById('f_publisher').value
+    };
+  } else if (type === 'LocalBusiness') {
+    schema["@type"] = "LocalBusiness";
+    schema.name = document.getElementById('f_name').value;
+    schema.image = document.getElementById('f_image').value;
+    schema.telephone = document.getElementById('f_telephone').value;
+    schema.address = {
+      "@type": "PostalAddress",
+      "streetAddress": document.getElementById('f_street').value,
+      "addressLocality": document.getElementById('f_city').value,
+      "addressRegion": document.getElementById('f_region').value,
+      "postalCode": document.getElementById('f_postalCode').value,
+      "addressCountry": document.getElementById('f_country').value
+    };
+  } else if (type === 'FAQPage') {
+    schema["@type"] = "FAQPage";
+    schema.mainEntity = [
+      {
+        "@type": "Question",
+        "name": document.getElementById('f_q1').value,
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": document.getElementById('f_a1').value
+        }
+      },
+      {
+        "@type": "Question",
+        "name": document.getElementById('f_q2').value,
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": document.getElementById('f_a2').value
+        }
+      }
+    ];
+  }
+  
+  const finalCode = \`<script type="application/ld+json">\\n\${JSON.stringify(schema, null, 2)}\\n<\\/script>\`;
+  document.getElementById('outputCode').value = finalCode;
+  
+  const size = new Blob([finalCode]).size;
+  document.getElementById('statusText').textContent = \`Generated Schema: \${size} bytes\`;
+}
+
+function copyCode() {
+  const out = document.getElementById('outputCode');
+  out.select();
+  document.execCommand('copy');
+  const btn = document.getElementById('copyBtn');
+  btn.textContent = '✅ Copied!';
+  setTimeout(() => btn.textContent = '📋 Copy JSON-LD', 2000);
+}
+
+document.getElementById('schemaType').addEventListener('change', renderFields);
+renderFields();
+</script>
+</div></div></div></div></body>
+</html>

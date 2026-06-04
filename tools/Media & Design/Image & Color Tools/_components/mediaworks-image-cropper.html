@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Image Cropper</title>
+<link href="../../../../style.css?v=3" rel="stylesheet"/><link href="../../../../custom-tools.css?v=3" rel="stylesheet"/>
+<script src="../../../../theme.js?v=3"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-mediaworks-image-cropper">
+<div class="app-header">
+<div class="app-icon" style="background:linear-gradient(135deg, #3b82f6, #1d4ed8);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:24px;">✂</div>
+<div>
+<h1>️ Image Cropper</h1>
+<p>Select an area of your image and crop it instantly.</p>
+</div>
+</div>
+<div class="tool-layout-container">
+<div class="panel">
+<label class="upload-area">
+<div>📁 Click to upload image</div>
+<input accept="image/*" id="file-input" type="file"/>
+</label>
+<div class="editor-container" id="editor-container">
+<span style="color: var(--text-muted)">Upload an image to start</span>
+</div>
+<div class="instructions" id="instructions" style="display: none;">Click and drag on the image to draw a crop box.</div>
+<button class="btn btn-primary" disabled="" id="crop-btn">✂️ Crop Selection</button>
+</div>
+<div class="panel">
+<div class="preview-area" id="preview-container">
+<span style="color: var(--text-muted)">Cropped preview</span>
+</div>
+<a class="btn btn-primary" id="download-btn" style="display: none;">💾 Download Cropped Image</a>
+</div>
+</div>
+<script>
+    const fileInput = document.getElementById('file-input');
+    const editorContainer = document.getElementById('editor-container');
+    const instructions = document.getElementById('instructions');
+    const cropBtn = document.getElementById('crop-btn');
+    const previewContainer = document.getElementById('preview-container');
+    const downloadBtn = document.getElementById('download-btn');
+    
+    let sourceImg = new Image();
+    let cropperWrapper = null;
+    let cropBox = null;
+    let imgElement = null;
+    let currentFile = null;
+    
+    let isDrawing = false;
+    let startX = 0, startY = 0;
+    let currentRect = null;
+
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files.length) {
+        currentFile = e.target.files[0];
+        const url = URL.createObjectURL(currentFile);
+        sourceImg.src = url;
+        sourceImg.onload = () => {
+          editorContainer.innerHTML = '';
+          cropperWrapper = document.createElement('div');
+          cropperWrapper.className = 'cropper-wrapper';
+          
+          imgElement = document.createElement('img');
+          imgElement.src = url;
+          
+          cropBox = document.createElement('div');
+          cropBox.className = 'crop-box';
+          
+          cropperWrapper.appendChild(imgElement);
+          cropperWrapper.appendChild(cropBox);
+          editorContainer.appendChild(cropperWrapper);
+          
+          instructions.style.display = 'block';
+          cropBtn.disabled = true;
+          currentRect = null;
+          
+          initCropperEvents();
+        };
+      }
+    });
+
+    function initCropperEvents() {
+      cropperWrapper.addEventListener('mousedown', (e) => {
+        const rect = cropperWrapper.getBoundingClientRect();
+        startX = e.clientX - rect.left;
+        startY = e.clientY - rect.top;
+        isDrawing = true;
+        cropBox.style.left = startX + 'px';
+        cropBox.style.top = startY + 'px';
+        cropBox.style.width = '0px';
+        cropBox.style.height = '0px';
+        cropBox.style.display = 'block';
+        currentRect = null;
+        cropBtn.disabled = true;
+      });
+
+      window.addEventListener('mousemove', (e) => {
+        if (!isDrawing) return;
+        const rect = cropperWrapper.getBoundingClientRect();
+        const currentX = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
+        const currentY = Math.max(0, Math.min(e.clientY - rect.top, rect.height));
+        
+        const width = Math.abs(currentX - startX);
+        const height = Math.abs(currentY - startY);
+        const left = Math.min(currentX, startX);
+        const top = Math.min(currentY, startY);
+        
+        cropBox.style.left = left + 'px';
+        cropBox.style.top = top + 'px';
+        cropBox.style.width = width + 'px';
+        cropBox.style.height = height + 'px';
+        
+        if (width > 10 && height > 10) {
+          currentRect = { left, top, width, height };
+          cropBtn.disabled = false;
+        } else {
+          currentRect = null;
+          cropBtn.disabled = true;
+        }
+      });
+
+      window.addEventListener('mouseup', () => {
+        isDrawing = false;
+      });
+    }
+
+    cropBtn.addEventListener('click', () => {
+      if (!currentRect || !sourceImg.complete) return;
+      
+      const scaleX = sourceImg.naturalWidth / imgElement.clientWidth;
+      const scaleY = sourceImg.naturalHeight / imgElement.clientHeight;
+      
+      const cropX = currentRect.left * scaleX;
+      const cropY = currentRect.top * scaleY;
+      const cropW = currentRect.width * scaleX;
+      const cropH = currentRect.height * scaleY;
+      
+      const canvas = document.createElement('canvas');
+      canvas.width = cropW;
+      canvas.height = cropH;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(sourceImg, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
+      
+      const format = currentFile.type === 'image/jpeg' ? 'image/jpeg' : 'image/png';
+      const dataUrl = canvas.toDataURL(format, 0.9);
+      
+      previewContainer.innerHTML = `<img src="${dataUrl}" alt="Cropped Preview">`;
+      downloadBtn.href = dataUrl;
+      downloadBtn.download = "cropped_" + currentFile.name;
+      downloadBtn.style.display = 'inline-flex';
+    });
+  </script>
+</div></div></div></div></body>
+</html>

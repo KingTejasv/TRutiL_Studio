@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SSL Certificate Checker</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Fira+Code&amp;display=swap" rel="stylesheet"/>
+<link href="../../../style.css?v=3" rel="stylesheet"/>
+
+<link href="../../../custom-tools.css?v=3" rel="stylesheet"/>
+    <script src="../../../theme.js?v=3"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-cypher-ssl-checker">
+<div class="tool-layout-container">
+<div class="app-header">
+<h1>🌐 SSL Certificate Checker</h1>
+<p>Inspect SSL/TLS certificate details for any domain quickly.</p>
+</div>
+<div class="search-bar">
+<input autocomplete="off" class="form-input" id="domainInput" placeholder="e.g. google.com" type="text"/>
+<button class="primary btn btn-primary" id="checkBtn">🔍 Check SSL</button>
+</div>
+<div class="error-message" id="errorMsg"></div>
+<div class="loader" id="loader">Scanning domain... ⏳</div>
+<div class="results" id="results">
+<div class="result-group">
+<div class="result-title">⚡ Overall Status</div>
+<div class="grid-details">
+<div class="detail-item">
+<span class="detail-label">Status</span>
+<span class="status-badge status-valid" id="valStatus">Valid</span>
+</div>
+<div class="detail-item">
+<span class="detail-label">Domain</span>
+<span class="detail-value" id="valDomain">-</span>
+</div>
+<div class="detail-item">
+<span class="detail-label">Days Remaining</span>
+<span class="detail-value" id="valDays">-</span>
+</div>
+</div>
+</div>
+<div class="result-group">
+<div class="result-title">📄 Subject Information</div>
+<div class="grid-details">
+<div class="detail-item">
+<span class="detail-label">Common Name (CN)</span>
+<span class="detail-value" id="subCN">-</span>
+</div>
+<div class="detail-item">
+<span class="detail-label">Organization (O)</span>
+<span class="detail-value" id="subOrg">-</span>
+</div>
+</div>
+</div>
+<div class="result-group">
+<div class="result-title">🏢 Issuer Information</div>
+<div class="grid-details">
+<div class="detail-item">
+<span class="detail-label">Common Name (CN)</span>
+<span class="detail-value" id="issCN">-</span>
+</div>
+<div class="detail-item">
+<span class="detail-label">Organization (O)</span>
+<span class="detail-value" id="issOrg">-</span>
+</div>
+</div>
+</div>
+<div class="result-group">
+<div class="result-title">📅 Validity Period</div>
+<div class="grid-details">
+<div class="detail-item">
+<span class="detail-label">Valid From</span>
+<span class="detail-value" id="valFrom">-</span>
+</div>
+<div class="detail-item">
+<span class="detail-label">Valid To</span>
+<span class="detail-value" id="valTo">-</span>
+</div>
+</div>
+</div>
+<div class="result-group">
+<div class="result-title">🔧 Technical Details</div>
+<div class="grid-details">
+<div class="detail-item">
+<span class="detail-label">Signature Algorithm</span>
+<span class="detail-value" id="techSig">-</span>
+</div>
+<div class="detail-item">
+<span class="detail-label">Serial Number</span>
+<span class="detail-value" id="techSerial" style="font-family: 'Fira Code', monospace; font-size: 0.9rem;">-</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script>
+        document.getElementById('checkBtn').addEventListener('click', checkSSL);
+        document.getElementById('domainInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') checkSSL();
+        });
+
+        async function checkSSL() {
+            let domain = document.getElementById('domainInput').value.trim();
+            if (!domain) return;
+            
+            // basic cleanup of URL if user pasted full url
+            domain = domain.replace(/^(?:https?:\/\/)?(?:www\.)?/i, "").split('/')[0].split(':')[0];
+            document.getElementById('domainInput').value = domain;
+
+            const resultsEl = document.getElementById('results');
+            const loaderEl = document.getElementById('loader');
+            const errorEl = document.getElementById('errorMsg');
+            const btn = document.getElementById('checkBtn');
+
+            resultsEl.classList.remove('active');
+            errorEl.style.display = 'none';
+            loaderEl.style.display = 'block';
+            btn.disabled = true;
+
+            try {
+                // Using networkcalc for SSL cert inspection
+                const res = await fetch(`https://networkcalc.com/api/security/certificate/${encodeURIComponent(domain)}`);
+                const data = await res.json();
+
+                if (data.status !== "OK" || !data.certificate) {
+                    throw new Error("Could not retrieve certificate information for this domain. It may be invalid or unreachable.");
+                }
+
+                const cert = data.certificate;
+                
+                document.getElementById('valDomain').textContent = domain;
+                
+                // Parse dates
+                const fromDate = new Date(cert.valid_from);
+                const toDate = new Date(cert.valid_to);
+                const now = new Date();
+                
+                document.getElementById('valFrom').textContent = fromDate.toLocaleString();
+                document.getElementById('valTo').textContent = toDate.toLocaleString();
+
+                const daysRemaining = Math.max(0, Math.ceil((toDate - now) / (1000 * 60 * 60 * 24)));
+                document.getElementById('valDays').textContent = daysRemaining + ' days';
+
+                const statusEl = document.getElementById('valStatus');
+                if (daysRemaining > 0) {
+                    statusEl.textContent = 'Valid';
+                    statusEl.className = 'status-badge status-valid';
+                } else {
+                    statusEl.textContent = 'Expired';
+                    statusEl.className = 'status-badge status-invalid';
+                }
+
+                document.getElementById('subCN').textContent = cert.subject?.common_name || '-';
+                document.getElementById('subOrg').textContent = cert.subject?.organization || '-';
+                
+                document.getElementById('issCN').textContent = cert.issuer?.common_name || '-';
+                document.getElementById('issOrg').textContent = cert.issuer?.organization || '-';
+
+                document.getElementById('techSig').textContent = cert.signature_algorithm || '-';
+                document.getElementById('techSerial').textContent = cert.serial_number || '-';
+
+                resultsEl.classList.add('active');
+            } catch (err) {
+                errorEl.textContent = "⚠️ " + err.message;
+                errorEl.style.display = 'block';
+            } finally {
+                loaderEl.style.display = 'none';
+                btn.disabled = false;
+            }
+        }
+    </script>
+</div></div></div></div></body>
+</html>

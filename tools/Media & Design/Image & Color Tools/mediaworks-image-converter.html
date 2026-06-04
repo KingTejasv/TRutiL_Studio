@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Image Format Converter — TRutiL Studio</title>
+<link href="../../../style.css?v=3" rel="stylesheet"/>
+<link href="../../../custom-tools.css?v=3" rel="stylesheet"/>
+<script src="../../../theme.js?v=3"></script>
+<style>
+  .converter-layout {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 20px;
+    align-items: start;
+  }
+  .upload-zone {
+    border: 2px dashed var(--border);
+    border-radius: 12px;
+    padding: 32px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    background: var(--bg-card);
+    position: relative;
+  }
+  .upload-zone:hover, .upload-zone.drag-over {
+    border-color: #00FF25;
+    background: rgba(0,255,37,0.04);
+  }
+  .upload-zone input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+  }
+  .upload-icon {
+    font-size: 2.5rem;
+    margin-bottom: 12px;
+    display: block;
+  }
+  .quality-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .quality-row input[type="range"] {
+    flex: 1;
+    accent-color: #00FF25;
+    height: 4px;
+    cursor: pointer;
+  }
+  .quality-badge {
+    background: rgba(0,255,37,0.15);
+    color: #00FF25;
+    border-radius: 6px;
+    padding: 3px 10px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    min-width: 42px;
+    text-align: center;
+    font-family: monospace;
+  }
+  .results-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
+    margin-top: 8px;
+  }
+  .result-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: box-shadow 0.2s;
+  }
+  .result-card:hover {
+    box-shadow: 0 6px 24px rgba(0,0,0,0.3);
+  }
+  .result-thumb {
+    width: 100%;
+    height: 140px;
+    object-fit: cover;
+    display: block;
+    background: #0d1117;
+  }
+  .result-info {
+    padding: 12px 14px;
+  }
+  .result-name {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 6px;
+  }
+  .result-sizes {
+    display: flex;
+    gap: 8px;
+    font-size: 0.76rem;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .size-arrow {
+    color: #00FF25;
+    font-weight: 700;
+  }
+  .size-saved {
+    color: #00FF25;
+    font-weight: 600;
+  }
+  .size-bigger {
+    color: #ef4444;
+    font-weight: 600;
+  }
+  .result-dl-btn {
+    display: block;
+    width: 100%;
+    background: rgba(0,255,37,0.12);
+    color: #00FF25;
+    border: 1px solid rgba(0,255,37,0.3);
+    border-radius: 7px;
+    padding: 7px 0;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    transition: background 0.15s;
+  }
+  .result-dl-btn:hover {
+    background: rgba(0,255,37,0.22);
+  }
+  .result-dl-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.76rem;
+    padding: 3px 9px;
+    border-radius: 99px;
+    font-weight: 600;
+  }
+  .pill-processing {
+    background: rgba(245,158,11,0.15);
+    color: #F59E0B;
+  }
+  .pill-done {
+    background: rgba(0,255,37,0.12);
+    color: #00FF25;
+  }
+  .pill-error {
+    background: rgba(239,68,68,0.15);
+    color: #ef4444;
+  }
+  .empty-state {
+    text-align: center;
+    padding: 48px 20px;
+    color: var(--text-muted);
+  }
+  .empty-state-icon {
+    font-size: 3rem;
+    margin-bottom: 12px;
+    display: block;
+    opacity: 0.5;
+  }
+  .panel {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .panel-header {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .panel-body {
+    padding: 18px;
+  }
+  .file-count-badge {
+    margin-left: auto;
+    background: rgba(0,255,37,0.12);
+    color: #00FF25;
+    border-radius: 99px;
+    padding: 2px 10px;
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+  @media (max-width: 860px) {
+    .converter-layout { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="app-layout" id="app-layout">
+<div class="main-content">
+<div class="page-content">
+<div class="tool-layout-container">
+
+  <div class="app-header">
+    <h1>🖼️ Image Format Converter</h1>
+    <p>Convert images between JPG, PNG, WEBP, BMP, and GIF formats — fully offline, no upload needed.</p>
+  </div>
+
+  <div class="converter-layout">
+
+    <!-- Left: Controls Panel -->
+    <div style="display:flex; flex-direction:column; gap:16px;">
+
+      <!-- Upload -->
+      <div class="panel">
+        <div class="panel-header">📁 Upload Images</div>
+        <div class="panel-body">
+          <div class="upload-zone" id="upload-zone">
+            <span class="upload-icon">🖼️</span>
+            <p style="margin:0 0 6px 0; font-weight:600; color:var(--text-primary);">Drag &amp; drop images here</p>
+            <p style="margin:0; font-size:0.82rem; color:var(--text-muted);">or click to browse — multiple files supported</p>
+            <input accept="image/*" id="file-input" multiple type="file"/>
+          </div>
+        </div>
+      </div>
+
+      <!-- Settings -->
+      <div class="panel">
+        <div class="panel-header">⚙️ Conversion Settings</div>
+        <div class="panel-body" style="display:flex; flex-direction:column; gap:16px;">
+
+          <div class="form-group">
+            <label class="form-label" for="format-select">Output Format</label>
+            <select class="form-input" id="format-select">
+              <option value="image/jpeg">JPEG (.jpg)</option>
+              <option value="image/png">PNG (.png)</option>
+              <option value="image/webp">WEBP (.webp)</option>
+              <option value="image/bmp">BMP (.bmp)</option>
+              <option value="image/gif">GIF (.gif)</option>
+            </select>
+          </div>
+
+          <div class="form-group" id="quality-group">
+            <label class="form-label" for="quality-slider">Quality <span class="quality-badge" id="quality-value">92</span></label>
+            <div class="quality-row">
+              <span style="font-size:0.78rem; color:var(--text-muted);">1</span>
+              <input id="quality-slider" max="100" min="1" type="range" value="92"/>
+              <span style="font-size:0.78rem; color:var(--text-muted);">100</span>
+            </div>
+          </div>
+
+          <button class="btn btn-primary" id="convert-btn" disabled style="width:100%;">
+            ⚡ Convert All Images
+          </button>
+          <button class="btn btn-ghost" id="clear-btn" disabled style="width:100%; margin-top:-8px;">
+            🗑 Clear All
+          </button>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Results Panel -->
+    <div class="panel" style="min-height: 420px;">
+      <div class="panel-header">
+        🖼️ Converted Images
+        <span class="file-count-badge" id="file-count-badge" style="display:none;"></span>
+      </div>
+      <div class="panel-body">
+        <div id="empty-state" class="empty-state">
+          <span class="empty-state-icon">🗂️</span>
+          <p style="margin:0; font-size:0.9rem;">Upload images to get started.<br>Results will appear here after conversion.</p>
+        </div>
+        <div class="results-grid" id="results-grid" style="display:none;"></div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+</div>
+</div>
+</div>
+
+<script>
+  const uploadZone = document.getElementById('upload-zone');
+  const fileInput = document.getElementById('file-input');
+  const formatSelect = document.getElementById('format-select');
+  const qualityGroup = document.getElementById('quality-group');
+  const qualitySlider = document.getElementById('quality-slider');
+  const qualityValue = document.getElementById('quality-value');
+  const convertBtn = document.getElementById('convert-btn');
+  const clearBtn = document.getElementById('clear-btn');
+  const resultsGrid = document.getElementById('results-grid');
+  const emptyState = document.getElementById('empty-state');
+  const fileCountBadge = document.getElementById('file-count-badge');
+
+  let selectedFiles = [];
+  // { file, originalSize, status, blobUrl, convertedSize }
+  let items = [];
+
+  // --- Quality slider ---
+  qualitySlider.addEventListener('input', () => {
+    qualityValue.textContent = qualitySlider.value;
+  });
+
+  // --- Format toggle quality visibility ---
+  function updateQualityVisibility() {
+    const fmt = formatSelect.value;
+    qualityGroup.style.display = (fmt === 'image/jpeg' || fmt === 'image/webp') ? '' : 'none';
+  }
+  formatSelect.addEventListener('change', updateQualityVisibility);
+  updateQualityVisibility();
+
+  // --- Drag & drop ---
+  uploadZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadZone.classList.add('drag-over');
+  });
+  uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+  uploadZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadZone.classList.remove('drag-over');
+    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+    if (files.length) addFiles(files);
+  });
+  fileInput.addEventListener('change', (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length) addFiles(files);
+    fileInput.value = '';
+  });
+
+  function addFiles(files) {
+    files.forEach(f => {
+      if (!items.find(i => i.file.name === f.name && i.file.size === f.size)) {
+        items.push({ file: f, originalSize: f.size, status: 'pending', blobUrl: null, convertedSize: null });
+      }
+    });
+    renderItems();
+    convertBtn.disabled = false;
+    clearBtn.disabled = false;
+  }
+
+  function renderItems() {
+    if (items.length === 0) {
+      emptyState.style.display = '';
+      resultsGrid.style.display = 'none';
+      fileCountBadge.style.display = 'none';
+      convertBtn.disabled = true;
+      clearBtn.disabled = true;
+      return;
+    }
+    emptyState.style.display = 'none';
+    resultsGrid.style.display = 'grid';
+    fileCountBadge.style.display = '';
+    fileCountBadge.textContent = `${items.length} file${items.length !== 1 ? 's' : ''}`;
+
+    resultsGrid.innerHTML = '';
+    items.forEach((item, idx) => {
+      const card = document.createElement('div');
+      card.className = 'result-card';
+      card.id = `card-${idx}`;
+
+      let thumbSrc = item.blobUrl || '';
+      let thumb = '';
+      if (item.status === 'done' && thumbSrc) {
+        thumb = `<img class="result-thumb" src="${thumbSrc}" alt="${item.file.name}"/>`;
+      } else {
+        // Placeholder thumbnail from original file via object URL
+        const objUrl = URL.createObjectURL(item.file);
+        thumb = `<img class="result-thumb" src="${objUrl}" alt="${item.file.name}" id="orig-thumb-${idx}"/>`;
+      }
+
+      let sizeInfo = '';
+      if (item.status === 'done' && item.convertedSize !== null) {
+        const diff = item.originalSize - item.convertedSize;
+        const pct = Math.abs(Math.round(diff / item.originalSize * 100));
+        const origFmt = formatBytes(item.originalSize);
+        const newFmt = formatBytes(item.convertedSize);
+        const savedEl = diff >= 0
+          ? `<span class="size-saved">-${pct}%</span>`
+          : `<span class="size-bigger">+${pct}%</span>`;
+        sizeInfo = `<div class="result-sizes">${origFmt} <span class="size-arrow">→</span> ${newFmt} ${savedEl}</div>`;
+      } else if (item.status === 'processing') {
+        sizeInfo = `<div class="result-sizes"><span class="status-pill pill-processing">⏳ Converting…</span></div>`;
+      } else if (item.status === 'error') {
+        sizeInfo = `<div class="result-sizes"><span class="status-pill pill-error">✗ Error</span></div>`;
+      } else {
+        sizeInfo = `<div class="result-sizes">${formatBytes(item.originalSize)} <span style="color:var(--text-muted)">· pending</span></div>`;
+      }
+
+      const dlDisabled = item.status !== 'done' ? 'disabled' : '';
+      const dlLabel = item.status === 'done' ? '⬇ Download' : '—';
+
+      card.innerHTML = `
+        ${thumb}
+        <div class="result-info">
+          <div class="result-name" title="${item.file.name}">${item.file.name}</div>
+          ${sizeInfo}
+          <button class="result-dl-btn" ${dlDisabled} onclick="downloadItem(${idx})">
+            ${dlLabel}
+          </button>
+        </div>
+      `;
+      resultsGrid.appendChild(card);
+    });
+  }
+
+  function getExtension(mimeType) {
+    const map = {
+      'image/jpeg': 'jpg',
+      'image/png': 'png',
+      'image/webp': 'webp',
+      'image/bmp': 'bmp',
+      'image/gif': 'gif',
+    };
+    return map[mimeType] || 'jpg';
+  }
+
+  function stripExtension(name) {
+    return name.replace(/\.[^/.]+$/, '');
+  }
+
+  async function convertItem(item, fmt, quality) {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.naturalWidth;
+          canvas.height = img.naturalHeight;
+          const ctx = canvas.getContext('2d');
+          // White background for JPEG (no transparency)
+          if (fmt === 'image/jpeg' || fmt === 'image/bmp') {
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+          }
+          ctx.drawImage(img, 0, 0);
+          const q = (fmt === 'image/jpeg' || fmt === 'image/webp') ? quality / 100 : undefined;
+          canvas.toBlob((blob) => {
+            if (!blob) { resolve(null); return; }
+            const blobUrl = URL.createObjectURL(blob);
+            resolve({ blobUrl, convertedSize: blob.size, blob });
+          }, fmt, q);
+        };
+        img.onerror = () => resolve(null);
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(item.file);
+    });
+  }
+
+  convertBtn.addEventListener('click', async () => {
+    if (items.length === 0) return;
+    const fmt = formatSelect.value;
+    const quality = parseInt(qualitySlider.value, 10);
+
+    convertBtn.disabled = true;
+    convertBtn.textContent = '⏳ Converting…';
+
+    // Revoke old blob URLs
+    items.forEach(i => { if (i.blobUrl) { URL.revokeObjectURL(i.blobUrl); i.blobUrl = null; } });
+
+    for (let idx = 0; idx < items.length; idx++) {
+      items[idx].status = 'processing';
+      items[idx].blobUrl = null;
+      items[idx].convertedSize = null;
+      renderItems();
+      const result = await convertItem(items[idx], fmt, quality);
+      if (result) {
+        items[idx].status = 'done';
+        items[idx].blobUrl = result.blobUrl;
+        items[idx].convertedSize = result.convertedSize;
+        items[idx]._blob = result.blob;
+        items[idx]._ext = getExtension(fmt);
+      } else {
+        items[idx].status = 'error';
+      }
+      renderItems();
+    }
+
+    convertBtn.textContent = '⚡ Convert All Images';
+    convertBtn.disabled = false;
+  });
+
+  window.downloadItem = function(idx) {
+    const item = items[idx];
+    if (!item || item.status !== 'done' || !item.blobUrl) return;
+    const a = document.createElement('a');
+    a.href = item.blobUrl;
+    a.download = `${stripExtension(item.file.name)}.${item._ext}`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
+
+  clearBtn.addEventListener('click', () => {
+    items.forEach(i => { if (i.blobUrl) URL.revokeObjectURL(i.blobUrl); });
+    items = [];
+    renderItems();
+    convertBtn.textContent = '⚡ Convert All Images';
+  });
+
+  function formatBytes(bytes) {
+    if (!bytes) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+  }
+</script>
+
+</div></div></div></body>
+</html>

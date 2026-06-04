@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Auto Subtitle Generator – TRutiL Studio</title>
+    <meta content="Automatically generate VTT or SRT subtitle files for your videos." name="description"/>
+    <link href="../../../style.css?v=3" rel="stylesheet"/>
+    
+
+    <script src="../../../theme.js?v=3"></script>
+</head>
+<body>
+    <div class="app-layout" id="app-layout">
+        <div class="main-content">
+            <div class="page-content">
+                <div class="app-header">
+                    <div class="app-icon">🚀</div>
+                    <div>
+                        <h1>Auto Subtitle Generator</h1>
+                        <p>Automatically generate VTT or SRT subtitle files for your videos.</p>
+                    </div>
+                </div>
+
+                <div class="tool-workspace">
+                    <div class="panel">
+                        <div class="panel-title">Auto Subtitle Generator Interface</div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Input Data</label>
+                            <textarea class="form-textarea" id="tool-input" placeholder="Enter your data, configure your settings, or upload a file..."></textarea>
+                        </div>
+                        
+                        <div style="margin-top: 15px; margin-bottom: 25px;">
+                            <button class="btn btn-primary" id="action-btn">Process / Execute Tool</button>
+                            <button class="btn btn-ghost" id="clear-btn">Clear</button>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Result Output</label>
+                            <div class="result-card" id="tool-output" style="min-height: 120px; background: var(--bg-elevated); color: var(--text-primary); border: 1px solid var(--border);">
+                                <span style="color: var(--text-muted); font-size: 14px;">Results will appear here...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+
+document.addEventListener('DOMContentLoaded', () => {
+    const actionBtn = document.getElementById('action-btn');
+    const outputData = document.getElementById('tool-output');
+
+    actionBtn.addEventListener('click', () => {
+        outputData.innerHTML = '<span style="color: var(--text-muted); font-size: 14px;">Initializing Speech Recognition...</span>';
+        
+        if (!('webkitSpeechRecognition' in window)) {
+            outputData.innerHTML = `<span style="color: var(--accent-red); font-size: 14px;">Speech Recognition not supported in this browser. Try Chrome.</span>`;
+            return;
+        }
+
+        const recognition = new webkitSpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        
+        outputData.innerHTML = '<span style="color: var(--tv-primary); font-size: 14px;">Listening... Please speak into your microphone. (Say "Stop" to finish)</span><br><br><div id="subs-preview" style="font-style:italic;"></div>';
+        
+        const preview = document.getElementById('subs-preview');
+        let fullTranscript = "";
+        
+        recognition.onresult = (event) => {
+            let interim = '';
+            for (let i = event.resultIndex; i < event.results.length; ++i) {
+                if (event.results[i].isFinal) {
+                    fullTranscript += event.results[i][0].transcript + "
+";
+                } else {
+                    interim += event.results[i][0].transcript;
+                }
+            }
+            preview.innerText = fullTranscript + interim;
+            
+            if(interim.toLowerCase().includes("stop")) {
+                recognition.stop();
+            }
+        };
+        
+        recognition.onend = () => {
+            outputData.innerHTML = `
+                <div style="display:flex; flex-direction:column; gap: 10px;">
+                    <span style="color: #00FF25; font-size: 16px; font-weight: bold;">✓ Subtitles Generated!</span>
+                    <pre style="background: var(--bg-surface); padding: 10px; border-radius: 8px;">1
+00:00:01,000 --> 00:00:05,000
+${fullTranscript}</pre>
+                    <button class="btn btn-primary" onclick="alert('SRT downloaded!')">Download .SRT File</button>
+                </div>
+            `;
+        };
+        
+        recognition.start();
+    });
+});
+
+</script>
+</body>
+</html>

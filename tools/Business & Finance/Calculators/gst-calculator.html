@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>GST Calculator – TRutiL Studio</title>
+    <meta content="Calculate exclusive or inclusive Goods and Services Tax." name="description"/>
+    <link href="../../../style.css?v=3" rel="stylesheet"/>
+    
+
+    <script src="../../../theme.js?v=3"></script>
+</head>
+<body>
+    <div class="app-layout" id="app-layout">
+        <div class="main-content">
+            <div class="page-content">
+                <div class="app-header">
+                    <div class="app-icon">📈</div>
+                    <div>
+                        <h1>GST Calculator</h1>
+                        <p>Calculate exclusive or inclusive Goods and Services Tax.</p>
+                    </div>
+                </div>
+                <div class="tool-workspace">
+                    
+<div class="grid-2">
+    <div class="panel">
+        <div class="panel-title">Enter Details</div>
+        <div class="form-group">
+            <label class="form-label">Initial Amount (₹)</label>
+            <input type="number" class="form-input" id="gst-amount" placeholder="e.g. 1000" min="0">
+        </div>
+        <div class="form-group">
+            <label class="form-label">GST Rate (%)</label>
+            <select class="form-select" id="gst-rate">
+                <option value="5">5%</option>
+                <option value="12">12%</option>
+                <option value="18" selected>18%</option>
+                <option value="28">28%</option>
+            </select>
+        </div>
+        <div style="margin-top: 20px; display: flex; gap: 10px;">
+            <button class="btn btn-primary" id="btn-add-gst">Add GST (+)</button>
+            <button class="btn btn-ghost" id="btn-remove-gst" style="border: 1px solid var(--accent-red); color: var(--accent-red);">Remove GST (-)</button>
+        </div>
+    </div>
+    <div class="panel">
+        <div class="panel-title">Calculation Result</div>
+        <div class="result-card" style="min-height: 180px; display: flex; flex-direction: column; justify-content: center;">
+            <div style="margin-bottom: 10px;">
+                <div style="font-size: 14px; color: rgba(255,255,255,0.8);">Net Amount</div>
+                <div id="res-net" style="font-size: 24px; font-weight: bold;">₹0.00</div>
+            </div>
+            <div style="margin-bottom: 10px;">
+                <div style="font-size: 14px; color: rgba(255,255,255,0.8);">GST Amount</div>
+                <div id="res-gst" style="font-size: 24px; font-weight: bold;">₹0.00</div>
+            </div>
+            <div>
+                <div style="font-size: 14px; color: rgba(255,255,255,0.8);">Gross Amount</div>
+                <div id="res-gross" class="result-big" style="color: #fff; background: none; -webkit-text-fill-color: #fff;">₹0.00</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+
+document.getElementById('btn-add-gst').addEventListener('click', () => {
+    let amt = parseFloat(document.getElementById('gst-amount').value) || 0;
+    let rate = parseFloat(document.getElementById('gst-rate').value) || 0;
+    let gst = (amt * rate) / 100;
+    let gross = amt + gst;
+    document.getElementById('res-net').textContent = "₹" + amt.toFixed(2);
+    document.getElementById('res-gst').textContent = "₹" + gst.toFixed(2);
+    document.getElementById('res-gross').textContent = "₹" + gross.toFixed(2);
+});
+document.getElementById('btn-remove-gst').addEventListener('click', () => {
+    let amt = parseFloat(document.getElementById('gst-amount').value) || 0;
+    let rate = parseFloat(document.getElementById('gst-rate').value) || 0;
+    let net = amt / (1 + (rate / 100));
+    let gst = amt - net;
+    document.getElementById('res-net').textContent = "₹" + net.toFixed(2);
+    document.getElementById('res-gst').textContent = "₹" + gst.toFixed(2);
+    document.getElementById('res-gross').textContent = "₹" + amt.toFixed(2);
+});
+
+    </script>
+</body>
+</html>

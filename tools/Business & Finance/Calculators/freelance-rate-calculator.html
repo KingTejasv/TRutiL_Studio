@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Freelance Rate Calculator – TRutiL Studio</title>
+    <meta content="Determine your ideal hourly or project rate." name="description"/>
+    <link href="../../../style.css?v=3" rel="stylesheet"/>
+    
+
+    <script src="../../../theme.js?v=3"></script>
+</head>
+<body>
+    <div class="app-layout" id="app-layout">
+        <div class="main-content">
+            <div class="page-content">
+                <div class="app-header">
+                    <div class="app-icon">📈</div>
+                    <div>
+                        <h1>Freelance Rate Calculator</h1>
+                        <p>Determine your ideal hourly or project rate.</p>
+                    </div>
+                </div>
+                <div class="tool-workspace">
+                    
+<div class="grid-2">
+    <div class="panel">
+        <div class="panel-title">Your Goals & Expenses</div>
+        <div class="form-group">
+            <label class="form-label">Desired Annual Salary ($)</label>
+            <input type="number" class="form-input" id="fr-salary" placeholder="e.g. 60000" value="60000">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Annual Business Expenses ($)</label>
+            <input type="number" class="form-input" id="fr-expenses" placeholder="e.g. 5000" value="5000">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Billable Hours per Week</label>
+            <input type="number" class="form-input" id="fr-hours" placeholder="e.g. 25" value="25">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Weeks Off per Year</label>
+            <input type="number" class="form-input" id="fr-weeks-off" placeholder="e.g. 4" value="4">
+        </div>
+        <button class="btn btn-primary" id="btn-calc-fr">Calculate Rates</button>
+    </div>
+    <div class="panel">
+        <div class="panel-title">Recommended Rates</div>
+        <div class="result-card" style="background: var(--accent-pink);">
+            <div style="margin-bottom: 20px;">
+                <div style="font-size: 14px; opacity: 0.9;">Target Hourly Rate</div>
+                <div id="fr-hourly" class="result-big" style="-webkit-text-fill-color:#fff;">$0.00</div>
+            </div>
+            <div style="margin-bottom: 20px;">
+                <div style="font-size: 14px; opacity: 0.9;">Target Daily Rate (8h)</div>
+                <div id="fr-daily" style="font-size: 28px; font-weight: bold;">$0.00</div>
+            </div>
+            <div>
+                <div style="font-size: 14px; opacity: 0.9;">Total Revenue Target</div>
+                <div id="fr-total" style="font-size: 20px; font-weight: bold;">$0.00</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+
+document.getElementById('btn-calc-fr').addEventListener('click', () => {
+    let salary = parseFloat(document.getElementById('fr-salary').value) || 0;
+    let expenses = parseFloat(document.getElementById('fr-expenses').value) || 0;
+    let hours = parseFloat(document.getElementById('fr-hours').value) || 0;
+    let weeksOff = parseFloat(document.getElementById('fr-weeks-off').value) || 0;
+    
+    let totalTarget = salary + expenses;
+    let workingWeeks = 52 - weeksOff;
+    let totalHours = workingWeeks * hours;
+    
+    if (totalHours > 0) {
+        let hourly = totalTarget / totalHours;
+        let daily = hourly * 8;
+        
+        document.getElementById('fr-hourly').textContent = "$" + hourly.toFixed(2);
+        document.getElementById('fr-daily').textContent = "$" + daily.toFixed(2);
+        document.getElementById('fr-total').textContent = "$" + totalTarget.toFixed(2);
+    }
+});
+
+    </script>
+</body>
+</html>

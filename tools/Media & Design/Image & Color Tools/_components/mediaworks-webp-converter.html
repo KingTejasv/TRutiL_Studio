@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Image Converter</title>
+<link href="../../../../style.css?v=3" rel="stylesheet"/>
+<link href="../../../../custom-tools.css?v=3" rel="stylesheet"/>
+<script src="../../../../theme.js?v=3"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-mediaworks-webp-converter">
+<div class="app-header">
+<div class="app-icon" style="background:linear-gradient(135deg, #3b82f6, #1d4ed8);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:24px;">🖼</div>
+<div>
+<h1>️ Image to WebP Converter</h1>
+<p>Convert images to and from WebP format, right in your browser.</p>
+</div>
+</div>
+<div class="workspace">
+<div class="panel">
+<div class="pane-header">
+<div class="pane-title">Input Image</div>
+</div>
+<div class="pane-content">
+<label class="file-upload" id="drop-zone">
+<div style="font-size: 2rem; margin-bottom: 0.5rem;">📁</div>
+<div>Click or drag image here</div>
+<div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem;">Supports PNG, JPG, WebP</div>
+<input accept="image/*" class="hidden-input" id="file-input" type="file"/>
+</label>
+<div class="preview-box" id="orig-preview-box" style="display:none;">
+<div class="img-label">Original</div>
+<img id="orig-img" src=""/>
+</div>
+<div class="controls" id="controls" style="display:none;">
+<div class="control-group">
+<label>Output Format</label>
+<select class="form-input" id="format-select">
+<option value="image/webp">WebP</option>
+<option value="image/png">PNG</option>
+<option value="image/jpeg">JPEG</option>
+</select>
+</div>
+<div class="control-group">
+<label>Quality: <span id="quality-val">0.8</span></label>
+<input id="quality-input" max="1" min="0" step="0.1" type="range" value="0.8"/>
+</div>
+</div>
+</div>
+</div>
+<div class="panel">
+<div class="pane-header">
+<div class="pane-title">Output Preview</div>
+<button class="btn btn-primary" disabled="" id="btn-download">📥 Download</button>
+</div>
+<div class="pane-content">
+<div class="preview-box">
+<div class="img-label">Converted</div>
+<img id="converted-img" src=""/>
+</div>
+</div>
+</div>
+</div>
+<div class="stats-bar">
+<div class="stat-item">
+<span class="stat-label">Original Size</span>
+<span class="stat-num" id="stat-orig">0 B</span>
+</div>
+<div class="stat-item">
+<span class="stat-label">Converted Size</span>
+<span class="stat-num" id="stat-conv">0 B</span>
+</div>
+<div class="stat-item">
+<span class="stat-label">Difference</span>
+<span class="stat-num" id="stat-diff">0 B</span>
+</div>
+<div class="pill" id="stat-percent">-</div>
+</div>
+<script>
+        const fileInput = document.getElementById('file-input');
+        const dropZone = document.getElementById('drop-zone');
+        const origImg = document.getElementById('orig-img');
+        const origPreviewBox = document.getElementById('orig-preview-box');
+        const convertedImg = document.getElementById('converted-img');
+        const controls = document.getElementById('controls');
+        const formatSelect = document.getElementById('format-select');
+        const qualityInput = document.getElementById('quality-input');
+        const qualityVal = document.getElementById('quality-val');
+        const btnDownload = document.getElementById('btn-download');
+        
+        let currentFile = null;
+        let convertedBlob = null;
+        let convertedURL = null;
+
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        async function processImage() {
+            if (!currentFile) return;
+            
+            const format = formatSelect.value;
+            const quality = parseFloat(qualityInput.value);
+            
+            const canvas = document.createElement('canvas');
+            canvas.width = origImg.naturalWidth;
+            canvas.height = origImg.naturalHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(origImg, 0, 0);
+            
+            canvas.toBlob((blob) => {
+                if (!blob) return;
+                
+                convertedBlob = blob;
+                if (convertedURL) URL.revokeObjectURL(convertedURL);
+                convertedURL = URL.createObjectURL(blob);
+                convertedImg.src = convertedURL;
+                btnDownload.disabled = false;
+                
+                const origSize = currentFile.size;
+                const convSize = blob.size;
+                const diff = origSize - convSize;
+                
+                document.getElementById('stat-orig').textContent = formatBytes(origSize);
+                document.getElementById('stat-conv').textContent = formatBytes(convSize);
+                document.getElementById('stat-diff').textContent = formatBytes(Math.abs(diff));
+                
+                const percentEl = document.getElementById('stat-percent');
+                if (diff >= 0) {
+                    const percent = Math.round((diff / origSize) * 100);
+                    percentEl.textContent = `${percent}% Smaller`;
+                    percentEl.className = 'pill';
+                } else {
+                    const percent = Math.round((Math.abs(diff) / origSize) * 100);
+                    percentEl.textContent = `${percent}% Larger`;
+                    percentEl.className = 'pill negative';
+                }
+            }, format, quality);
+        }
+
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            currentFile = file;
+            
+            dropZone.style.display = 'none';
+            origPreviewBox.style.display = 'flex';
+            controls.style.display = 'grid';
+            
+            const url = URL.createObjectURL(file);
+            origImg.onload = () => processImage();
+            origImg.src = url;
+        });
+        
+        qualityInput.addEventListener('input', (e) => {
+            qualityVal.textContent = e.target.value;
+        });
+        
+        qualityInput.addEventListener('change', processImage);
+        formatSelect.addEventListener('change', processImage);
+        
+        btnDownload.addEventListener('click', () => {
+            if (!convertedURL) return;
+            const format = formatSelect.value;
+            const ext = format === 'image/webp' ? 'webp' : format === 'image/png' ? 'png' : 'jpg';
+            const originalName = currentFile.name.split('.')[0];
+            
+            const a = document.createElement('a');
+            a.href = convertedURL;
+            a.download = `${originalName}-converted.${ext}`;
+            a.click();
+        });
+    </script>
+</div></div></div></div></body>
+</html>

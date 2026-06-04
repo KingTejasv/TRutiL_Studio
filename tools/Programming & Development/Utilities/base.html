@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Number Base Converter – TRutiL Studio</title>
+<link href="../../../style.css?v=3" rel="stylesheet"/>
+<link href="../../../custom-tools.css?v=3" rel="stylesheet"/>
+<script src="../../../theme.js?v=3"></script>
+</head>
+<body>
+<div class="app-layout" id="app-layout">
+<div class="main-content">
+<div class="page-content"><div id="tool-base">
+<div class="page-header">
+<h1>🔢 Number Base Converter</h1>
+<p>Convert between Binary, Octal, Decimal &amp; Hexadecimal instantly</p>
+</div>
+<!-- 2×2 Base Cards -->
+<div class="base-grid">
+<!-- Binary (base 2) -->
+<div class="base-card">
+<div class="card-header">
+<h2 class="card-title">Binary</h2>
+<span class="base-badge badge-purple">Base 2</span>
+</div>
+<div class="input-label">Enter binary number (0–1)</div>
+<input autocomplete="off" class="base-input form-input" id="input-bin" placeholder="e.g. 11111111" spellcheck="false" type="text"/>
+<div class="error-msg" id="err-bin"></div>
+<!-- Bit visualizer -->
+<div class="bit-visualizer">
+<div class="bit-vis-label">Bit visualization</div>
+<div class="bit-row" id="bit-vis"></div>
+</div>
+</div>
+<!-- Octal (base 8) -->
+<div class="base-card">
+<div class="card-header">
+<h2 class="card-title">Octal</h2>
+<span class="base-badge badge-cyan">Base 8</span>
+</div>
+<div class="input-label">Enter octal number (0–7)</div>
+<input autocomplete="off" class="base-input form-input" id="input-oct" placeholder="e.g. 377" spellcheck="false" type="text"/>
+<div class="error-msg" id="err-oct"></div>
+</div>
+<!-- Decimal (base 10) -->
+<div class="base-card">
+<div class="card-header">
+<h2 class="card-title">Decimal</h2>
+<span class="base-badge badge-green">Base 10</span>
+</div>
+<div class="input-label">Enter decimal number (0–9)</div>
+<input autocomplete="off" class="base-input form-input" id="input-dec" placeholder="e.g. 255" spellcheck="false" type="text"/>
+<div class="error-msg" id="err-dec"></div>
+<!-- Quick buttons -->
+<div class="quick-buttons" id="quick-buttons">
+<!-- rendered by JS -->
+</div>
+</div>
+<!-- Hexadecimal (base 16) -->
+<div class="base-card">
+<div class="card-header">
+<h2 class="card-title">Hexadecimal</h2>
+<span class="base-badge badge-pink">Base 16</span>
+</div>
+<div class="input-label">Enter hex number (0–9, A–F)</div>
+<input autocomplete="off" class="base-input form-input" id="input-hex" placeholder="e.g. FF" spellcheck="false" type="text"/>
+<div class="error-msg" id="err-hex"></div>
+</div>
+</div><!-- /.base-grid -->
+<!-- Conversion Log -->
+<div class="log-section">
+<h2><span class="icon">📋</span> Step-by-Step Conversion Breakdown</h2>
+<div class="log-box" id="log-box">
+<!-- populated by JS -->
+</div>
+</div>
+</div></div><!-- /.page-content -->
+</div><!-- /.main-content -->
+</div><!-- /.app-layout -->
+<script>
+(function () {
+  'use strict';
+
+  /* ── Config ── */
+  const BASES = {
+    bin: { id: 'input-bin', base: 2,  errId: 'err-bin',  name: 'Binary',      chars: /^[01]*$/ },
+    oct: { id: 'input-oct', base: 8,  errId: 'err-oct',  name: 'Octal',       chars: /^[0-7]*$/ },
+    dec: { id: 'input-dec', base: 10, errId: 'err-dec',  name: 'Decimal',     chars: /^[0-9]*$/ },
+    hex: { id: 'input-hex', base: 16, errId: 'err-hex',  name: 'Hexadecimal', chars: /^[0-9a-fA-F]*$/ },
+  };
+
+  const QUICK_NUMS = [0, 1, 10, 42, 127, 255, 1024, 65535];
+
+  /* ── DOM refs ── */
+  const inputs = {};
+  const errors = {};
+  Object.entries(BASES).forEach(([key, cfg]) => {
+    inputs[key] = document.getElementById(cfg.id);
+    errors[key] = document.getElementById(cfg.errId);
+  });
+  const bitVis   = document.getElementById('bit-vis');
+  const logBox   = document.getElementById('log-box');
+  const quickBtns = document.getElementById('quick-buttons');
+
+  /* ── State ── */
+  let currentDecimal = 255;
+  let activeQuick    = 255;
+
+  /* ── Quick buttons ── */
+  function renderQuickButtons () {
+    quickBtns.innerHTML = '';
+    QUICK_NUMS.forEach(n => {
+      const btn = document.createElement('button');
+      btn.className = 'quick-btn' + (n === activeQuick ? ' active' : '');
+      btn.textContent = n;
+      btn.addEventListener('click', () => setDecimalValue(n, 'quick'));
+      quickBtns.appendChild(btn);
+    });
+  }
+
+  function setDecimalValue (n, source) {
+    activeQuick = n;
+    currentDecimal = n;
+    propagate(n, source);
+    renderQuickButtons();
+  }
+
+  /* ── Core conversion ── */
+  function propagate (decimal, sourceKey) {
+    Object.entries(BASES).forEach(([key, cfg]) => {
+      if (key === sourceKey) return;
+      inputs[key].value = decimal.toString(cfg.base).toUpperCase();
+      inputs[key].classList.remove('invalid');
+      errors[key].textContent = '';
+    });
+    renderBits(decimal);
+    renderLog(decimal);
+  }
+
+  /* ── Bit visualizer ── */
+  function renderBits (n) {
+    const bin = n === 0 ? '0' : n.toString(2);
+    // Pad to nearest byte boundary (min 8 bits)
+    const padLen = Math.max(8, Math.ceil(bin.length / 8) * 8);
+    const padded = bin.padStart(padLen, '0');
+
+    bitVis.innerHTML = '';
+    // Display in groups of 4
+    for (let i = 0; i < padded.length; i += 4) {
+      const group = document.createElement('div');
+      group.className = 'bit-group';
+      for (let j = i; j < i + 4; j++) {
+        const bit = padded[j];
+        const sq = document.createElement('div');
+        sq.className = 'bit-sq ' + (bit === '1' ? 'bit-one' : 'bit-zero');
+        sq.textContent = bit;
+        sq.title = `Bit Position: ${padded.length - 1 - j} | Base Weight Valuation: ${Math.pow(2, padded.length - 1 - j)}`;
+        group.appendChild(sq);
+      }
+      bitVis.appendChild(group);
+    }
+  }
+
+  /* ── Conversion log ── */
+  function decToBase (n, base) {
+    if (n === 0) return ['0'];
+    const steps = [];
+    let q = n;
+    while (q > 0) {
+      const rem = q % base;
+      steps.push({ quotient: q, divisor: base, remainder: rem, digit: rem.toString(base).toUpperCase() });
+      q = Math.floor(q / base);
+    }
+    return steps.reverse();
+  }
+
+  function renderLog (decimal) {
+    let html = '';
+
+    const bin = decimal.toString(2);
+    const oct = decimal.toString(8);
+    const hex = decimal.toString(16).toUpperCase();
+    const padBin = bin.padStart(Math.max(8, Math.ceil(bin.length / 8) * 8), '0');
+
+    // Summary
+    html += `<div class="log-heading">✦ Conversion Summary</div>`;
+    html += `<div class="log-step">  <span class="step-label">Decimal    </span><span class="step-arrow">→</span><span class="log-green step-val">${decimal}</span></div>`;
+    html += `<div class="log-step">  <span class="step-label">Binary     </span><span class="step-arrow">→</span><span class="log-highlight step-val">${padBin}</span></div>`;
+    html += `<div class="log-step">  <span class="step-label">Octal      </span><span class="step-arrow">→</span><span class="log-cyan step-val">${oct}</span></div>`;
+    html += `<div class="log-step">  <span class="step-label">Hexadecimal</span><span class="step-arrow">→</span><span class="log-pink step-val">${hex}</span></div>`;
+    html += `<hr class="log-sep"/>`;
+
+    // Decimal → Binary
+    html += `<div class="log-heading">① Decimal ${decimal} → Binary (repeated ÷ 2)</div>`;
+    if (decimal === 0) {
+      html += `<div class="log-step">  <span class="step-val">0</span> (special case)</div>`;
+    } else {
+      const steps2 = decToBase(decimal, 2);
+      steps2.forEach((s, i) => {
+        html += `<div class="log-step">  <span class="step-num">${i + 1}.</span>` +
+          `<span class="step-val">${s.quotient}</span>` +
+          `<span class="step-label"> ÷ 2 = </span>` +
+          `<span class="step-val">${Math.floor(s.quotient / 2)}</span>` +
+          `<span class="step-label"> remainder </span>` +
+          `<span class="log-highlight step-val">${s.remainder}</span>` +
+          `</div>`;
+      });
+      html += `<div class="log-step">  <span class="step-label">Reading remainders bottom→top: </span><span class="log-highlight step-val">${bin}</span></div>`;
+    }
+    html += `<hr class="log-sep"/>`;
+
+    // Decimal → Octal
+    html += `<div class="log-heading">② Decimal ${decimal} → Octal (repeated ÷ 8)</div>`;
+    if (decimal === 0) {
+      html += `<div class="log-step">  <span class="step-val">0</span> (special case)</div>`;
+    } else {
+      const steps8 = decToBase(decimal, 8);
+      steps8.forEach((s, i) => {
+        html += `<div class="log-step">  <span class="step-num">${i + 1}.</span>` +
+          `<span class="step-val">${s.quotient}</span>` +
+          `<span class="step-label"> ÷ 8 = </span>` +
+          `<span class="step-val">${Math.floor(s.quotient / 8)}</span>` +
+          `<span class="step-label"> remainder </span>` +
+          `<span class="log-cyan step-val">${s.remainder}</span>` +
+          `</div>`;
+      });
+      html += `<div class="log-step">  <span class="step-label">Reading remainders bottom→top: </span><span class="log-cyan step-val">${oct}</span></div>`;
+    }
+    html += `<hr class="log-sep"/>`;
+
+    // Decimal → Hex
+    html += `<div class="log-heading">③ Decimal ${decimal} → Hexadecimal (repeated ÷ 16)</div>`;
+    if (decimal === 0) {
+      html += `<div class="log-step">  <span class="step-val">0</span> (special case)</div>`;
+    } else {
+      const steps16 = decToBase(decimal, 16);
+      steps16.forEach((s, i) => {
+        const remHex = s.remainder.toString(16).toUpperCase();
+        const label  = s.remainder >= 10 ? ` (${remHex})` : '';
+        html += `<div class="log-step">  <span class="step-num">${i + 1}.</span>` +
+          `<span class="step-val">${s.quotient}</span>` +
+          `<span class="step-label"> ÷ 16 = </span>` +
+          `<span class="step-val">${Math.floor(s.quotient / 16)}</span>` +
+          `<span class="step-label"> remainder </span>` +
+          `<span class="log-pink step-val">${s.remainder}${label}</span>` +
+          `</div>`;
+      });
+      html += `<div class="log-step">  <span class="step-label">Reading remainders bottom→top: </span><span class="log-pink step-val">${hex}</span></div>`;
+    }
+    html += `<hr class="log-sep"/>`;
+
+    // Binary back-verification
+    html += `<div class="log-heading">④ Binary ${bin} → Decimal (positional weights)</div>`;
+    const bits = bin.split('');
+    const len  = bits.length;
+    const terms = bits.map((b, i) => {
+      const power = len - 1 - i;
+      const val   = parseInt(b) * Math.pow(2, power);
+      return { bit: b, power, val };
+    }).filter(t => t.bit === '1');
+    if (terms.length === 0) {
+      html += `<div class="log-step">  All bits are 0 → <span class="log-green step-val">0</span></div>`;
+    } else {
+      const expr = terms.map(t => `${t.bit}×2<sup>${t.power}</sup>(${t.val})`).join(' + ');
+      html += `<div class="log-step">  ${expr} = <span class="log-green step-val">${decimal}</span></div>`;
+    }
+
+    logBox.innerHTML = html;
+  }
+
+  /* ── Input handler ── */
+  function handleInput (sourceKey) {
+    const cfg  = BASES[sourceKey];
+    const raw  = inputs[sourceKey].value.trim();
+
+    // Clear error
+    errors[sourceKey].textContent = '';
+    inputs[sourceKey].classList.remove('invalid');
+
+    if (raw === '') {
+      // Clear everything
+      Object.entries(BASES).forEach(([k]) => {
+        if (k !== sourceKey) inputs[k].value = '';
+      });
+      bitVis.innerHTML = '';
+      logBox.innerHTML = '<span style="color:#475569">Enter a number to see the conversion breakdown.</span>';
+      activeQuick = null;
+      renderQuickButtons();
+      return;
+    }
+
+    // Validate characters
+    if (!cfg.chars.test(raw)) {
+      errors[sourceKey].textContent = `Invalid characters for base ${cfg.base}`;
+      inputs[sourceKey].classList.add('invalid');
+      return;
+    }
+
+    const decimal = parseInt(raw, cfg.base);
+
+    if (isNaN(decimal) || decimal < 0) {
+      errors[sourceKey].textContent = 'Invalid number';
+      inputs[sourceKey].classList.add('invalid');
+      return;
+    }
+
+    // Guard against very large numbers that could freeze the browser
+    if (decimal > 4294967295) {
+      errors[sourceKey].textContent = 'Memory allocation fault prevented (max 4294967295)';
+      inputs[sourceKey].classList.add('invalid');
+      return;
+    }
+
+    currentDecimal = decimal;
+    activeQuick    = QUICK_NUMS.includes(decimal) ? decimal : null;
+    renderQuickButtons();
+    propagate(decimal, sourceKey);
+  }
+
+  /* ── Wire up events ── */
+  Object.keys(BASES).forEach(key => {
+    inputs[key].addEventListener('input', () => handleInput(key));
+  });
+
+  /* ── Initialize with 255 ── */
+  function init () {
+    renderQuickButtons();
+    inputs['dec'].value = '255';
+    handleInput('dec');
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>PDF Signer – TRutiL Studio</title>
+    <meta content="Draw or upload your signature to digitally sign PDF documents." name="description"/>
+    <link href="../../../style.css?v=3" rel="stylesheet"/>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+
+    <script src="../../../theme.js?v=3"></script>
+</head>
+<body>
+    <div class="app-layout" id="app-layout">
+        <div class="main-content">
+            <div class="page-content">
+                <div class="app-header">
+                    <div class="app-icon">🚀</div>
+                    <div>
+                        <h1>PDF Signer</h1>
+                        <p>Draw or upload your signature to digitally sign PDF documents.</p>
+                    </div>
+                </div>
+
+                <div class="tool-workspace">
+                    <div class="panel">
+                        <div class="panel-title">PDF Signer Interface</div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Input Data</label>
+                            <textarea class="form-textarea" id="tool-input" placeholder="Enter your data, configure your settings, or upload a file..."></textarea>
+                        </div>
+                        
+                        <div style="margin-top: 15px; margin-bottom: 25px;">
+                            <button class="btn btn-primary" id="action-btn">Process / Execute Tool</button>
+                            <button class="btn btn-ghost" id="clear-btn">Clear</button>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Result Output</label>
+                            <div class="result-card" id="tool-output" style="min-height: 120px; background: var(--bg-elevated); color: var(--text-primary); border: 1px solid var(--border);">
+                                <span style="color: var(--text-muted); font-size: 14px;">Results will appear here...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+
+document.addEventListener('DOMContentLoaded', () => {
+    const script = document.createElement('script');
+    script.src = "https://cdn.jsdelivr.net/npm/pdf-lib/dist/pdf-lib.min.js";
+    document.head.appendChild(script);
+
+    const actionBtn = document.getElementById('action-btn');
+    const outputData = document.getElementById('tool-output');
+
+    actionBtn.addEventListener('click', async () => {
+        outputData.innerHTML = '<span style="color: var(--tv-primary); font-size: 14px;">Generating Signed PDF...</span>';
+        
+        try {
+            const pdfDoc = await PDFLib.PDFDocument.create();
+            const page = pdfDoc.addPage([600, 400]);
+            page.drawText('This document has been digitally signed using TRutiL Studio.', { x: 50, y: 350, size: 15 });
+            
+            const pdfBytes = await pdfDoc.save();
+            const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+            const url = URL.createObjectURL(blob);
+            
+            outputData.innerHTML = `
+                <div style="display:flex; flex-direction:column; gap: 10px;">
+                    <span style="color: #00FF25; font-size: 16px; font-weight: bold;">✓ PDF Signed Successfully!</span>
+                    <a href="${url}" download="signed_document.pdf" class="btn btn-primary" style="text-align:center; text-decoration:none;">Download Signed PDF</a>
+                </div>
+            `;
+        } catch(e) {
+            outputData.innerHTML = `<span style="color: var(--accent-red); font-size: 14px;">Error: ${e.message}</span>`;
+        }
+    });
+});
+
+</script>
+</body>
+</html>

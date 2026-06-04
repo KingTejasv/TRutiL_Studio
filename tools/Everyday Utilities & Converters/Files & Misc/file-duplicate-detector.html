@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Duplicate File Detector – TRutiL Studio</title>
+<meta content="Find and remove duplicate files based on content hashes." name="description"/>
+<link href="../../../style.css?v=3" rel="stylesheet"/>
+<script src="../../../theme.js?v=3"></script>
+</head>
+<body>
+<div class="app-layout" id="app-layout">
+<div class="main-content">
+<div class="page-content">
+<div class="app-header">
+<div class="app-icon" style="background:linear-gradient(135deg, #3b82f6, #1d4ed8);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:24px;">⚙️</div>
+<div>
+<h1>Duplicate File Detector</h1>
+<p>Find and remove duplicate files based on content hashes.</p>
+</div>
+</div>
+<div class="tool-workspace">
+<div class="panel">
+<div class="panel-title">Duplicate File Detector Interface</div>
+<div class="form-group">
+<label class="form-label">Input Data</label>
+<textarea class="form-textarea" id="tool-input" placeholder="Enter your data, configure your settings, or upload a file..."></textarea>
+</div>
+<div style="margin-top: 15px; margin-bottom: 25px;">
+<button class="btn btn-primary" id="action-btn">Process / Execute Tool</button>
+<button class="btn btn-ghost btn-primary" id="clear-btn">Clear</button>
+</div>
+<div class="form-group">
+<label class="form-label">Result Output</label>
+<div class="result-card" id="tool-output" style="min-height: 120px; background: var(--bg-elevated); color: var(--text-primary); border: 1px solid var(--border);">
+<span style="color: var(--text-muted); font-size: 14px;">Results will appear here...</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const actionBtn = document.getElementById('action-btn');
+            const clearBtn = document.getElementById('clear-btn');
+            const inputData = document.getElementById('tool-input');
+            const outputData = document.getElementById('tool-output');
+
+            actionBtn.addEventListener('click', () => {
+                // Standard placeholder functionality for these generated SEO pages
+                // In production, real WebAssembly/API logic is injected here.
+                if(!inputData.value.trim()) {
+                    outputData.innerHTML = `<span style="color: var(--accent-red); font-size: 14px;">Please enter some input data first.</span>`;
+                    return;
+                }
+                
+                outputData.innerHTML = `<span style="color: var(--accent-green); font-size: 14px;">Processing completed! [This is a fully-styled, functional-ready frontend for <strong>Duplicate File Detector</strong>. Add backend or heavy WebAssembly logic to process the data.]</span>`;
+            });
+
+            clearBtn.addEventListener('click', () => {
+                inputData.value = '';
+                outputData.innerHTML = `<span style="color: var(--text-muted); font-size: 14px;">Results will appear here...</span>`;
+            });
+        });
+    </script>
+</body>
+</html>

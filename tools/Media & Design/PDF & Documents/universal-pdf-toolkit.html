@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Professional PDF Studio — TRutiL Studio</title>
+<link href="../../../style.css?v=3" rel="stylesheet"/>
+<link href="../../../custom-tools.css?v=3" rel="stylesheet"/>
+<script src="../../../theme.js?v=3"></script>
+<!-- pdf-lib and JSZip -->
+<script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+    .panel { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 25px; margin-bottom: 20px; }
+    
+    /* Pre-Upload Features Grid */
+    .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; }
+    .feature-card { background: rgba(0,0,0,0.02); padding: 15px; border-radius: var(--radius-sm); border: 1px solid var(--border); text-align: center; }
+    [data-theme="dark"] .feature-card { background: rgba(255,255,255,0.02); }
+    .feature-card h4 { margin: 0 0 10px 0; color: var(--primary-color); }
+    .feature-card p { margin: 0; font-size: 0.85rem; color: var(--text-muted); }
+    
+    .drop-zone { border: 2px dashed var(--border); border-radius: var(--radius-md); padding: 50px; text-align: center; cursor: pointer; transition: all 0.2s; background: rgba(0,0,0,0.02); }
+    [data-theme="dark"] .drop-zone { background: rgba(255,255,255,0.02); }
+    .drop-zone.dragover { border-color: var(--primary-color); background: rgba(59, 130, 246, 0.1); }
+    
+    /* Studio Layout */
+    .studio-layout { display: none; gap: 20px; flex-direction: column; @media (min-width: 900px) { flex-direction: row; } }
+    .files-section { flex: 1.2; display: flex; flex-direction: column; gap: 15px; }
+    .tools-section { flex: 1.5; display: flex; flex-direction: column; gap: 15px; }
+    
+    .tool-box { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 15px; background: var(--bg-input); }
+    .tool-box h3 { margin: 0 0 15px 0; font-size: 1.1rem; color: var(--text-primary); border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+    
+    /* File Manager */
+    .file-list { display: flex; flex-direction: column; gap: 8px; }
+    .file-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: grab; transition: transform 0.2s; }
+    .file-item:active { cursor: grabbing; transform: scale(0.98); }
+    .file-name { font-weight: 500; font-size: 0.9rem; color: var(--text-primary); word-break: break-all; }
+    .remove-btn { color: #ef4444; cursor: pointer; font-size: 0.8rem; background: none; border: none; font-weight: bold; }
+    
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; margin-bottom: 5px; font-size: 0.85rem; font-weight: 500; color: var(--text-secondary); }
+    .form-group input, .form-group select { width: 100%; padding: 10px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg-card); color: var(--text-primary); }
+    
+    .flex-row { display: flex; gap: 10px; }
+    .flex-row > div { flex: 1; }
+    
+    #log-output { font-family: monospace; font-size: 0.8rem; background: #1e1e1e; color: #d4d4d4; padding: 10px; border-radius: 4px; max-height: 150px; overflow-y: auto; margin-top: 10px; display: none; white-space: pre-wrap; }
+    
+</style>
+</head>
+<body>
+<div class="app-layout" id="app-layout">
+<div class="main-content">
+<div class="page-content">
+    <div class="app-header">
+        <div class="app-icon" style="background:linear-gradient(135deg,#dc2626,#991b1b);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:24px;">📄</div>
+        <div>
+            <h1>Professional PDF Studio</h1>
+            <p>A full offline suite to merge, extract, and watermark your PDFs securely.</p>
+        </div>
+    </div>
+    
+    <div class="panel" id="intro-panel">
+        <div class="features-grid">
+            <div class="feature-card">
+                <h4>🔗 Advanced Merge</h4>
+                <p>Visually drag and drop multiple PDFs to reorder before combining.</p>
+            </div>
+            <div class="feature-card">
+                <h4>✂️ Custom Extract</h4>
+                <p>Input precise page ranges (e.g., 1-3, 5) to extract exactly what you need.</p>
+            </div>
+            <div class="feature-card">
+                <h4>🗑️ Delete Pages</h4>
+                <p>Permanently remove specific pages from a document.</p>
+            </div>
+            <div class="feature-card">
+                <h4>🔄 Rotate Pages</h4>
+                <p>Fix sideways or upside-down scans instantly.</p>
+            </div>
+            <div class="feature-card">
+                <h4>©️ Smart Watermark</h4>
+                <p>Fully customize your watermark text, color, and opacity natively.</p>
+            </div>
+            <div class="feature-card">
+                <h4>🏷️ Metadata Editor</h4>
+                <p>Edit hidden properties like Title, Author, and Subject.</p>
+            </div>
+        </div>
+        
+        <input type="file" id="file-input" accept=".pdf" multiple style="display:none;">
+        <div class="drop-zone" id="drop-zone">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:48px;height:48px;opacity:0.5;margin-bottom:15px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
+            <h3>Start Your Project</h3>
+            <p>Drag & Drop PDF files here, or click to browse.</p>
+        </div>
+    </div>
+    
+    <div class="studio-layout" id="studio-layout">
+        <!-- File Manager Column -->
+        <div class="files-section">
+            <div class="tool-box" style="flex:1;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3 style="margin: 0; border: none; padding: 0;">📁 File Manager</h3>
+                    <button class="btn btn-secondary" onclick="document.getElementById('file-input').click()" style="padding: 4px 10px; font-size: 0.8rem;">+ Add Files</button>
+                </div>
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px;">Drag items up/down to reorder them for merging.</p>
+                <div class="file-list" id="file-list"></div>
+            </div>
+            <div id="log-output"></div>
+        </div>
+        
+        <!-- Tools Column -->
+        <div class="tools-section">
+            <!-- Merge Tool -->
+            <div class="tool-box">
+                <h3>🔗 Merge Files</h3>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: -10px; margin-bottom: 15px;">Combines all files in the File Manager from top to bottom.</p>
+                <button class="btn btn-primary" onclick="mergePDFs()" style="width: 100%;">Merge & Download</button>
+            </div>
+            
+            <!-- Extract Tool -->
+            <div class="tool-box">
+                <h3>✂️ Extract Pages</h3>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: -10px; margin-bottom: 15px;">Extracts pages from the <b>first file</b> in the File Manager.</p>
+                <div class="form-group">
+                    <label>Page Ranges (e.g., 1-3, 5, 8-10)</label>
+                    <input type="text" id="extract-ranges" placeholder="Leave blank to extract all pages into a ZIP">
+                </div>
+                <button class="btn btn-primary" onclick="extractPDF()" style="width: 100%;">Extract & Download</button>
+            </div>
+            
+            <!-- Watermark Tool -->
+            <div class="tool-box">
+                <h3>©️ Watermark</h3>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: -10px; margin-bottom: 15px;">Applies to the <b>first file</b> in the File Manager.</p>
+                <div class="form-group">
+                    <label>Watermark Text</label>
+                    <input type="text" id="wm-text" value="CONFIDENTIAL">
+                </div>
+                <div class="flex-row">
+                    <div class="form-group">
+                        <label>Color</label>
+                        <input type="color" id="wm-color" value="#ff0000" style="padding: 2px; height: 40px;">
+                    </div>
+                    <div class="form-group">
+                        <label>Opacity (0.1 to 1.0)</label>
+                        <input type="number" id="wm-opacity" value="0.3" min="0.1" max="1.0" step="0.1">
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="watermarkPDF()" style="width: 100%;">Watermark & Download</button>
+            </div>
+            
+            <!-- Remove Pages Tool -->
+            <div class="tool-box">
+                <h3>🗑️ Delete Pages</h3>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: -10px; margin-bottom: 15px;">Removes pages from the <b>first file</b>.</p>
+                <div class="form-group">
+                    <label>Pages to Delete (e.g., 2, 4-6)</label>
+                    <input type="text" id="remove-ranges" placeholder="e.g. 2, 4-6, 10">
+                </div>
+                <button class="btn btn-secondary" onclick="removePagesPDF()" style="width: 100%;">Delete & Download</button>
+            </div>
+
+            <!-- Rotate Tool -->
+            <div class="tool-box">
+                <h3>🔄 Rotate Document</h3>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: -10px; margin-bottom: 15px;">Rotates all pages in the <b>first file</b>.</p>
+                <div class="form-group">
+                    <label>Rotation</label>
+                    <select id="rotate-deg">
+                        <option value="90">90° Clockwise</option>
+                        <option value="270">90° Counter-Clockwise</option>
+                        <option value="180">180° Upside Down</option>
+                    </select>
+                </div>
+                <button class="btn btn-secondary" onclick="rotatePDF()" style="width: 100%;">Rotate & Download</button>
+            </div>
+            
+            <!-- Metadata Tool -->
+            <div class="tool-box">
+                <h3>🏷️ Edit Metadata</h3>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: -10px; margin-bottom: 15px;">Applies to the <b>first file</b>.</p>
+                <div class="form-group">
+                    <label>Title</label>
+                    <input type="text" id="meta-title" placeholder="Document Title">
+                </div>
+                <div class="form-group">
+                    <label>Author</label>
+                    <input type="text" id="meta-author" placeholder="Author Name">
+                </div>
+                <div class="form-group">
+                    <label>Subject</label>
+                    <input type="text" id="meta-subject" placeholder="Document Subject">
+                </div>
+                <button class="btn btn-secondary" onclick="editMetadataPDF()" style="width: 100%;">Update & Download</button>
+            </div>
+            
+            <button class="btn btn-secondary" onclick="resetStudio()" style="width: 100%; background: transparent; border-color: #ef4444; color: #ef4444;">Clear All & Close Project</button>
+        </div>
+    </div>
+</div>
+</div>
+</div>
+
+<script>
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('file-input');
+    const introPanel = document.getElementById('intro-panel');
+    const studioLayout = document.getElementById('studio-layout');
+    const fileListEl = document.getElementById('file-list');
+    const logOutput = document.getElementById('log-output');
+    
+    let files = [];
+
+    dropZone.addEventListener('click', () => fileInput.click());
+    dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+    dropZone.addEventListener('drop', e => {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+        handleFiles(e.dataTransfer.files);
+    });
+    fileInput.addEventListener('change', e => handleFiles(e.target.files));
+
+    function handleFiles(newFiles) {
+        for (let f of newFiles) {
+            if (f.type === 'application/pdf') files.push(f);
+        }
+        if (files.length > 0) {
+            introPanel.style.display = 'none';
+            studioLayout.style.display = 'flex';
+            renderFiles();
+        }
+    }
+    
+    function resetStudio() {
+        files = [];
+        introPanel.style.display = 'block';
+        studioLayout.style.display = 'none';
+        logOutput.style.display = 'none';
+        logOutput.textContent = '';
+        fileInput.value = '';
+    }
+
+    function renderFiles() {
+        fileListEl.innerHTML = '';
+        files.forEach((f, i) => {
+            const el = document.createElement('div');
+            el.className = 'file-item';
+            el.draggable = true;
+            el.dataset.index = i;
+            el.innerHTML = `<span class="file-name">☰ ${f.name} <span style="opacity:0.6;font-size:0.8em">(${(f.size/1024/1024).toFixed(2)} MB)</span></span>
+                            <button class="remove-btn" onclick="removeFile(${i})">✕</button>`;
+            
+            // Drag and drop logic for reordering
+            el.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', i);
+                e.target.style.opacity = '0.5';
+            });
+            el.addEventListener('dragend', (e) => {
+                e.target.style.opacity = '1';
+            });
+            el.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                el.style.borderTop = "2px solid var(--primary-color)";
+            });
+            el.addEventListener('dragleave', () => {
+                el.style.borderTop = "1px solid var(--border)";
+            });
+            el.addEventListener('drop', (e) => {
+                e.preventDefault();
+                el.style.borderTop = "1px solid var(--border)";
+                const draggedIdx = parseInt(e.dataTransfer.getData('text/plain'));
+                const targetIdx = i;
+                
+                // Swap array elements
+                const draggedItem = files.splice(draggedIdx, 1)[0];
+                files.splice(targetIdx, 0, draggedItem);
+                renderFiles();
+            });
+                            
+            fileListEl.appendChild(el);
+        });
+        
+        if (files.length === 0) resetStudio();
+    }
+
+    function removeFile(i) { files.splice(i, 1); renderFiles(); }
+
+    function logInfo(msg) {
+        logOutput.style.display = 'block';
+        logOutput.textContent += msg + '\n';
+        logOutput.scrollTop = logOutput.scrollHeight;
+    }
+    
+    function hexToRgb(hex) {
+        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return result ? {
+            r: parseInt(result[1], 16) / 255,
+            g: parseInt(result[2], 16) / 255,
+            b: parseInt(result[3], 16) / 255
+        } : {r:1, g:0, b:0};
+    }
+
+    function downloadBytes(bytes, filename) {
+        const blob = new Blob([bytes], { type: 'application/pdf' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = filename;
+        link.click();
+    }
+    
+    // Parses range string "1-3, 5" into [0,1,2, 4] (0-indexed array)
+    function parseRanges(str, maxPages) {
+        if (!str.trim()) return Array.from({length: maxPages}, (_, i) => i);
+        const pages = new Set();
+        const parts = str.split(',');
+        for (let p of parts) {
+            p = p.trim();
+            if (p.includes('-')) {
+                const [start, end] = p.split('-').map(n => parseInt(n, 10));
+                if (start && end && start <= end) {
+                    for(let i = start; i <= end; i++) {
+                        if (i <= maxPages) pages.add(i - 1);
+                    }
+                }
+            } else {
+                const val = parseInt(p, 10);
+                if (val && val <= maxPages) pages.add(val - 1);
+            }
+        }
+        return Array.from(pages).sort((a,b) => a-b);
+    }
+
+    // --- Core Operations ---
+    
+    async function mergePDFs() {
+        if(files.length < 2) return alert("Please add at least 2 PDF files to merge.");
+        logOutput.textContent = '';
+        logInfo("Starting merge process...");
+        
+        try {
+            const mergedPdf = await PDFLib.PDFDocument.create();
+            for (let i=0; i<files.length; i++) {
+                logInfo(`Loading file ${i+1}/${files.length}: ${files[i].name}...`);
+                const arrayBuffer = await files[i].arrayBuffer();
+                const pdf = await PDFLib.PDFDocument.load(arrayBuffer);
+                const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
+                copiedPages.forEach(page => mergedPdf.addPage(page));
+            }
+            logInfo("Saving merged PDF...");
+            const pdfBytes = await mergedPdf.save();
+            downloadBytes(pdfBytes, 'merged_studio.pdf');
+            logInfo("Merge complete! File downloaded.");
+        } catch(e) { logInfo("Error: " + e.message); }
+    }
+
+    async function extractPDF() {
+        if(files.length === 0) return;
+        logOutput.textContent = '';
+        logInfo("Starting extraction on first file...");
+        
+        try {
+            const arrayBuffer = await files[0].arrayBuffer();
+            const pdf = await PDFLib.PDFDocument.load(arrayBuffer);
+            const numPages = pdf.getPageCount();
+            
+            const rangeStr = document.getElementById('extract-ranges').value;
+            const pagesToExtract = parseRanges(rangeStr, numPages);
+            
+            if (pagesToExtract.length === 0) return alert("Invalid page range specified.");
+            
+            // If extracting specific range, combine them into one new PDF
+            if (rangeStr.trim() !== '') {
+                logInfo(`Extracting pages: ${pagesToExtract.map(p=>p+1).join(', ')}...`);
+                const newPdf = await PDFLib.PDFDocument.create();
+                const copiedPages = await newPdf.copyPages(pdf, pagesToExtract);
+                copiedPages.forEach(p => newPdf.addPage(p));
+                const pdfBytes = await newPdf.save();
+                downloadBytes(pdfBytes, files[0].name.replace('.pdf', '_extracted.pdf'));
+                logInfo("Extraction complete! File downloaded.");
+            } 
+            // If blank, zip individual pages like old behavior
+            else {
+                logInfo(`Splitting all ${numPages} pages into a ZIP archive...`);
+                const zip = new JSZip();
+                for (let i = 0; i < numPages; i++) {
+                    const newPdf = await PDFLib.PDFDocument.create();
+                    const [copiedPage] = await newPdf.copyPages(pdf, [i]);
+                    newPdf.addPage(copiedPage);
+                    const pdfBytes = await newPdf.save();
+                    zip.file(`page_${i + 1}.pdf`, pdfBytes);
+                }
+                logInfo("Generating ZIP...");
+                const content = await zip.generateAsync({type:"blob"});
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(content);
+                link.download = files[0].name.replace('.pdf', '_split.zip');
+                link.click();
+                logInfo("Split complete! ZIP downloaded.");
+            }
+        } catch(e) { logInfo("Error: " + e.message); }
+    }
+
+    async function watermarkPDF() {
+        if(files.length === 0) return;
+        
+        const text = document.getElementById('wm-text').value;
+        if (!text) return alert("Watermark text cannot be empty.");
+        
+        const hexColor = document.getElementById('wm-color').value;
+        const opacity = parseFloat(document.getElementById('wm-opacity').value) || 0.3;
+        const rgb = hexToRgb(hexColor);
+        
+        logOutput.textContent = '';
+        logInfo(`Applying watermark "${text}" to first file...`);
+        
+        try {
+            const arrayBuffer = await files[0].arrayBuffer();
+            const pdf = await PDFLib.PDFDocument.load(arrayBuffer);
+            const pages = pdf.getPages();
+            
+            for (let page of pages) {
+                const { width, height } = page.getSize();
+                // Rough estimate for text centering
+                const textWidth = text.length * 25; 
+                page.drawText(text, {
+                    x: (width / 2) - (textWidth / 2),
+                    y: height / 2,
+                    size: 60,
+                    opacity: opacity,
+                    color: PDFLib.rgb(rgb.r, rgb.g, rgb.b),
+                    rotate: PDFLib.degrees(45),
+                });
+            }
+            logInfo("Saving watermarked PDF...");
+            const pdfBytes = await pdf.save();
+            downloadBytes(pdfBytes, files[0].name.replace('.pdf', '_watermarked.pdf'));
+            logInfo("Watermark applied! File downloaded.");
+        } catch(e) { logInfo("Error: " + e.message); }
+    }
+
+    async function removePagesPDF() {
+        if(files.length === 0) return;
+        logOutput.textContent = '';
+        logInfo("Starting page deletion on first file...");
+        
+        try {
+            const arrayBuffer = await files[0].arrayBuffer();
+            const pdf = await PDFLib.PDFDocument.load(arrayBuffer);
+            const numPages = pdf.getPageCount();
+            
+            const rangeStr = document.getElementById('remove-ranges').value;
+            const pagesToRemove = parseRanges(rangeStr, numPages); // sorted array of 0-indexed pages
+            
+            if (pagesToRemove.length === 0) return alert("Please specify which pages to remove.");
+            if (pagesToRemove.length >= numPages) return alert("You cannot delete all pages in the document.");
+            
+            logInfo(`Deleting pages: ${pagesToRemove.map(p=>p+1).join(', ')}...`);
+            
+            // Remove from the end to the beginning so indices don't shift
+            for (let i = pagesToRemove.length - 1; i >= 0; i--) {
+                pdf.removePage(pagesToRemove[i]);
+            }
+            
+            logInfo("Saving modified PDF...");
+            const pdfBytes = await pdf.save();
+            downloadBytes(pdfBytes, files[0].name.replace('.pdf', '_deleted.pdf'));
+            logInfo("Deletion complete! File downloaded.");
+        } catch(e) { logInfo("Error: " + e.message); }
+    }
+
+    async function rotatePDF() {
+        if(files.length === 0) return;
+        logOutput.textContent = '';
+        const deg = parseInt(document.getElementById('rotate-deg').value, 10);
+        logInfo(`Rotating all pages by ${deg}°...`);
+        
+        try {
+            const arrayBuffer = await files[0].arrayBuffer();
+            const pdf = await PDFLib.PDFDocument.load(arrayBuffer);
+            const pages = pdf.getPages();
+            
+            for (let page of pages) {
+                // Get current rotation and add new rotation
+                const currentRot = page.getRotation().angle;
+                page.setRotation(PDFLib.degrees((currentRot + deg) % 360));
+            }
+            
+            logInfo("Saving rotated PDF...");
+            const pdfBytes = await pdf.save();
+            downloadBytes(pdfBytes, files[0].name.replace('.pdf', '_rotated.pdf'));
+            logInfo("Rotation complete! File downloaded.");
+        } catch(e) { logInfo("Error: " + e.message); }
+    }
+
+    async function editMetadataPDF() {
+        if(files.length === 0) return;
+        logOutput.textContent = '';
+        logInfo("Updating document metadata...");
+        
+        try {
+            const arrayBuffer = await files[0].arrayBuffer();
+            const pdf = await PDFLib.PDFDocument.load(arrayBuffer);
+            
+            const title = document.getElementById('meta-title').value;
+            const author = document.getElementById('meta-author').value;
+            const subject = document.getElementById('meta-subject').value;
+            
+            if(title) pdf.setTitle(title);
+            if(author) pdf.setAuthor(author);
+            if(subject) pdf.setSubject(subject);
+            
+            // Setting producer/creator to toolverse to clean up metadata
+            pdf.setProducer('TRutiL Studio Professional PDF Studio');
+            pdf.setCreator('TRutiL Studio');
+            
+            logInfo("Saving metadata...");
+            const pdfBytes = await pdf.save();
+            downloadBytes(pdfBytes, files[0].name.replace('.pdf', '_meta.pdf'));
+            logInfo("Metadata updated! File downloaded.");
+        } catch(e) { logInfo("Error: " + e.message); }
+    }
+</script>
+</body>
+</html>

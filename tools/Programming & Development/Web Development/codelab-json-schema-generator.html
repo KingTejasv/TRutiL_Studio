@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>JSON Schema Generator – TRutiL Studio</title>
+<meta content="Automatically generate JSON Schema specifications." name="description"/>
+<link href="../../../style.css?v=3" rel="stylesheet"/>
+<script src="../../../theme.js?v=3"></script>
+</head>
+<body>
+<div class="app-layout" id="app-layout">
+<div class="main-content">
+<div class="page-content">
+<div class="app-header">
+<div class="app-icon" style="background:linear-gradient(135deg, #3b82f6, #1d4ed8);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:24px;">⚙️</div>
+<div>
+<h1>JSON Schema Generator</h1>
+<p>Automatically generate JSON Schema specifications.</p>
+</div>
+</div>
+<div class="tool-workspace">
+<div class="grid-2">
+<div class="panel">
+<div class="panel-title">Source JSON</div>
+<textarea class="form-textarea" id="jsg-input" placeholder='{"name": "Alice", "age": 30}' style="min-height: 300px; font-family: monospace;"></textarea>
+<button class="btn btn-primary" id="btn-jsg" style="margin-top:10px;">Generate Schema</button>
+</div>
+<div class="panel">
+<div class="panel-title">Generated JSON Schema</div>
+<pre id="jsg-output" style="background: var(--bg-elevated); border: 1px solid var(--border); color: var(--text-primary); min-height: 300px; padding: 15px; overflow: auto; margin:0; border-radius: var(--radius-sm);"></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script>
+
+function generateSchema(obj) {
+    let type = typeof obj;
+    if (obj === null) return { type: "null" };
+    if (Array.isArray(obj)) {
+        let items = obj.length > 0 ? generateSchema(obj[0]) : {};
+        return { type: "array", items: items };
+    }
+    if (type === "object") {
+        let props = {};
+        for (let k in obj) { props[k] = generateSchema(obj[k]); }
+        return { type: "object", properties: props };
+    }
+    return { type: type };
+}
+document.getElementById('btn-jsg').addEventListener('click', () => {
+    try {
+        let parsed = JSON.parse(document.getElementById('jsg-input').value);
+        let schema = generateSchema(parsed);
+        schema["$schema"] = "http://json-schema.org/draft-07/schema#";
+        document.getElementById('jsg-output').textContent = JSON.stringify(schema, null, 4);
+    } catch(e) {
+        document.getElementById('jsg-output').textContent = "Invalid JSON input.";
+    }
+});
+
+    </script>
+</body>
+</html>

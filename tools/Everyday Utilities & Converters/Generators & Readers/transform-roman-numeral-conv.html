@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Roman Numeral Converter</title>
+<link href="../../../style.css?v=3" rel="stylesheet"/>
+
+<link href="../../../custom-tools.css?v=3" rel="stylesheet"/>
+    <script src="../../../theme.js?v=3"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-transform-roman-numeral-conv">
+<div class="tool-layout-container">
+<div class="app-header">
+<h1>🏛️ Roman Numeral Converter</h1>
+<p>Convert numbers to Roman numerals and vice-versa (1 - 3999).</p>
+</div>
+<div class="grid">
+<div class="panel">
+<div class="input-group">
+<label for="arabic-val">Arabic Number</label>
+<input class="form-input" id="arabic-val" max="3999" min="1" placeholder="e.g. 2024" type="number" value="2024"/>
+</div>
+</div>
+<div class="panel">
+<div class="input-group">
+<label for="roman-val">Roman Numeral</label>
+<input class="form-input" id="roman-val" placeholder="e.g. MMXXIV" type="text" value="MMXXIV"/>
+</div>
+</div>
+</div>
+<div class="stats-bar">
+<span class="pill" id="status-pill">Ready to convert</span>
+</div>
+</div>
+<script>
+        const arabicInput = document.getElementById('arabic-val');
+        const romanInput = document.getElementById('roman-val');
+        const statusPill = document.getElementById('status-pill');
+
+        function arabicToRoman(num) {
+            const lookup = {M:1000,CM:900,D:500,CD:400,C:100,XC:90,L:50,XL:40,X:10,IX:9,V:5,IV:4,I:1};
+            let roman = '';
+            for (let i in lookup) {
+                while (num >= lookup[i]) {
+                    roman += i;
+                    num -= lookup[i];
+                }
+            }
+            return roman;
+        }
+
+        function romanToArabic(roman) {
+            const lookup = {M:1000,D:500,C:100,L:50,X:10,V:5,I:1};
+            let arabic = 0, i = 0;
+            while (i < roman.length) {
+                let current = lookup[roman[i]];
+                let next = lookup[roman[i+1]];
+                if (next && next > current) {
+                    arabic += (next - current);
+                    i += 2;
+                } else {
+                    arabic += current;
+                    i++;
+                }
+            }
+            return arabic;
+        }
+
+        function handleArabicInput() {
+            let val = parseInt(arabicInput.value);
+            if (isNaN(val)) {
+                romanInput.value = '';
+                setStatus('Please enter a valid number', true);
+                return;
+            }
+            if (val < 1 || val > 3999) {
+                romanInput.value = '';
+                setStatus('Number must be between 1 and 3999', true);
+                return;
+            }
+            romanInput.value = arabicToRoman(val);
+            setStatus('Converted successfully');
+        }
+
+        function handleRomanInput() {
+            let val = romanInput.value.toUpperCase().replace(/[^IVXLCDM]/g, '');
+            if (romanInput.value.toUpperCase() !== val) {
+                romanInput.value = val;
+            }
+            if (!val) {
+                arabicInput.value = '';
+                setStatus('Please enter a valid Roman numeral', true);
+                return;
+            }
+            let arabic = romanToArabic(val);
+            // Verify it's a valid Roman numeral form by doing a round trip
+            if (arabicToRoman(arabic) !== val) {
+                arabicInput.value = arabic;
+                setStatus('Standardized Roman numeral formatting', false);
+            } else {
+                arabicInput.value = arabic;
+                setStatus('Converted successfully');
+            }
+        }
+
+        function setStatus(msg, isError = false) {
+            statusPill.textContent = msg;
+            statusPill.className = 'pill ' + (isError ? 'error' : '');
+        }
+
+        arabicInput.addEventListener('input', handleArabicInput);
+        romanInput.addEventListener('input', handleRomanInput);
+    </script>
+</div></div></div></div></body>
+</html>

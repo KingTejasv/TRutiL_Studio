@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Time Converter</title>
+<link href="../../../style.css?v=3" rel="stylesheet"/>
+
+<link href="../../../custom-tools.css?v=3" rel="stylesheet"/>
+    <script src="../../../theme.js?v=3"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-transform-time-conv">
+<div class="tool-layout-container">
+<div class="app-header">
+<h1>⏱️ Time Converter</h1>
+<p>Convert seamlessly between multiple time units.</p>
+</div>
+<div class="grid">
+<div class="panel">
+<div class="input-group">
+<label for="input-val">Value</label>
+<input class="form-input" id="input-val" step="any" type="number" value="1"/>
+</div>
+<div class="input-group">
+<label for="input-unit">From Unit</label>
+<select class="form-input" id="input-unit"></select>
+</div>
+</div>
+<button aria-label="Swap units" class="swap-btn btn btn-primary" id="swap-btn">
+<svg viewbox="0 0 24 24">
+<path d="M7 16V4M7 4L3 8M7 4L11 8M17 8V20M17 20L21 16M17 20L13 16" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</button>
+<div class="panel">
+<div class="input-group">
+<label for="output-val">Converted Value</label>
+<input class="form-input" id="output-val" step="any" type="number" value=""/>
+</div>
+<div class="input-group">
+<label for="output-unit">To Unit</label>
+<select class="form-input" id="output-unit"></select>
+</div>
+</div>
+</div>
+<div class="stats-bar">
+<span class="pill" id="formula-pill">Formula: 1 h = 60 min</span>
+</div>
+</div>
+<script>
+        const inputVal = document.getElementById('input-val');
+        const outputVal = document.getElementById('output-val');
+        const inputUnit = document.getElementById('input-unit');
+        const outputUnit = document.getElementById('output-unit');
+        const swapBtn = document.getElementById('swap-btn');
+        const formulaPill = document.getElementById('formula-pill');
+
+        const units = {
+            ms: { name: 'Millisecond (ms)', rate: 0.001, symbol: 'ms' },
+            s: { name: 'Second (s)', rate: 1, symbol: 's' },
+            min: { name: 'Minute (min)', rate: 60, symbol: 'min' },
+            h: { name: 'Hour (h)', rate: 3600, symbol: 'h' },
+            d: { name: 'Day (d)', rate: 86400, symbol: 'd' },
+            wk: { name: 'Week (wk)', rate: 604800, symbol: 'wk' },
+            mo: { name: 'Month (mo)', rate: 2629746, symbol: 'mo' },
+            yr: { name: 'Year (yr)', rate: 31556952, symbol: 'yr' }
+        };
+
+        function populateUnits() {
+            for (const [key, val] of Object.entries(units)) {
+                inputUnit.add(new Option(val.name, key));
+                outputUnit.add(new Option(val.name, key));
+            }
+            inputUnit.selectedIndex = 3; // hour
+            outputUnit.selectedIndex = 2; // minute
+        }
+
+        function convert(fromInput) {
+            const from = inputUnit.value;
+            const to = outputUnit.value;
+            
+            if (fromInput) {
+                let val = parseFloat(inputVal.value);
+                if (isNaN(val)) {
+                    outputVal.value = '';
+                    return;
+                }
+                let baseVal = val * units[from].rate;
+                let finalVal = baseVal / units[to].rate;
+                outputVal.value = parseFloat(finalVal.toPrecision(10));
+            } else {
+                let val = parseFloat(outputVal.value);
+                if (isNaN(val)) {
+                    inputVal.value = '';
+                    return;
+                }
+                let baseVal = val * units[to].rate;
+                let finalVal = baseVal / units[from].rate;
+                inputVal.value = parseFloat(finalVal.toPrecision(10));
+            }
+            updateFormula();
+        }
+
+        function updateFormula() {
+            const from = inputUnit.value;
+            const to = outputUnit.value;
+            const ratio = units[from].rate / units[to].rate;
+            
+            let formattedRatio = ratio;
+            if (ratio > 10000 || ratio < 0.0001) {
+                formattedRatio = ratio.toExponential(4);
+            } else {
+                formattedRatio = parseFloat(ratio.toPrecision(6));
+            }
+            
+            formulaPill.textContent = `1 ${units[from].symbol} = ${formattedRatio} ${units[to].symbol}`;
+        }
+
+        inputVal.addEventListener('input', () => convert(true));
+        outputVal.addEventListener('input', () => convert(false));
+        inputUnit.addEventListener('change', () => convert(true));
+        outputUnit.addEventListener('change', () => convert(true));
+
+        swapBtn.addEventListener('click', () => {
+            const tempUnit = inputUnit.value;
+            inputUnit.value = outputUnit.value;
+            outputUnit.value = tempUnit;
+            convert(true);
+        });
+
+        populateUnits();
+        convert(true);
+    </script>
+</div></div></div></div></body>
+</html>

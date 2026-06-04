@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CSV Editor — TRutiL Studio</title>
+<link href="../../../style.css?v=3" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<link href="../../../custom-tools.css?v=3" rel="stylesheet"/>
+<script src="../../../theme.js?v=3"></script>
+</head>
+<body>
+<div class="app-layout" id="app-layout">
+<div class="main-content">
+<div class="page-content"><div id="tool-data-csv-editor">
+<div class="app-header">
+<div class="app-icon" style="background:linear-gradient(135deg, #3b82f6, #1d4ed8);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:24px;">⚙️</div>
+<div>
+<h1>CSV Editor</h1>
+<p>Import, view, edit, and export CSV files directly in your browser.</p>
+</div>
+</div>
+<div class="" style=" width: 100%; display: flex; flex-direction: column; gap: 20px;">
+<div class="toolbar panel">
+<label class="btn btn-primary" style="cursor:pointer;">
+            📂 Open CSV
+            <input accept=".csv" id="fileInput" style="display:none;" type="file"/>
+</label>
+<button class="btn btn-outline btn-primary" id="newBtn">📄 New</button>
+</div>
+<div class="toolbar-group">
+<button class="btn btn-outline btn-primary" disabled="" id="addRowBtn">+ Row</button>
+<button class="btn btn-outline btn-primary" disabled="" id="addColBtn">+ Column</button>
+</div>
+<div class="toolbar-group" style="flex: 1; justify-content: flex-end; border-right: none;">
+<button class="btn btn-primary" disabled="" id="downloadBtn" style="background: linear-gradient(135deg, #10b981, #059669); border: none;">⬇ Export CSV</button>
+</div>
+</div>
+<div class="workspace" id="workspace">
+<div class="empty-state" id="emptyState">
+<i>📊</i>
+<p>Open a CSV file or start a new one to begin editing.</p>
+</div>
+<div class="sheet-container panel" id="tableWrapper" style="display:none;">
+<div class="table-responsive"><table class="sheet-table" id="sheetTable">
+<thead id="csvHead"></thead>
+<tbody id="csvBody"></tbody>
+</table></div>
+</div>
+<div class="status-bar hidden" id="statusBar">
+<span id="fileInfo">Untitled.csv</span>
+<span id="gridStats">0 rows, 0 cols</span>
+</div>
+</div>
+</div></div>
+</div>
+</div>
+<script>
+  const fileInput = document.getElementById('fileInput');
+  const newBtn = document.getElementById('newBtn');
+  const addRowBtn = document.getElementById('addRowBtn');
+  const addColBtn = document.getElementById('addColBtn');
+  const downloadBtn = document.getElementById('downloadBtn');
+  
+  const emptyState = document.getElementById('emptyState');
+  const tableWrapper = document.getElementById('tableWrapper');
+  const csvTable = document.getElementById('csvTable');
+  const csvHead = document.getElementById('csvHead');
+  const csvBody = document.getElementById('csvBody');
+  
+  const statusBar = document.getElementById('statusBar');
+  const fileInfo = document.getElementById('fileInfo');
+  const gridStats = document.getElementById('gridStats');
+
+  let gridData = [];
+  let fileName = 'export.csv';
+
+  // Letters for columns (A, B, C...)
+  function getColLabel(index) {
+    let label = '';
+    let temp = index;
+    while (temp >= 0) {
+      label = String.fromCharCode(65 + (temp % 26)) + label;
+      temp = Math.floor(temp / 26) - 1;
+    }
+    return label;
+  }
+
+  function initGrid(data, name) {
+    gridData = data;
+    fileName = name || 'untitled.csv';
+    
+    // Ensure grid is a 2D array and rectangular
+    if (!gridData || gridData.length === 0) {
+      gridData = [['', ''], ['', '']];
+    }
+    
+    const maxCols = Math.max(...gridData.map(row => row.length));
+    gridData.forEach(row => {
+      while (row.length < maxCols) row.push('');
+    });
+
+    renderGrid();
+    
+    emptyState.style.display = 'none';
+    tableWrapper.style.display = 'block';
+    statusBar.classList.remove('hidden');
+    
+    addRowBtn.disabled = false;
+    addColBtn.disabled = false;
+    downloadBtn.disabled = false;
+  }
+
+  function renderGrid() {
+    if (gridData.length === 0) return;
+    const numCols = gridData[0].length;
+    
+    // Header
+    let trHead = '<tr><th class="row-idx">#</th>';
+    for (let c = 0; c < numCols; c++) {
+      trHead += `
+        <th>
+          <div class="col-header-inner">
+            ${getColLabel(c)}
+            <button class="del-col-btn" onclick="delCol(${c})" title="Delete Column">✕</button>
+          </div>
+        </th>
+      `;
+    }
+    trHead += '</tr>';
+    csvHead.innerHTML = trHead;
+    
+    // Body
+    // We render efficiently: fragment
+    const frag = document.createDocumentFragment();
+    for (let r = 0; r < gridData.length; r++) {
+      const tr = document.createElement('tr');
+      
+      const tdIdx = document.createElement('td');
+      tdIdx.className = 'row-idx';
+      tdIdx.innerHTML = `${r + 1} <span class="del-row-btn" onclick="delRow(${r})" title="Delete Row">✕</span>`;
+      tr.appendChild(tdIdx);
+      
+      for (let c = 0; c < numCols; c++) {
+        const td = document.createElement('td');
+        const inp = document.createElement('input');
+        inp.type = 'text';
+        inp.className = 'cell-input';
+        inp.value = gridData[r][c];
+        inp.dataset.r = r;
+        inp.dataset.c = c;
+        
+        inp.addEventListener('input', (e) => {
+          gridData[e.target.dataset.r][e.target.dataset.c] = e.target.value;
+        });
+        
+        // Arrow key navigation
+        inp.addEventListener('keydown', handleKeyNav);
+        
+        td.appendChild(inp);
+        tr.appendChild(td);
+      }
+      frag.appendChild(tr);
+    }
+    
+    csvBody.innerHTML = '';
+    csvBody.appendChild(frag);
+    
+    fileInfo.textContent = fileName;
+    gridStats.textContent = `${gridData.length} rows, ${numCols} cols`;
+  }
+
+  function handleKeyNav(e) {
+    const r = parseInt(e.target.dataset.r);
+    const c = parseInt(e.target.dataset.c);
+    const numRows = gridData.length;
+    const numCols = gridData[0].length;
+    
+    let targetInp = null;
+    
+    if (e.key === 'ArrowDown' || e.key === 'Enter') {
+      e.preventDefault();
+      if (r < numRows - 1) targetInp = getCellInput(r + 1, c);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (r > 0) targetInp = getCellInput(r - 1, c);
+    } else if (e.key === 'ArrowRight' && e.target.selectionStart === e.target.value.length) {
+      if (c < numCols - 1) { e.preventDefault(); targetInp = getCellInput(r, c + 1); }
+    } else if (e.key === 'ArrowLeft' && e.target.selectionStart === 0) {
+      if (c > 0) { e.preventDefault(); targetInp = getCellInput(r, c - 1); }
+    }
+    
+    if (targetInp) {
+      targetInp.focus();
+      // Only select if not moving left/right for better editing feel
+      if (e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'Enter') {
+         // keep cursor position if possible or select all
+      }
+    }
+  }
+
+  function getCellInput(r, c) {
+    const row = csvBody.children[r];
+    if (row) {
+      const cell = row.children[c + 1]; // +1 for row-idx
+      if (cell) return cell.querySelector('input');
+    }
+    return null;
+  }
+
+  window.delRow = (r) => {
+    if (gridData.length <= 1) return;
+    gridData.splice(r, 1);
+    renderGrid();
+  };
+  
+  window.delCol = (c) => {
+    if (gridData[0].length <= 1) return;
+    gridData.forEach(row => row.splice(c, 1));
+    renderGrid();
+  };
+
+  addRowBtn.addEventListener('click', () => {
+    const numCols = gridData[0].length;
+    gridData.push(Array(numCols).fill(''));
+    renderGrid();
+    setTimeout(() => {
+      const inp = getCellInput(gridData.length - 1, 0);
+      if (inp) inp.focus();
+    }, 10);
+    // scroll down
+    tableWrapper.scrollTop = tableWrapper.scrollHeight;
+  });
+
+  addColBtn.addEventListener('click', () => {
+    gridData.forEach(row => row.push(''));
+    renderGrid();
+    setTimeout(() => {
+      const inp = getCellInput(0, gridData[0].length - 1);
+      if (inp) inp.focus();
+    }, 10);
+    // scroll right
+    tableWrapper.scrollLeft = tableWrapper.scrollWidth;
+  });
+
+  // Import
+  fileInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    Papa.parse(file, {
+      skipEmptyLines: false,
+      complete: function(results) {
+        if (results.data && results.data.length > 0) {
+          initGrid(results.data, file.name);
+        } else {
+          alert('Could not read data from CSV.');
+        }
+      },
+      error: function(err) {
+        alert('Error parsing CSV: ' + err.message);
+      }
+    });
+    // reset input
+    fileInput.value = '';
+  });
+
+  // New
+  newBtn.addEventListener('click', () => {
+    initGrid([['Column 1', 'Column 2'], ['', '']], 'untitled.csv');
+  });
+
+  // Export
+  downloadBtn.addEventListener('click', () => {
+    const csvStr = Papa.unparse(gridData);
+    const blob = new Blob([csvStr], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName.endsWith('.csv') ? fileName : fileName + '.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+</script>
+</body>
+</html>

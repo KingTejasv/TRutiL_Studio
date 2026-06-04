@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Salary & Wage Calculator – TRutiL Studio</title>
+    <meta content="Convert between hourly, monthly, and annual salaries." name="description"/>
+    <link href="../../../style.css?v=3" rel="stylesheet"/>
+    <link href="../../../custom-tools.css?v=3" rel="stylesheet"/>
+    <script src="../../../theme.js?v=3"></script>
+</head>
+<body>
+    <div class="app-layout" id="app-layout">
+        <div class="main-content">
+            <div class="page-content">
+                <div class="app-header">
+                    <div class="app-icon">💼</div>
+                    <div>
+                        <h1>Salary & Wage Calculator</h1>
+                        <p>Convert between hourly, monthly, and annual salaries.</p>
+                    </div>
+                </div>
+                <div class="tool-workspace">
+                    
+<div class="panel" style="max-width: 600px; margin: 0 auto;">
+    <div class="panel-title">Salary & Wage Calculator</div>
+    <div class="form-group">
+        <label class="form-label">Input Type</label>
+        <select class="form-select" id="sal-type">
+            <option value="hourly">Hourly Wage</option>
+            <option value="annual" selected>Annual Salary</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label class="form-label">Amount ($)</label>
+        <input type="number" class="form-input" id="sal-amount" placeholder="e.g. 75000" value="75000">
+    </div>
+    <div class="form-group">
+        <label class="form-label">Hours Per Week</label>
+        <input type="number" class="form-input" id="sal-hours" placeholder="e.g. 40" value="40">
+    </div>
+    <button class="btn btn-primary w-full" id="btn-calc-sal">Convert Salary</button>
+    
+    <div class="grid-2" style="margin-top:20px;">
+        <div class="result-card">
+            <div style="font-size: 12px; opacity: 0.8;">Hourly Rate</div>
+            <div id="res-sal-hr" style="font-size: 1.5rem; font-weight:bold;">$0.00</div>
+        </div>
+        <div class="result-card">
+            <div style="font-size: 12px; opacity: 0.8;">Weekly Income</div>
+            <div id="res-sal-wk" style="font-size: 1.5rem; font-weight:bold;">$0.00</div>
+        </div>
+        <div class="result-card">
+            <div style="font-size: 12px; opacity: 0.8;">Monthly Income</div>
+            <div id="res-sal-mo" style="font-size: 1.5rem; font-weight:bold;">$0.00</div>
+        </div>
+        <div class="result-card" style="background: var(--bg-hover);">
+            <div style="font-size: 12px; opacity: 0.8;">Annual Salary</div>
+            <div id="res-sal-yr" style="font-size: 1.5rem; font-weight:bold; color: var(--accent-green);">$0.00</div>
+        </div>
+    </div>
+</div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+
+document.getElementById('btn-calc-sal').addEventListener('click', () => {
+    let type = document.getElementById('sal-type').value;
+    let amt = parseFloat(document.getElementById('sal-amount').value) || 0;
+    let hrs = parseFloat(document.getElementById('sal-hours').value) || 40;
+    
+    let hourly = 0;
+    let annual = 0;
+    
+    if(type === 'hourly') {
+        hourly = amt;
+        annual = hourly * hrs * 52;
+    } else {
+        annual = amt;
+        hourly = annual / (hrs * 52);
+    }
+    
+    let weekly = hourly * hrs;
+    let monthly = annual / 12;
+    
+    document.getElementById('res-sal-hr').textContent = "$" + hourly.toFixed(2);
+    document.getElementById('res-sal-wk').textContent = "$" + weekly.toFixed(2);
+    document.getElementById('res-sal-mo').textContent = "$" + monthly.toFixed(2);
+    document.getElementById('res-sal-yr').textContent = "$" + annual.toFixed(2);
+});
+
+    </script>
+</body>
+</html>

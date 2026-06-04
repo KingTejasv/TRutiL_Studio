@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Robots.txt Tester</title>
+
+<link href="../../../style.css?v=3" rel="stylesheet"/><link href="../../../custom-tools.css?v=3" rel="stylesheet"/>
+    <script src="../../../theme.js?v=3"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-searchops-robots-txt-tester">
+<div class="app-header">
+<h1>🤖 Robots.txt Tester</h1>
+<p>Test your robots.txt rules against specific URLs and User-Agents</p>
+</div>
+<div class="tool-layout-container">
+<div class="panel">
+<h2>📝 Robots.txt Content</h2>
+<textarea class="form-input" id="robotsInput" placeholder="User-agent: *
+Disallow: /admin/
+Allow: /">User-agent: *
+Disallow: /admin/
+Allow: /</textarea>
+</div>
+<div class="panel">
+<h2>🎯 Test Parameters</h2>
+<div class="form-group">
+<label>URL Path to Test</label>
+<input class="form-input" id="urlInput" placeholder="/admin/dashboard" type="text" value="/admin/dashboard"/>
+</div>
+<div class="form-group">
+<label>User-Agent</label>
+<input class="form-input" id="uaInput" placeholder="Googlebot" type="text" value="Googlebot"/>
+</div>
+<button class="btn btn-primary" id="testBtn">⚡ Test Access</button>
+<div class="result-box" id="resultBox">
+<div style="color: var(--text-muted)">Click Test Access to see results</div>
+</div>
+</div>
+</div>
+<div class="stats-bar">
+<div>Lines parsed: <span id="lineCount">3</span></div>
+<div class="stat-pill" id="statusPill">Ready to test</div>
+</div>
+<script>
+function testRobots() {
+  const robotsTxt = document.getElementById('robotsInput').value;
+  const path = document.getElementById('urlInput').value.trim() || '/';
+  const ua = document.getElementById('uaInput').value.trim().toLowerCase();
+  
+  const lines = robotsTxt.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('#'));
+  document.getElementById('lineCount').textContent = lines.length;
+  
+  let currentUAs = [];
+  let matchingUA = false;
+  let specificity = -1;
+  let isAllowed = true;
+  let matchingRule = 'Default (Implicit Allow)';
+  
+  let rules = [];
+  let currentAgents = [];
+  
+  for (let line of lines) {
+    const colonIdx = line.indexOf(':');
+    if (colonIdx === -1) continue;
+    const key = line.substring(0, colonIdx).trim().toLowerCase();
+    const val = line.substring(colonIdx + 1).trim();
+    
+    if (key === 'user-agent') {
+      if (rules.length > 0 && currentAgents.length > 0) {
+        currentAgents = [];
+      }
+      currentAgents.push(val.toLowerCase());
+    } else if (key === 'allow' || key === 'disallow') {
+      rules.push({ agents: [...currentAgents], type: key, path: val });
+    }
+  }
+  
+  let applicableRules = rules.filter(r => 
+    r.agents.includes(ua) || r.agents.includes('*')
+  );
+  
+  applicableRules.sort((a, b) => {
+    if (a.path.length !== b.path.length) return b.path.length - a.path.length;
+    if (a.type === 'allow' && b.type === 'disallow') return -1;
+    if (a.type === 'disallow' && b.type === 'allow') return 1;
+    return 0;
+  });
+  
+  for (let rule of applicableRules) {
+    let regexStr = rule.path.replace(/\*/g, '.*').replace(/\?/g, '\\?');
+    if (rule.path.endsWith('$')) regexStr = regexStr.slice(0, -1) + '$';
+    try {
+      let regex = new RegExp('^' + regexStr);
+      if (regex.test(path)) {
+        isAllowed = (rule.type === 'allow');
+        matchingRule = \`\${rule.type === 'allow' ? 'Allow' : 'Disallow'}: \${rule.path} (for \${rule.agents.join(', ')})\`;
+        break;
+      }
+    } catch(e) {}
+  }
+  
+  const resultBox = document.getElementById('resultBox');
+  if (isAllowed) {
+    resultBox.innerHTML = \`
+      <div class="status allowed">✅ ALLOWED</div>
+      <div>The requested path is accessible to this User-Agent.</div>
+      <div class="rule-match">Matching Rule: \${matchingRule}</div>
+    \`;
+    document.getElementById('statusPill').textContent = 'Access: Allowed';
+    document.getElementById('statusPill').style.background = 'rgba(16, 185, 129, 0.1)';
+    document.getElementById('statusPill').style.color = 'var(--success)';
+  } else {
+    resultBox.innerHTML = \`
+      <div class="status disallowed">❌ DISALLOWED</div>
+      <div>The requested path is blocked for this User-Agent.</div>
+      <div class="rule-match">Matching Rule: \${matchingRule}</div>
+    \`;
+    document.getElementById('statusPill').textContent = 'Access: Disallowed';
+    document.getElementById('statusPill').style.background = 'rgba(239, 68, 68, 0.1)';
+    document.getElementById('statusPill').style.color = 'var(--danger)';
+  }
+}
+
+document.getElementById('testBtn').addEventListener('click', testRobots);
+testRobots();
+</script>
+</div></div></div></div></body>
+</html>

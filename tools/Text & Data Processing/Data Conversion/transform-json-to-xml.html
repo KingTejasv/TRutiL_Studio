@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>JSON to XML Converter</title>
+<link href="../../../style.css?v=3" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Cascadia+Code&amp;display=swap" rel="stylesheet"/>
+
+<link href="../../../custom-tools.css?v=3" rel="stylesheet"/>
+    <script src="../../../theme.js?v=3"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-transform-json-to-xml">
+<div class="app-header">
+<h1>🔄 JSON to XML Converter</h1>
+<p>Transform your JSON data into valid formatted XML</p>
+</div>
+<div class="toolbar">
+<button class="btn btn-primary" onclick="convert()">⚡ Convert to XML</button>
+<button class="btn btn-primary" onclick="copyOutput()">📋 Copy Output</button>
+<button class="btn btn-primary" onclick="clearAll()">🗑️ Clear</button>
+</div>
+<div class="tool-layout-container">
+<div class="panel">
+<label for="input">Input JSON</label>
+<textarea class="form-input" id="input" oninput="debounceConvert()" placeholder='{"person": {"name": "John", "age": 30}}'></textarea>
+</div>
+<div class="panel">
+<label for="output">Output XML</label>
+<textarea class="form-input" id="output" placeholder='&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;root&gt;
+  &lt;person&gt;
+    &lt;name&gt;John&lt;/name&gt;
+    &lt;age&gt;30&lt;/age&gt;
+  &lt;/person&gt;
+&lt;/root&gt;' readonly=""></textarea>
+</div>
+</div>
+<div class="stats-bar">
+<div class="stats-group">
+<div class="stat">
+<span class="stat-label">JSON Size</span>
+<span class="stat-value" id="in-size">0 B</span>
+</div>
+<div class="stat">
+<span class="stat-label">XML Size</span>
+<span class="stat-value" id="out-size">0 B</span>
+</div>
+</div>
+<div class="pill idle" id="status-pill">Waiting for input</div>
+</div>
+<script>
+        let timeout = null;
+        function debounceConvert() {
+            clearTimeout(timeout);
+            timeout = setTimeout(convert, 300);
+        }
+
+        function convert() {
+            const input = document.getElementById('input').value;
+            const outputEl = document.getElementById('output');
+            const pill = document.getElementById('status-pill');
+            
+            if (!input.trim()) {
+                outputEl.value = '';
+                updateStats(0, 0);
+                pill.className = 'pill idle';
+                pill.textContent = 'Waiting for input';
+                return;
+            }
+
+            try {
+                const data = JSON.parse(input);
+                let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
+                xml += jsonToXml(data, 'root', 0);
+                
+                outputEl.value = xml.trim();
+                updateStats(new Blob([input]).size, new Blob([outputEl.value]).size);
+                
+                pill.className = 'pill';
+                pill.textContent = 'Success';
+            } catch (e) {
+                pill.className = 'pill error';
+                pill.textContent = 'Error: ' + e.message;
+            }
+        }
+
+        function jsonToXml(data, tagName, indentLevel) {
+            let indent = '  '.repeat(indentLevel);
+            let xml = '';
+            
+            if (data === null || data === undefined) {
+                xml += `${indent}<${tagName}/>\n`;
+            } else if (typeof data !== 'object') {
+                xml += `${indent}<${tagName}>${escapeXml(String(data))}</${tagName}>\n`;
+            } else if (Array.isArray(data)) {
+                for (let item of data) {
+                    xml += jsonToXml(item, tagName, indentLevel);
+                }
+            } else {
+                xml += `${indent}<${tagName}>\n`;
+                for (let key in data) {
+                    let validKey = key.replace(/[^a-zA-Z0-9_.-]/g, '_');
+                    if (/^[0-9.-]/.test(validKey)) validKey = '_' + validKey;
+                    if (validKey === '') validKey = 'item';
+                    xml += jsonToXml(data[key], validKey, indentLevel + 1);
+                }
+                xml += `${indent}</${tagName}>\n`;
+            }
+            return xml;
+        }
+
+        function escapeXml(unsafe) {
+            return String(unsafe).replace(/[<>&'"]/g, function (c) {
+                switch (c) {
+                    case '<': return '&lt;';
+                    case '>': return '&gt;';
+                    case '&': return '&amp;';
+                    case '\'': return '&apos;';
+                    case '"': return '&quot;';
+                }
+            });
+        }
+
+        function updateStats(inBytes, outBytes) {
+            document.getElementById('in-size').textContent = formatBytes(inBytes);
+            document.getElementById('out-size').textContent = formatBytes(outBytes);
+        }
+
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function copyOutput() {
+            const out = document.getElementById('output');
+            out.select();
+            document.execCommand('copy');
+        }
+
+        function clearAll() {
+            document.getElementById('input').value = '';
+            document.getElementById('output').value = '';
+            debounceConvert();
+        }
+    </script>
+</div></div></div></div></body>
+</html>

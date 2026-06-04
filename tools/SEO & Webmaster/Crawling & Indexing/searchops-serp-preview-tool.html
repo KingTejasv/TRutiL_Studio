@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SERP Preview Tool</title>
+
+<link href="../../../style.css?v=3" rel="stylesheet"/><link href="../../../custom-tools.css?v=3" rel="stylesheet"/>
+    <script src="../../../theme.js?v=3"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-searchops-serp-preview-tool">
+<div class="app-header">
+<h1>🔍 SERP Preview Tool</h1>
+<p>Visualize and optimize how your page appears in Google Search results</p>
+</div>
+<div class="tool-layout-container">
+<div class="panel">
+<h2>📝 Metadata Input</h2>
+<div class="form-group">
+<label>
+        Title Tag
+        <span class="char-count" id="titleCount">0 / 60</span>
+</label>
+<input class="form-input" id="inTitle" placeholder="Enter page title" type="text" value="High Performance Web Hosting | Example Cloud"/>
+</div>
+<div class="form-group">
+<label>
+        Meta Description
+        <span class="char-count" id="descCount">0 / 160</span>
+</label>
+<textarea class="form-input" id="inDesc" placeholder="Enter meta description">Experience lightning-fast web hosting with Example Cloud. Enjoy 99.9% uptime, SSD storage, and 24/7 expert support. Get started today!</textarea>
+</div>
+<div class="form-group">
+<label>URL / Slug</label>
+<input class="form-input" id="inUrl" placeholder="example.com/path" type="text" value="example.com/web-hosting"/>
+</div>
+</div>
+<div class="panel">
+<h2>👁️ Google Search Preview</h2>
+<div class="preview-wrapper">
+<div class="serp-url">
+<div class="serp-url-icon">🌐</div>
+<span id="outUrl">https://example.com › web-hosting</span>
+</div>
+<h3 class="serp-title" id="outTitle">High Performance Web Hosting | Example Cloud</h3>
+<div class="serp-desc" id="outDesc">Experience lightning-fast web hosting with Example Cloud. Enjoy 99.9% uptime, SSD storage, and 24/7 expert support. Get started today!</div>
+</div>
+</div>
+</div>
+<div class="stats-bar">
+<div id="statusMsg">Optimize your title (~60 chars) and description (~160 chars)</div>
+<div class="stat-pill" id="scorePill">SEO Score: Good</div>
+</div>
+<script>
+function updatePreview() {
+  const title = document.getElementById('inTitle').value;
+  const desc = document.getElementById('inDesc').value;
+  const url = document.getElementById('inUrl').value;
+  
+  const titleLen = title.length;
+  const descLen = desc.length;
+  
+  const titleCountEl = document.getElementById('titleCount');
+  titleCountEl.textContent = \`\${titleLen} / 60\`;
+  titleCountEl.className = 'char-count ' + (titleLen === 0 ? '' : titleLen <= 60 ? 'good' : 'danger');
+  
+  const descCountEl = document.getElementById('descCount');
+  descCountEl.textContent = \`\${descLen} / 160\`;
+  descCountEl.className = 'char-count ' + (descLen === 0 ? '' : descLen <= 160 ? 'good' : descLen <= 180 ? 'warn' : 'danger');
+  
+  let displayUrl = url.replace(/^https?:\\/\\//, '').replace(/\\/$/, '');
+  let parts = displayUrl.split('/');
+  let domain = parts.shift();
+  let path = parts.join(' › ');
+  
+  document.getElementById('outTitle').textContent = title || 'Example Title';
+  document.getElementById('outDesc').textContent = desc || 'Example description...';
+  document.getElementById('outUrl').textContent = \`https://\${domain}\${path ? ' › ' + path : ''}\`;
+  
+  let scoreText = 'Needs Work';
+  if (titleLen > 0 && titleLen <= 60 && descLen > 0 && descLen <= 160) {
+    scoreText = 'Excellent';
+  } else if (titleLen > 0 && titleLen <= 65 && descLen > 0 && descLen <= 170) {
+    scoreText = 'Good';
+  }
+  document.getElementById('scorePill').textContent = \`SEO Rating: \${scoreText}\`;
+}
+
+document.getElementById('inTitle').addEventListener('input', updatePreview);
+document.getElementById('inDesc').addEventListener('input', updatePreview);
+document.getElementById('inUrl').addEventListener('input', updatePreview);
+
+updatePreview();
+</script>
+</div></div></div></div></body>
+</html>

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>EXIF Viewer - MediaWorks</title>
+<link href="../../../../style.css?v=3" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/exifr/dist/full.umd.js"></script>
+<link href="../../../../custom-tools.css?v=3" rel="stylesheet"/>
+<script src="../../../../theme.js?v=3"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-mediaworks-exif-viewer">
+<div class="app-header">
+<div class="app-icon" style="background:linear-gradient(135deg, #3b82f6, #1d4ed8);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:24px;">🔍</div>
+<div>
+<h1>EXIF Viewer</h1>
+<p>View hidden metadata and GPS info embedded in your images</p>
+</div>
+</div>
+<div class="tool-layout-container">
+<div class="panel">
+<div class="panel-title">
+<svg fill="none" height="20" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="20"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" x2="12" y1="3" y2="15"></line></svg>
+                Upload Image
+            </div>
+<div class="drop-zone" id="dropZone">
+<svg fill="none" height="48" stroke="var(--accent)" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" style="margin-bottom: 1rem;" viewbox="0 0 24 24" width="48"><rect height="18" rx="2" ry="2" width="18" x="3" y="3"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+<div id="dropText" style="font-weight: 600; margin-bottom: 0.5rem;">Click or drag image here</div>
+<div style="color: var(--text-muted); font-size: 0.875rem;">Supports JPG, PNG, HEIC, TIFF</div>
+<input accept="image/*" id="fileInput" type="file"/>
+</div>
+</div>
+<div class="panel">
+<div class="panel-title">
+<svg fill="none" height="20" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="20"><circle cx="11" cy="11" r="8"></circle><line x1="21" x2="16.65" y1="21" y2="16.65"></line></svg>
+                Metadata Details
+            </div>
+<div class="preview-area">
+<pre id="exifOutput" style="margin: 0; padding: 1rem; width: 100%; font-family: 'Cascadia Code', 'Fira Code', monospace; color: #10B981; font-size: 0.875rem; white-space: pre-wrap; word-break: break-all; overflow-y: auto;">Upload an image to see EXIF data...</pre>
+</div>
+</div>
+</div>
+<script>
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const exifOutput = document.getElementById('exifOutput');
+        const dropText = document.getElementById('dropText');
+        
+        dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            if (e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                parseExif(fileInput.files[0]);
+            }
+        });
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length > 0) parseExif(fileInput.files[0]);
+        });
+        
+        async function parseExif(file) {
+            dropText.textContent = file.name;
+            exifOutput.style.color = '#F1F5F9';
+            exifOutput.textContent = "Parsing EXIF data, please wait...";
+            
+            try {
+                let output = await exifr.parse(file, true);
+                if (output && Object.keys(output).length > 0) {
+                    exifOutput.style.color = '#10B981';
+                    exifOutput.textContent = JSON.stringify(output, null, 2);
+                } else {
+                    exifOutput.style.color = '#F59E0B';
+                    exifOutput.textContent = "No EXIF data found in this image.";
+                }
+            } catch(err) {
+                exifOutput.style.color = '#EF4444';
+                exifOutput.textContent = "Error parsing EXIF data:\n" + err.message;
+            }
+        }
+    </script>
+</div></div></div></div></body>
+</html>

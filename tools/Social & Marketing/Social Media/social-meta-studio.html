@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Social Meta Card Studio — TRutiL Studio</title>
+<link href="../../../style.css?v=3" rel="stylesheet"/>
+<link href="../../../custom-tools.css?v=3" rel="stylesheet"/>
+<script src="../../../theme.js?v=3"></script>
+<style>
+    .layout-wrapper { display: flex; gap: 20px; flex-direction: column; @media (min-width: 900px) { flex-direction: row; } }
+    .form-section { flex: 1.2; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 25px; }
+    .preview-section { flex: 1.5; display: flex; flex-direction: column; gap: 20px; position: sticky; top: 20px; height: max-content; }
+    
+    .form-group { margin-bottom: 20px; position: relative; }
+    .form-group label { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.95rem; font-weight: 500; color: var(--text-primary); }
+    .char-count { font-size: 0.8rem; font-weight: 400; color: var(--text-muted); }
+    .char-count.warn { color: #f59e0b; }
+    .char-count.err { color: #ef4444; }
+    
+    .form-group input, .form-group textarea { width: 100%; padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg-input); color: var(--text-primary); font-family: inherit; font-size: 1rem; transition: border-color 0.2s; }
+    .form-group input:focus, .form-group textarea:focus { outline: none; border-color: var(--primary-color); }
+    .form-group textarea { resize: vertical; min-height: 100px; }
+    
+    .card-preview { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px; }
+    .card-preview h3 { margin: 0 0 15px 0; font-size: 1.1rem; color: var(--text-primary); border-bottom: 1px solid var(--border); padding-bottom: 10px; display: flex; align-items: center; justify-content: space-between; }
+    
+    /* Modern Twitter Style Preview */
+    .tw-card { border: 1px solid var(--border); border-radius: 16px; overflow: hidden; background: var(--bg-input); max-width: 500px; margin: 0 auto; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; transition: all 0.3s; cursor: pointer; }
+    .tw-card:hover { background: rgba(0,0,0,0.05); }
+    [data-theme="dark"] .tw-card:hover { background: rgba(255,255,255,0.05); }
+    
+    .tw-img { width: 100%; height: 260px; background: #333; object-fit: cover; border-bottom: 1px solid var(--border); }
+    .tw-content { padding: 12px 16px; }
+    .tw-domain { color: var(--text-muted); font-size: 13px; text-transform: lowercase; margin-bottom: 2px; }
+    .tw-title { color: var(--text-primary); font-size: 16px; font-weight: 700; margin: 2px 0 4px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.3; }
+    .tw-desc { color: var(--text-muted); font-size: 14px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.4; }
+    
+    .code-box { position: relative; margin-top: 10px; }
+    .code-box pre { background: #1e1e1e; color: #d4d4d4; padding: 20px; border-radius: var(--radius-sm); overflow-x: auto; font-size: 0.85rem; font-family: 'Fira Code', monospace; line-height: 1.5; border: 1px solid #333; }
+    .copy-btn { position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 500; transition: background 0.2s; }
+    .copy-btn:hover { background: rgba(255,255,255,0.3); }
+    
+    .actions { display: flex; gap: 10px; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border); }
+</style>
+</head>
+<body>
+<div class="app-layout" id="app-layout">
+<div class="main-content">
+<div class="page-content">
+    <div class="app-header">
+        <div class="app-icon" style="background:linear-gradient(135deg,#0ea5e9,#0284c7);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:24px;">🌐</div>
+        <div>
+            <h1>Social Meta Card Studio</h1>
+            <p>Generate perfect Open Graph and Twitter Card tags with live visual previews. Data auto-saves as you type.</p>
+        </div>
+    </div>
+    
+    <div class="layout-wrapper">
+        <div class="form-section">
+            <h3 style="margin-top:0; margin-bottom: 25px; font-size:1.2rem; color:var(--text-primary);">SEO Content</h3>
+            
+            <div class="form-group">
+                <label>Page URL</label>
+                <input type="url" id="meta-url" placeholder="https://yourwebsite.com/post" oninput="updateAll()">
+            </div>
+            
+            <div class="form-group">
+                <label>
+                    <span>Title</span>
+                    <span class="char-count" id="count-title">0/60</span>
+                </label>
+                <input type="text" id="meta-title" placeholder="Catchy Headline Goes Here" oninput="updateAll()">
+            </div>
+            
+            <div class="form-group">
+                <label>
+                    <span>Description</span>
+                    <span class="char-count" id="count-desc">0/160</span>
+                </label>
+                <textarea id="meta-desc" placeholder="A compelling summary of the page content that encourages users to click." oninput="updateAll()"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label>Cover Image URL (1200x630px recommended)</label>
+                <input type="url" id="meta-image" placeholder="https://example.com/cover.jpg" oninput="updateAll()">
+            </div>
+            
+            <div class="form-group">
+                <label>Author / Twitter Handle</label>
+                <input type="text" id="meta-author" placeholder="@username" oninput="updateAll()">
+            </div>
+            
+            <div class="actions">
+                <button class="btn btn-secondary" onclick="clearForm()" style="width: 100%; border-color: #ef4444; color: #ef4444; background: transparent;">Clear Form</button>
+            </div>
+        </div>
+        
+        <div class="preview-section">
+            <div class="card-preview">
+                <h3>
+                    <span style="display:flex; align-items:center; gap:8px;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="var(--primary-color)"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/></svg> 
+                        Live Feed Preview
+                    </span>
+                </h3>
+                <div class="tw-card">
+                    <img id="prev-img" class="tw-img" src="" alt="Card Image" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiMyMjIiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZmlsbD0iIzY2NiIgZm9udC1zaXplPSIyMCIgdGV4dC1hbmNob3I9Im1pZGRsZSI+SW1hZ2UgTm90IEZvdW5kPC90ZXh0Pjwvc3ZnPg=='">
+                    <div class="tw-content">
+                        <div id="prev-domain" class="tw-domain">example.com</div>
+                        <div id="prev-title" class="tw-title">Enter a title to see preview</div>
+                        <div id="prev-desc" class="tw-desc">Enter a description to see how it looks when shared on social media platforms.</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card-preview" style="flex:1;">
+                <h3 style="margin-bottom:0;">HTML Output</h3>
+                <div class="code-box">
+                    <button class="copy-btn" onclick="copyCode()">Copy HTML</button>
+                    <pre><code id="code-output"></code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+</div>
+
+<script>
+    const els = {
+        url: document.getElementById('meta-url'),
+        title: document.getElementById('meta-title'),
+        desc: document.getElementById('meta-desc'),
+        img: document.getElementById('meta-image'),
+        author: document.getElementById('meta-author'),
+        
+        cTitle: document.getElementById('count-title'),
+        cDesc: document.getElementById('count-desc'),
+        
+        pDomain: document.getElementById('prev-domain'),
+        pTitle: document.getElementById('prev-title'),
+        pDesc: document.getElementById('prev-desc'),
+        pImg: document.getElementById('prev-img'),
+        
+        output: document.getElementById('code-output')
+    };
+
+    function loadSaved() {
+        if(localStorage.getItem('metaStudio_title')) {
+            els.url.value = localStorage.getItem('metaStudio_url') || '';
+            els.title.value = localStorage.getItem('metaStudio_title') || '';
+            els.desc.value = localStorage.getItem('metaStudio_desc') || '';
+            els.img.value = localStorage.getItem('metaStudio_img') || '';
+            els.author.value = localStorage.getItem('metaStudio_author') || '';
+        } else {
+            // Defaults
+            els.url.value = 'https://example.com/my-post';
+            els.title.value = 'How to Build Beautiful Web Apps';
+            els.desc.value = 'Learn how to rapidly scaffold, design, and deploy professional web applications using modern tooling and zero-backend architectures.';
+            els.img.value = 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800&q=80';
+            els.author.value = '@developer';
+        }
+    }
+
+    function saveState() {
+        localStorage.setItem('metaStudio_url', els.url.value);
+        localStorage.setItem('metaStudio_title', els.title.value);
+        localStorage.setItem('metaStudio_desc', els.desc.value);
+        localStorage.setItem('metaStudio_img', els.img.value);
+        localStorage.setItem('metaStudio_author', els.author.value);
+    }
+
+    function updateCounters() {
+        const tLen = els.title.value.length;
+        els.cTitle.textContent = `${tLen}/60`;
+        els.cTitle.className = 'char-count ' + (tLen > 60 ? 'err' : tLen > 50 ? 'warn' : '');
+        
+        const dLen = els.desc.value.length;
+        els.cDesc.textContent = `${dLen}/160`;
+        els.cDesc.className = 'char-count ' + (dLen > 160 ? 'err' : dLen > 140 ? 'warn' : '');
+    }
+
+    function updateAll() {
+        updateCounters();
+        saveState();
+        
+        const url = els.url.value;
+        const title = els.title.value;
+        const desc = els.desc.value;
+        const image = els.img.value;
+        const author = els.author.value;
+        
+        let domain = "domain.com";
+        try { domain = new URL(url).hostname; } catch(e){}
+        
+        // Update Preview
+        els.pDomain.textContent = domain;
+        els.pTitle.textContent = title || "Enter a title to see preview";
+        els.pDesc.textContent = desc || "Enter a description...";
+        els.pImg.src = image;
+        
+        // Generate HTML
+        const html = `<!-- Essential Meta Tags -->
+<meta property="og:title" content="${title.replace(/"/g, '&quot;')}">
+<meta property="og:description" content="${desc.replace(/"/g, '&quot;')}">
+<meta property="og:image" content="${image}">
+<meta property="og:url" content="${url}">
+<meta name="twitter:card" content="summary_large_image">
+
+<!-- Non-Essential, But Recommended -->
+<meta property="og:site_name" content="${domain}">
+<meta name="twitter:image:alt" content="${title.replace(/"/g, '&quot;')}">
+<meta name="twitter:site" content="${author}">
+<meta name="twitter:creator" content="${author}">`;
+
+        els.output.textContent = html;
+    }
+    
+    function copyCode() {
+        navigator.clipboard.writeText(els.output.textContent);
+        const btn = document.querySelector('.copy-btn');
+        const old = btn.textContent;
+        btn.textContent = 'Copied!';
+        btn.style.background = '#10b981';
+        btn.style.borderColor = '#10b981';
+        setTimeout(() => { 
+            btn.textContent = old;
+            btn.style.background = '';
+            btn.style.borderColor = '';
+        }, 2000);
+    }
+    
+    function clearForm() {
+        if(confirm("Are you sure you want to clear all fields?")) {
+            els.url.value = '';
+            els.title.value = '';
+            els.desc.value = '';
+            els.img.value = '';
+            els.author.value = '';
+            updateAll();
+        }
+    }
+
+    // Init
+    loadSaved();
+    updateAll();
+</script>
+</body>
+</html>

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Compound Interest & ROI Calculator – TRutiL Studio</title>
+    <meta content="Calculate compound interest, future value, and ROI." name="description"/>
+    <link href="../../../style.css?v=3" rel="stylesheet"/>
+    <link href="../../../custom-tools.css?v=3" rel="stylesheet"/>
+    <script src="../../../theme.js?v=3"></script>
+</head>
+<body>
+    <div class="app-layout" id="app-layout">
+        <div class="main-content">
+            <div class="page-content">
+                <div class="app-header">
+                    <div class="app-icon">📈</div>
+                    <div>
+                        <h1>Compound Interest & ROI Calculator</h1>
+                        <p>Calculate future investment value and return on investment.</p>
+                    </div>
+                </div>
+                <div class="tool-workspace">
+                    
+<div class="grid-2">
+    <div class="panel">
+        <div class="panel-title">Investment Details</div>
+        <div class="form-group">
+            <label class="form-label">Initial Investment ($)</label>
+            <input type="number" class="form-input" id="inv-initial" placeholder="e.g. 10000" value="10000">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Annual Interest Rate (%)</label>
+            <input type="number" class="form-input" id="inv-rate" placeholder="e.g. 7" value="7">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Years to Grow</label>
+            <input type="number" class="form-input" id="inv-years" placeholder="e.g. 10" value="10">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Compound Frequency</label>
+            <select class="form-select" id="inv-freq">
+                <option value="1">Annually</option>
+                <option value="12" selected>Monthly</option>
+                <option value="365">Daily</option>
+            </select>
+        </div>
+        <button class="btn btn-primary w-full" id="btn-calc-inv">Calculate Growth</button>
+    </div>
+
+    <div class="panel">
+        <div class="panel-title">Results</div>
+        <div class="result-card" style="background: var(--accent-green); display:flex; flex-direction:column; justify-content:center; min-height: 250px;">
+            <div style="font-size: 14px; opacity: 0.9;">Future Value</div>
+            <div id="res-inv-future" class="result-big" style="-webkit-text-fill-color:#fff; margin-bottom: 20px;">$0.00</div>
+            
+            <div style="font-size: 14px; opacity: 0.8;">Return on Investment (ROI)</div>
+            <div id="res-inv-roi" style="font-size: 2rem; font-weight:bold;">0.00%</div>
+            
+            <div style="margin-top: 15px; font-size: 14px; opacity: 0.8;">Total Profit: <span id="res-inv-profit" style="font-weight:bold; color:#fff;">$0.00</span></div>
+        </div>
+    </div>
+</div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+document.getElementById('btn-calc-inv').addEventListener('click', () => {
+    let p = parseFloat(document.getElementById('inv-initial').value) || 0;
+    let r = parseFloat(document.getElementById('inv-rate').value) || 0;
+    let t = parseFloat(document.getElementById('inv-years').value) || 0;
+    let n = parseFloat(document.getElementById('inv-freq').value) || 12;
+    
+    if(p > 0) {
+        let future = p * Math.pow(1 + ((r/100)/n), n*t);
+        let roi = ((future - p) / p) * 100;
+        let profit = future - p;
+        
+        document.getElementById('res-inv-future').textContent = "$" + future.toFixed(2);
+        document.getElementById('res-inv-roi').textContent = roi.toFixed(2) + "%";
+        document.getElementById('res-inv-profit').textContent = "$" + profit.toFixed(2);
+    }
+});
+// Init
+document.getElementById('btn-calc-inv').click();
+    </script>
+</body>
+</html>

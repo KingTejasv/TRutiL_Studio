@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Redirect Checker - SearchOps</title>
+
+<link href="../../../style.css?v=3" rel="stylesheet"/><link href="../../../custom-tools.css?v=3" rel="stylesheet"/>
+    <script src="../../../theme.js?v=3"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-searchops-redirect-checker">
+<div class="tool-layout-container">
+<div class="app-header">
+<h1>🔄 Redirect Checker</h1>
+<p>Trace URL redirection paths and status codes</p>
+</div>
+<div class="card">
+<div class="input-group">
+<label>Website URL</label>
+<input class="form-input" id="url" placeholder="http://example.com" type="url"/>
+</div>
+<button class="btn btn-primary" id="btn" onclick="trace()">🔄 Trace Redirects</button>
+</div>
+<div class="card" id="results-card" style="display:none;">
+<h3 style="margin-top:0;">Redirect Chain</h3>
+<ul id="chain"></ul>
+</div>
+</div>
+<script>
+async function trace() {
+    let url = document.getElementById('url').value;
+    if(!url) return;
+    if(!url.startsWith('http')) url = 'http://' + url;
+    
+    const btn = document.getElementById('btn');
+    const chain = document.getElementById('chain');
+    const results = document.getElementById('results-card');
+    
+    btn.innerHTML = '🔄 Tracing...';
+    results.style.display = 'flex';
+    chain.innerHTML = '<div style="text-align:center; padding: 1rem;">Analyzing route...</div>';
+    
+    try {
+        const res = await fetch(url, { mode: 'cors' });
+        chain.innerHTML = '';
+        if(res.url && res.url !== url) {
+            addHop(url, 301);
+            addHop(res.url, 200);
+        } else {
+            addHop(url, 200);
+        }
+    } catch(e) {
+        // Fallback simulation for demonstration due to CORS
+        chain.innerHTML = '';
+        addHop(url, 301);
+        let final = url.replace('http://', 'https://').replace('://', '://www.');
+        if(final === url) final = url + '/';
+        addHop(final, 200);
+        
+        const note = document.createElement('div');
+        note.className = 'note';
+        note.textContent = 'Note: Simulated trace shown due to browser CORS restrictions on the target URL.';
+        chain.appendChild(note);
+    }
+    btn.innerHTML = '🔄 Trace Redirects';
+}
+function addHop(url, status) {
+    const chain = document.getElementById('chain');
+    const li = document.createElement('li');
+    li.className = 'hop';
+    const pillClass = status === 200 ? 'success' : 'warning';
+    
+    li.innerHTML = `<span class="hop-url">${url}</span> <span class="pill ${pillClass}">HTTP ${status}</span>`;
+    chain.appendChild(li);
+}
+</script>
+</div></div></div></div></body>
+</html>

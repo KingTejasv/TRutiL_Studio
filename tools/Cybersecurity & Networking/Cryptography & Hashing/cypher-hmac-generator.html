@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>HMAC Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Fira+Code&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+
+<link href="../../../style.css?v=3" rel="stylesheet"/><link href="../../../custom-tools.css?v=3" rel="stylesheet"/>
+    <script src="../../../theme.js?v=3"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-cypher-hmac-generator">
+<div class="app-header">
+<h1>🔑 HMAC Generator</h1>
+<p>Generate Keyed-Hash Message Authentication Codes (HMAC).</p>
+</div>
+<div class="tool-layout-container">
+<div class="panel">
+<h2>Input Configuration</h2>
+<div>
+<label>Message String</label>
+<textarea class="form-input" id="message" oninput="generateHMAC()" placeholder="Enter the text to be hashed..."></textarea>
+</div>
+<div>
+<label>Secret Key</label>
+<input class="form-input" id="secret" oninput="generateHMAC()" placeholder="SuperSecretKey" type="text"/>
+</div>
+<div>
+<label>Hash Algorithm</label>
+<select class="form-input" id="algo" onchange="generateHMAC()">
+<option value="MD5">HMAC-MD5</option>
+<option value="SHA1">HMAC-SHA1</option>
+<option selected="" value="SHA256">HMAC-SHA256</option>
+<option value="SHA512">HMAC-SHA512</option>
+</select>
+</div>
+</div>
+<div class="panel">
+<h2>Generated HMAC</h2>
+<div>
+<label>Hex Output</label>
+<textarea class="form-input" id="outputHex" placeholder="Output in Hex..." readonly=""></textarea>
+</div>
+<div>
+<label>Base64 Output</label>
+<textarea class="form-input" id="outputBase64" placeholder="Output in Base64..." readonly=""></textarea>
+</div>
+</div>
+</div>
+<div class="stats-bar">
+<div class="stat">
+<span class="stat-label">Algorithm</span>
+<span class="stat-value" id="statAlgo">SHA256</span>
+</div>
+<div class="stat">
+<span class="stat-label">Status</span>
+<span class="pill">Auto-updating</span>
+</div>
+</div>
+<script>
+  function generateHMAC() {
+    const message = document.getElementById('message').value;
+    const secret = document.getElementById('secret').value;
+    const algo = document.getElementById('algo').value;
+    
+    document.getElementById('statAlgo').textContent = algo;
+    
+    if (!message || !secret) {
+      document.getElementById('outputHex').value = '';
+      document.getElementById('outputBase64').value = '';
+      return;
+    }
+    
+    let hash;
+    if (algo === 'MD5') hash = CryptoJS.HmacMD5(message, secret);
+    else if (algo === 'SHA1') hash = CryptoJS.HmacSHA1(message, secret);
+    else if (algo === 'SHA256') hash = CryptoJS.HmacSHA256(message, secret);
+    else if (algo === 'SHA512') hash = CryptoJS.HmacSHA512(message, secret);
+    
+    document.getElementById('outputHex').value = hash.toString(CryptoJS.enc.Hex);
+    document.getElementById('outputBase64').value = hash.toString(CryptoJS.enc.Base64);
+  }
+</script>
+</div></div></div></div></body>
+</html>

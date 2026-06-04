@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Chmod Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Fira+Code&amp;display=swap" rel="stylesheet"/>
+<link href="../../../style.css?v=3" rel="stylesheet"/>
+<link href="../../../custom-tools.css?v=3" rel="stylesheet"/>
+<script src="../../../theme.js?v=3"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-codelab-chmod-calculator">
+<div class="app-header">
+<div class="app-icon" style="background:linear-gradient(135deg, #3b82f6, #1d4ed8);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:24px;">🧮</div>
+<div>
+<h1>Chmod Calculator</h1>
+<p>Professional media tool.</p>
+</div>
+</div>
+<div class="tool-layout-container">
+<div class="panel">
+<h2>Select Permissions</h2>
+<div class="perm-grid">
+<div></div>
+<div class="perm-header">Read (4)</div>
+<div class="perm-header">Write (2)</div>
+<div class="perm-header">Execute (1)</div>
+<div class="perm-label">Owner</div>
+<div><input checked="" id="or" onchange="calc()" type="checkbox"/></div>
+<div><input checked="" id="ow" onchange="calc()" type="checkbox"/></div>
+<div><input id="ox" onchange="calc()" type="checkbox"/></div>
+<div class="perm-label">Group</div>
+<div><input checked="" id="gr" onchange="calc()" type="checkbox"/></div>
+<div><input id="gw" onchange="calc()" type="checkbox"/></div>
+<div><input id="gx" onchange="calc()" type="checkbox"/></div>
+<div class="perm-label">Public</div>
+<div><input checked="" id="pr" onchange="calc()" type="checkbox"/></div>
+<div><input id="pw" onchange="calc()" type="checkbox"/></div>
+<div><input id="px" onchange="calc()" type="checkbox"/></div>
+</div>
+</div>
+<div class="panel">
+<h2>Results</h2>
+<div class="input-group">
+<label>Octal Value</label>
+<input class="form-input" id="octal" readonly="" style="font-size: 2.5rem; padding: 1.5rem; text-align: center;" type="text"/>
+</div>
+<div class="input-group" style="margin-top: 1.5rem;">
+<label>Symbolic Representation</label>
+<input class="form-input" id="symbolic" readonly="" style="font-size: 2.5rem; padding: 1.5rem; text-align: center;" type="text"/>
+</div>
+</div>
+</div>
+<div class="stats-bar">
+<div class="stat-item">Binary: <span class="stat-num" id="stat-bin">000 000 000</span></div>
+<div class="stat-pill" id="stat-type">File (-rw-r--r--)</div>
+</div>
+<script>
+        function calc() {
+            let perms = [
+                ['or','ow','ox'],
+                ['gr','gw','gx'],
+                ['pr','pw','px']
+            ];
+            let octal = "";
+            let sym = "-";
+            let bin = "";
+            
+            for(let group of perms) {
+                let val = 0;
+                let r = document.getElementById(group[0]).checked;
+                let w = document.getElementById(group[1]).checked;
+                let x = document.getElementById(group[2]).checked;
+                
+                if(r) { val += 4; sym += "r"; } else { sym += "-"; }
+                if(w) { val += 2; sym += "w"; } else { sym += "-"; }
+                if(x) { val += 1; sym += "x"; } else { sym += "-"; }
+                
+                octal += val;
+                bin += val.toString(2).padStart(3, '0') + " ";
+            }
+            
+            document.getElementById('octal').value = octal;
+            document.getElementById('symbolic').value = sym;
+            document.getElementById('stat-bin').innerText = bin.trim();
+            document.getElementById('stat-type').innerText = `Standard Format (${octal})`;
+        }
+        window.onload = calc;
+    </script>
+</div></div></div></div></body>
+</html>

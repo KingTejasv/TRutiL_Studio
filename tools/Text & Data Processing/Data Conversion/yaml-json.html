@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>YAML ↔ JSON Converter — TRutiL Studio</title>
+<link href="../../../style.css?v=3" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/js-yaml@4/dist/js-yaml.min.js"></script>
+
+<link href="../../../custom-tools.css?v=3" rel="stylesheet"/>
+    <script src="../../../theme.js?v=3"></script>
+</head>
+<body>
+<div class="app-layout" id="app-layout">
+<div class="main-content">
+<div class="page-content"><div id="tool-yaml-json">
+<div class="app-header">
+<div class="app-icon" style="background:linear-gradient(135deg, #8B5CF6, #D946EF)">YJ</div>
+<div>
+<h1>YAML ↔ JSON Converter</h1>
+<p>Instantly convert between YAML and JSON formats. Validates as you type.</p>
+</div>
+</div>
+<div class="converter-container">
+<div class="panel">
+<div class="pane-header">
+<h3>YAML</h3>
+<button class="btn btn-ghost" onclick="copyText(this, 'yaml-input')">Copy</button>
+</div>
+<div class="pane-body">
+<textarea class="form-input" id="yaml-input" placeholder="Paste YAML here..." spellcheck="false"></textarea>
+<div class="error-msg" id="yaml-error"></div>
+</div>
+</div>
+<div class="panel">
+<div class="pane-header">
+<h3>JSON</h3>
+<button class="btn btn-ghost" onclick="copyText(this, 'json-input')">Copy</button>
+</div>
+<div class="pane-body">
+<textarea class="form-input" id="json-input" placeholder="Paste JSON here..." spellcheck="false"></textarea>
+<div class="error-msg" id="json-error"></div>
+</div>
+</div>
+</div>
+</div></div>
+</div>
+</div>
+<script>
+const yamlInput = document.getElementById('yaml-input');
+const jsonInput = document.getElementById('json-input');
+const yamlError = document.getElementById('yaml-error');
+const jsonError = document.getElementById('json-error');
+
+let isConverting = false;
+let yamlDebounce = null;
+let jsonDebounce = null;
+
+function showError(el, msg) {
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+function hideError(el) {
+  el.style.display = 'none';
+}
+
+yamlInput.addEventListener('input', () => {
+  clearTimeout(yamlDebounce);
+  yamlDebounce = setTimeout(() => {
+    if (isConverting) return;
+    isConverting = true;
+    hideError(yamlError);
+
+    const yaml = yamlInput.value;
+    if (!yaml.trim()) {
+      jsonInput.value = '';
+      isConverting = false;
+      return;
+    }
+
+    try {
+      const obj = jsyaml.load(yaml);
+      jsonInput.value = JSON.stringify(obj, null, 2);
+    } catch (e) {
+      showError(yamlError, 'YAML parse error: ' + e.message);
+    }
+    isConverting = false;
+  }, 300);
+});
+
+jsonInput.addEventListener('input', () => {
+  clearTimeout(jsonDebounce);
+  jsonDebounce = setTimeout(() => {
+    if (isConverting) return;
+    isConverting = true;
+    hideError(jsonError);
+
+    const json = jsonInput.value;
+    if (!json.trim()) {
+      yamlInput.value = '';
+      isConverting = false;
+      return;
+    }
+
+    try {
+      const obj = JSON.parse(json);
+      yamlInput.value = jsyaml.dump(obj);
+    } catch (e) {
+      showError(jsonError, 'JSON parse error: ' + e.message);
+    }
+    isConverting = false;
+  }, 300);
+});
+
+function copyText(btn, id) {
+  const el = document.getElementById(id);
+  navigator.clipboard.writeText(el.value).then(() => {
+    const orig = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = orig, 2000);
+  }).catch(() => {
+    const orig = btn.textContent;
+    btn.textContent = 'Failed!';
+    setTimeout(() => btn.textContent = orig, 2000);
+  });
+}
+</script>
+</body>
+</html>

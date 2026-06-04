@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SVG Optimizer — TRutiL Studio</title>
+<link href="../../../../style.css?v=3" rel="stylesheet"/>
+<link href="../../../../custom-tools.css?v=3" rel="stylesheet"/>
+<script src="../../../../theme.js?v=3"></script>
+</head>
+<body>
+<div class="app-layout" id="app-layout">
+<div class="main-content">
+<div class="page-content"><div id="tool-svg">
+<div class="app-header">
+<div class="app-icon" style="background:linear-gradient(135deg, #3b82f6, #1d4ed8);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:24px;">⚙️</div>
+<div>
+<h1>SVG Optimizer</h1>
+<p>Optimize and minify raw SVG code to reduce file size</p>
+</div>
+</div>
+<div class="controls" style="flex-wrap: wrap; gap: 1rem;">
+<div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+<button class="btn btn-primary" id="optimizeBtn">
+<svg fill="none" height="16" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" style="margin-right: 0.5rem;" viewbox="0 0 24 24" width="16"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+              Optimize SVG
+            </button>
+<label style="color: var(--text-primary); font-size: 14px; cursor: pointer;"><input id="removeViewBox" type="checkbox"/> Remove ViewBox</label>
+<label style="color: var(--text-primary); font-size: 14px; cursor: pointer;"><input id="colorsToHex" type="checkbox"/> Colors to Hex</label>
+<label style="color: var(--text-primary); font-size: 14px; cursor: pointer;"><input id="roundCoords" type="checkbox"/> Round Coordinates</label>
+</div>
+<div class="stats-bar" id="statsContainer" style="display: none;">
+<div class="stat-item">
+<span class="stat-label">Original</span>
+<span class="stat-num" id="statOriginal">0 B</span>
+</div>
+<div class="stat-item">
+<span class="stat-label">Optimized</span>
+<span class="stat-num" id="statOptimized">0 B</span>
+</div>
+<div class="stat-item">
+<span class="stat-label">Saved</span>
+<span class="stat-num savings" id="statSaved">0 B (0%)</span>
+</div>
+</div>
+</div>
+<div class="editor-grid">
+<div class="panel">
+<div class="panel-header">
+<div class="panel-title">
+<svg fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="18"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+              Input
+            </div>
+<button class="btn btn-ghost btn-sm btn-primary" id="clearBtn">Clear</button>
+</div>
+<textarea class="code-editor form-input" id="inputSvg" placeholder="Paste raw SVG code here..."></textarea>
+</div>
+<div class="panel">
+<div class="panel-header">
+<div class="panel-title">
+<svg fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="18"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              Output
+            </div>
+<button class="btn btn-ghost btn-sm btn-primary" id="copyBtn">Copy Code</button>
+</div>
+<textarea class="code-editor form-input" id="outputSvg" placeholder="Optimized SVG will appear here..." readonly=""></textarea>
+</div>
+</div>
+</div></div>
+</div>
+</div>
+<script>
+  function formatBytes(bytes, decimals = 2) {
+      if (bytes === 0) return '0 B';
+      const k = 1024;
+      const dm = decimals < 0 ? 0 : decimals;
+      const sizes = ['B', 'KB', 'MB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+  }
+
+  function optimizeSvg(svgStr) {
+      if (!svgStr.trim()) return '';
+      
+      let optimized = svgStr;
+
+      // 1. Remove XML declarations
+      optimized = optimized.replace(/<\?xml[^>]*\?>/gi, '');
+
+      // 2. Remove doctypes
+      optimized = optimized.replace(/<!DOCTYPE[^>]*>/gi, '');
+
+      // 3. Remove comments
+      optimized = optimized.replace(/<!--[\s\S]*?-->/g, '');
+
+      // Advanced Options
+      const removeViewBox = document.getElementById('removeViewBox');
+      const colorsToHex = document.getElementById('colorsToHex');
+      const roundCoords = document.getElementById('roundCoords');
+
+      if (removeViewBox && removeViewBox.checked) {
+          optimized = optimized.replace(/\sviewBox="[^"]*"/gi, '');
+      }
+
+      if (colorsToHex && colorsToHex.checked) {
+          optimized = optimized.replace(/rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/gi, (m, r, g, b) => {
+              return '#' + (1 << 24 | r << 16 | g << 8 | b).toString(16).slice(1).toUpperCase();
+          });
+      }
+
+      if (roundCoords && roundCoords.checked) {
+          optimized = optimized.replace(/(\d+\.\d+)/g, (m, num) => {
+              return parseFloat(num).toFixed(1).replace(/\.0$/, '');
+          });
+      }
+
+      // 4. Remove empty elements
+      // This loops to handle nested empty elements.
+      // We limit to common container/meta tags to avoid removing shapes like <path d="..."></path>
+      let prev;
+      do {
+          prev = optimized;
+          optimized = optimized.replace(/<(g|defs|metadata|title|desc|style|tspan)[^>]*>\s*<\/\1>/gi, '');
+      } while (optimized !== prev);
+
+      // 5. Remove redundant whitespace
+      // Replace multiple spaces/newlines/tabs with a single space
+      optimized = optimized.replace(/\s+/g, ' ');
+      // Remove spaces between tags
+      optimized = optimized.replace(/>\s+</g, '><');
+
+      // 6. Final trim
+      return optimized.trim();
+  }
+
+  const inputSvg = document.getElementById('inputSvg');
+  const outputSvg = document.getElementById('outputSvg');
+  const optimizeBtn = document.getElementById('optimizeBtn');
+  const clearBtn = document.getElementById('clearBtn');
+  const copyBtn = document.getElementById('copyBtn');
+  const statsContainer = document.getElementById('statsContainer');
+  const statOriginal = document.getElementById('statOriginal');
+  const statOptimized = document.getElementById('statOptimized');
+  const statSaved = document.getElementById('statSaved');
+
+  optimizeBtn.addEventListener('click', () => {
+      const inputStr = inputSvg.value;
+      if (!inputStr.trim()) return;
+
+      const optimizedStr = optimizeSvg(inputStr);
+      outputSvg.value = optimizedStr;
+
+      // Calculate sizes
+      const originalSize = new Blob([inputStr]).size;
+      const optimizedSize = new Blob([optimizedStr]).size;
+      const savedBytes = originalSize - optimizedSize;
+      const savedPercent = originalSize > 0 ? ((savedBytes / originalSize) * 100).toFixed(1) : 0;
+
+      // Update stats
+      statOriginal.textContent = formatBytes(originalSize);
+      statOptimized.textContent = formatBytes(optimizedSize);
+      statSaved.textContent = `${formatBytes(savedBytes)} (${savedPercent}%)`;
+      
+      if (savedBytes > 0) {
+          statSaved.className = 'stat-value savings';
+      } else {
+          statSaved.className = 'stat-value';
+          statSaved.style.color = 'var(--text-muted)';
+      }
+
+      statsContainer.style.display = 'flex';
+  });
+
+  clearBtn.addEventListener('click', () => {
+      inputSvg.value = '';
+      outputSvg.value = '';
+      statsContainer.style.display = 'none';
+  });
+
+  copyBtn.addEventListener('click', () => {
+      if (!outputSvg.value) return;
+      
+      navigator.clipboard.writeText(outputSvg.value).then(() => {
+          const originalText = copyBtn.textContent;
+          copyBtn.textContent = 'Copied!';
+          setTimeout(() => {
+              copyBtn.textContent = originalText;
+          }, 2000);
+      });
+  });
+
+  // Drag and Drop
+  const appLayout = document.getElementById('app-layout');
+  
+  appLayout.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      appLayout.style.opacity = '0.7';
+  });
+
+  appLayout.addEventListener('dragleave', (e) => {
+      e.preventDefault();
+      appLayout.style.opacity = '1';
+  });
+
+  appLayout.addEventListener('drop', (e) => {
+      e.preventDefault();
+      appLayout.style.opacity = '1';
+      const file = e.dataTransfer.files[0];
+      if (file && (file.type === 'image/svg+xml' || file.name.endsWith('.svg'))) {
+          const reader = new FileReader();
+          reader.onload = (ev) => {
+              inputSvg.value = ev.target.result;
+              optimizeBtn.click();
+          };
+          reader.readAsText(file);
+      }
+  });
+</script>
+</body>
+</html>

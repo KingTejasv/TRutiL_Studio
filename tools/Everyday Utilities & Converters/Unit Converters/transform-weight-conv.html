@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Weight Converter</title>
+<link href="../../../style.css?v=3" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Cascadia+Code&amp;display=swap" rel="stylesheet"/>
+
+<link href="../../../custom-tools.css?v=3" rel="stylesheet"/>
+    <script src="../../../theme.js?v=3"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-transform-weight-conv">
+<div class="app-header">
+<h1>⚖️ Weight Converter</h1>
+<p>Instantly convert between metric and imperial weight/mass units</p>
+</div>
+<div class="tool-layout-container">
+<div class="converter-pane">
+<div class="input-group">
+<label>From</label>
+<input class="form-input" id="from-val" oninput="update(true)" placeholder="0" type="number"/>
+</div>
+<div class="input-group">
+<label>Unit</label>
+<select class="form-input" id="from-unit" onchange="update(true)">
+<option value="kg">Kilogram (kg)</option>
+<option value="g">Gram (g)</option>
+<option value="mg">Milligram (mg)</option>
+<option value="t">Metric Ton (t)</option>
+<option value="lb">Pound (lb)</option>
+<option value="oz">Ounce (oz)</option>
+<option value="st">Stone (st)</option>
+<option value="ton_us">US Ton (ton)</option>
+<option value="ton_uk">UK Ton (ton)</option>
+</select>
+</div>
+</div>
+<div class="equals">=</div>
+<div class="converter-pane">
+<div class="input-group">
+<label>To</label>
+<input class="form-input" id="to-val" oninput="update(false)" placeholder="0" type="number"/>
+</div>
+<div class="input-group">
+<label>Unit</label>
+<select class="form-input" id="to-unit" onchange="update(true)">
+<option value="kg">Kilogram (kg)</option>
+<option value="g">Gram (g)</option>
+<option value="mg">Milligram (mg)</option>
+<option value="t">Metric Ton (t)</option>
+<option selected="" value="lb">Pound (lb)</option>
+<option value="oz">Ounce (oz)</option>
+<option value="st">Stone (st)</option>
+<option value="ton_us">US Ton (ton)</option>
+<option value="ton_uk">UK Ton (ton)</option>
+</select>
+</div>
+</div>
+</div>
+<div class="stats-bar">
+<div class="stats-group">
+<div class="stat">
+<span class="stat-label">Conversion Rate</span>
+<span class="stat-value" id="rate-value">1 kg = 2.2046226 lb</span>
+</div>
+</div>
+<div class="pill idle" id="status-pill">Ready</div>
+</div>
+<script>
+        // base unit: Kilogram (kg)
+        const rates = {
+            kg: 1,
+            g: 0.001,
+            mg: 0.000001,
+            t: 1000,
+            lb: 0.45359237,
+            oz: 0.028349523125,
+            st: 6.35029318,
+            ton_us: 907.18474,
+            ton_uk: 1016.0469088
+        };
+
+        function update(isFrom) {
+            const fromVal = document.getElementById('from-val');
+            const toVal = document.getElementById('to-val');
+            const fromUnit = document.getElementById('from-unit');
+            const toUnit = document.getElementById('to-unit');
+            
+            const fu = fromUnit.value;
+            const tu = toUnit.value;
+
+            // Update rate display
+            const rateStr = `1 ${fromUnit.options[fromUnit.selectedIndex].text.match(/\(([^)]+)\)/)[1]} = ` + 
+                            `${Number((rates[fu] / rates[tu]).toPrecision(8)).toString()} ` +
+                            `${toUnit.options[toUnit.selectedIndex].text.match(/\(([^)]+)\)/)[1]}`;
+            document.getElementById('rate-value').textContent = rateStr;
+
+            if (isFrom) {
+                if (fromVal.value === '') { toVal.value = ''; updatePill(false); return; }
+                const valInBase = parseFloat(fromVal.value) * rates[fu];
+                toVal.value = Number((valInBase / rates[tu]).toPrecision(10)).toString();
+            } else {
+                if (toVal.value === '') { fromVal.value = ''; updatePill(false); return; }
+                const valInBase = parseFloat(toVal.value) * rates[tu];
+                fromVal.value = Number((valInBase / rates[fu]).toPrecision(10)).toString();
+            }
+            updatePill(true);
+        }
+
+        function updatePill(isActive) {
+            const pill = document.getElementById('status-pill');
+            if(isActive) {
+                pill.className = 'pill';
+                pill.textContent = 'Converted';
+            } else {
+                pill.className = 'pill idle';
+                pill.textContent = 'Ready';
+            }
+        }
+        
+        // Initial setup
+        update(true);
+    </script>
+</div></div></div></div></body>
+</html>

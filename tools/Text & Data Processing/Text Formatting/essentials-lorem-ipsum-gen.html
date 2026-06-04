@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Lorem Ipsum Generator</title>
+<link href="../../../style.css?v=3" rel="stylesheet"/>
+<link href="../../../custom-tools.css?v=3" rel="stylesheet"/>
+<script src="../../../theme.js?v=3"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-essentials-lorem-ipsum-gen">
+<div class="app-header">
+<div class="app-icon" style="background:linear-gradient(135deg, #3b82f6, #1d4ed8);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:24px;">📝</div>
+<div>
+<h1>Lorem Ipsum Generator</h1>
+<p>Generate placeholder text for your designs and layouts.</p>
+</div>
+</div>
+<div class="grid">
+<div class="panel">
+<div class="form-group">
+<label>Paragraphs</label>
+<input class="form-input" id="paragraphs" max="50" min="1" type="number" value="3"/>
+</div>
+<div class="form-group">
+<label>Words per paragraph (approx)</label>
+<input class="form-input" id="words" max="200" min="10" type="number" value="50"/>
+</div>
+<label class="checkbox-group">
+<input checked="" id="startWithLorem" type="checkbox"/>
+<span>Start with "Lorem ipsum..."</span>
+</label>
+<button class="primary-btn btn btn-primary" onclick="generate()" style="margin-top: 1rem;">⚡ Generate</button>
+</div>
+<div class="panel output-pane">
+<div class="pane-header">
+<span>Generated Text</span>
+<button class="btn btn-primary" onclick="copyText()" style="padding: 4px 8px; font-size: 0.8rem;">📋 Copy</button>
+</div>
+<div id="output"></div>
+</div>
+</div>
+<div class="stats-bar">
+<div class="stat-pill">Paragraphs: <span id="statParas">0</span></div>
+<div class="stat-pill">Words: <span id="statWords">0</span></div>
+<div class="stat-pill">Characters: <span id="statChars">0</span></div>
+</div>
+<script>
+        const wordsList = ["lorem", "ipsum", "dolor", "sit", "amet", "consectetur", "adipiscing", "elit", "sed", "do", "eiusmod", "tempor", "incididunt", "ut", "labore", "et", "dolore", "magna", "aliqua", "enim", "ad", "minim", "veniam", "quis", "nostrud", "exercitation", "ullamco", "laboris", "nisi", "ut", "aliquip", "ex", "ea", "commodo", "consequat", "duis", "aute", "irure", "dolor", "in", "reprehenderit", "in", "voluptate", "velit", "esse", "cillum", "dolore", "eu", "fugiat", "nulla", "pariatur", "excepteur", "sint", "occaecat", "cupidatat", "non", "proident", "sunt", "in", "culpa", "qui", "officia", "deserunt", "mollit", "anim", "id", "est", "laborum"];
+
+        function getRandomWord() {
+            return wordsList[Math.floor(Math.random() * wordsList.length)];
+        }
+
+        function capitalize(word) {
+            return word.charAt(0).toUpperCase() + word.slice(1);
+        }
+
+        function generateSentence(wordCount) {
+            let sentence = [];
+            for (let i = 0; i < wordCount; i++) {
+                let w = getRandomWord();
+                if (i === 0) w = capitalize(w);
+                sentence.push(w);
+            }
+            return sentence.join(' ') + '.';
+        }
+
+        function generateParagraph(approxWords, isFirst) {
+            let text = "";
+            let currentWords = 0;
+            if (isFirst && document.getElementById('startWithLorem').checked) {
+                text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. ";
+                currentWords = 8;
+            }
+            while (currentWords < approxWords) {
+                let sentenceLength = Math.floor(Math.random() * 8) + 5; 
+                text += generateSentence(sentenceLength) + " ";
+                currentWords += sentenceLength;
+            }
+            return text.trim();
+        }
+
+        function generate() {
+            const pCount = parseInt(document.getElementById('paragraphs').value) || 3;
+            const wCount = parseInt(document.getElementById('words').value) || 50;
+            
+            let paragraphs = [];
+            for (let i = 0; i < pCount; i++) {
+                paragraphs.push(generateParagraph(wCount, i === 0));
+            }
+            
+            const final = paragraphs.join('\n\n');
+            document.getElementById('output').textContent = final;
+            
+            const words = final.split(/\s+/).filter(w => w.length > 0).length;
+            document.getElementById('statParas').textContent = pCount;
+            document.getElementById('statWords').textContent = words;
+            document.getElementById('statChars').textContent = final.length;
+        }
+
+        function copyText() {
+            const out = document.getElementById('output').textContent;
+            if (out) {
+                navigator.clipboard.writeText(out);
+                const btn = document.querySelector('.pane-header button');
+                const orig = btn.innerHTML;
+                btn.innerHTML = '✅ Copied!';
+                setTimeout(() => btn.innerHTML = orig, 2000);
+            }
+        }
+
+        // Generate initially
+        generate();
+    </script>
+</div></div></div></div></body>
+</html>

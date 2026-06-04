@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BCrypt Verifier</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Fira+Code&amp;display=swap" rel="stylesheet"/>
+<link href="../../../style.css?v=3" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bcryptjs/2.4.3/bcrypt.min.js"></script>
+
+<link href="../../../custom-tools.css?v=3" rel="stylesheet"/>
+    <script src="../../../theme.js?v=3"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-codelab-bcrypt-verifier">
+<header>
+<h1>🔐 BCrypt Verifier</h1>
+<div class="subtitle">Securely verify passwords against bcrypt hashes</div>
+</header>
+<div class="tool-layout-container">
+<div class="panel">
+<h2>Inputs</h2>
+<div class="input-group">
+<label>Plaintext Password</label>
+<input class="form-input" id="password" oninput="verify()" placeholder="Enter password to verify" type="text"/>
+</div>
+<div class="input-group">
+<label>BCrypt Hash</label>
+<input class="form-input" id="hash" oninput="verify()" placeholder="$2a$10$..." type="text"/>
+</div>
+<div class="toolbar">
+<button class="btn btn-primary" onclick="verify()">⚡ Verify Password</button>
+</div>
+</div>
+<div class="panel" style="justify-content: center; align-items: center; text-align: center;">
+<h2>Verification Status</h2>
+<div id="result" style="font-size: 2rem; font-weight: bold; margin-top: 2rem; color: var(--text-muted);">Waiting for input...</div>
+</div>
+</div>
+<div class="stats-bar">
+<div class="stat-item">Time Taken: <span class="stat-num" id="stat-time">0ms</span></div>
+<div class="stat-pill" id="stat-status"></div>
+</div>
+<script>
+        function verify() {
+            let pwd = document.getElementById('password').value;
+            let hash = document.getElementById('hash').value;
+            let resDiv = document.getElementById('result');
+            let statTime = document.getElementById('stat-time');
+            let statStatus = document.getElementById('stat-status');
+            
+            if(!pwd || !hash) {
+                resDiv.innerText = "Waiting for input...";
+                resDiv.style.color = "var(--text-muted)";
+                statStatus.style.display = "none";
+                statTime.innerText = "0ms";
+                return;
+            }
+            
+            let start = performance.now();
+            try {
+                let match = dcodeIO.bcrypt.compareSync(pwd, hash);
+                let end = performance.now();
+                
+                if(match) {
+                    resDiv.innerText = "✅ MATCH";
+                    resDiv.style.color = "#10B981";
+                    statStatus.innerText = "Verified successfully";
+                    statStatus.style.color = "#10B981";
+                    statStatus.style.background = "rgba(16,185,129,0.1)";
+                    statStatus.style.border = "1px solid rgba(16,185,129,0.2)";
+                } else {
+                    resDiv.innerText = "❌ NO MATCH";
+                    resDiv.style.color = "#EF4444";
+                    statStatus.innerText = "Verification failed";
+                    statStatus.style.color = "#EF4444";
+                    statStatus.style.background = "rgba(239,68,68,0.1)";
+                    statStatus.style.border = "1px solid rgba(239,68,68,0.2)";
+                }
+                statStatus.style.display = "inline-block";
+                statTime.innerText = (end - start).toFixed(2) + "ms";
+            } catch(e) {
+                resDiv.innerText = "⚠️ Invalid Hash Format";
+                resDiv.style.color = "#F59E0B";
+                statStatus.style.display = "none";
+                statTime.innerText = "0ms";
+            }
+        }
+    </script>
+</div></div></div></div></body>
+</html>

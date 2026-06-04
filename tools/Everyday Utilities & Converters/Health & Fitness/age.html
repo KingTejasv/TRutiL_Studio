@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Age Calculator — TRutiL Studio</title>
+<meta content="Calculate exact age in years, months, days, hours, and minutes." name="description"/>
+<link href="../../../style.css?v=3" rel="stylesheet"/>
+
+<link href="../../../custom-tools.css?v=3" rel="stylesheet"/>
+    <script src="../../../theme.js?v=3"></script>
+</head>
+<body>
+<div class="app-layout" id="app-layout">
+<div class="main-content">
+<div class="page-content"><div id="tool-age">
+<div class="app-header">
+<div class="app-icon" style="background:linear-gradient(135deg,#ec4899,#f59e0b)">🎂</div>
+<div>
+<h1>Age Calculator</h1>
+<p>Exact age, date differences &amp; birthday countdown</p>
+</div>
+</div>
+<div style="background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius);padding:24px;max-width:500px;">
+<div class="form-group">
+<label class="form-label">Date of Birth</label>
+<input class="form-input" id="dob" oninput="calcAge()" type="date"/>
+</div>
+<div class="form-group">
+<label class="form-label">Calculate Age At (default: today)</label>
+<input class="form-input" id="targetDate" oninput="calcAge()" type="date"/>
+</div>
+</div>
+<div id="ageResults" style="display:none">
+<div class="age-grid">
+<div class="age-box"><div class="ab-val" id="ageYears">0</div><div class="ab-lbl">Years</div></div>
+<div class="age-box"><div class="ab-val" id="ageMonths">0</div><div class="ab-lbl">Months</div></div>
+<div class="age-box"><div class="ab-val" id="ageDays">0</div><div class="ab-lbl">Days</div></div>
+<div class="age-box"><div class="ab-val" id="ageHours">0</div><div class="ab-lbl">Hours</div></div>
+<div class="age-box"><div class="ab-val" id="ageMinutes">0</div><div class="ab-lbl">Minutes</div></div>
+<div class="age-box"><div class="ab-val" id="ageWeeks">0</div><div class="ab-lbl">Weeks</div></div>
+</div>
+<div class="next-bday">
+<div class="bday-icon">🎉</div>
+<div>
+<div style="font-size:13px;color:var(--text-muted);font-weight:600;">Next Birthday</div>
+<div class="bday-days" id="bdayDays">-</div>
+<div id="bdayDate" style="font-size:13px;color:var(--text-secondary);">-</div>
+</div>
+</div>
+<div class="timeline-bar">
+<h2 style="font-size:14px;font-weight:700;margin-bottom:14px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;">Life in Numbers</h2>
+<div class="tl-item">
+<div class="tl-label">Total Days</div>
+<div class="tl-bar-wrap"><div class="progress-wrap"><div class="progress-bar" id="pbarDays" style="width:0%"></div></div></div>
+<div class="tl-val" id="totalDaysVal">-</div>
+</div>
+<div class="tl-item">
+<div class="tl-label">Total Weeks</div>
+<div class="tl-bar-wrap"><div class="progress-wrap"><div class="progress-bar" id="pbarWeeks" style="width:0%"></div></div></div>
+<div class="tl-val" id="totalWeeksVal">-</div>
+</div>
+<div class="tl-item">
+<div class="tl-label">Total Months</div>
+<div class="tl-bar-wrap"><div class="progress-wrap"><div class="progress-bar" id="pbarMonths" style="width:0%"></div></div></div>
+<div class="tl-val" id="totalMonthsVal">-</div>
+</div>
+</div>
+</div>
+<div id="agePlaceholder" style="color:var(--text-muted);text-align:center;padding:40px;font-size:15px;">
+        🎂 Enter your date of birth above to calculate your age
+      </div>
+</div></div>
+</div>
+</div>
+<script>
+  // Set default date of birth and today
+  const today = new Date();
+  document.getElementById('targetDate').valueAsDate = today;
+  document.getElementById('dob').max = today.toISOString().split('T')[0];
+
+  function calcAge(){
+    const dob = new Date(document.getElementById('dob').value);
+    const target = new Date(document.getElementById('targetDate').value || today);
+
+    if(!document.getElementById('dob').value){
+      document.getElementById('ageResults').style.display='none';
+      document.getElementById('agePlaceholder').style.display='block';
+      return;
+    }
+
+    if (dob > target) {
+      alert("Date of birth cannot be after the target date!");
+      document.getElementById('ageResults').style.display='none';
+      document.getElementById('agePlaceholder').style.display='block';
+      return;
+    }
+
+    document.getElementById('ageResults').style.display='block';
+    document.getElementById('agePlaceholder').style.display='none';
+
+    const diffMs = target - dob;
+    const totalDays = Math.floor(diffMs / 86400000);
+    const totalWeeks = Math.floor(totalDays / 7);
+    
+    let totalMonths = (target.getFullYear() - dob.getFullYear()) * 12 + target.getMonth() - dob.getMonth();
+    if (target.getDate() < dob.getDate()) {
+      totalMonths--;
+    }
+    
+    const totalHours = Math.floor(diffMs / 3600000);
+    const totalMinutes = Math.floor(diffMs / 60000);
+
+    // Years, months, days
+    let y = target.getFullYear() - dob.getFullYear();
+    let m = target.getMonth() - dob.getMonth();
+    let d = target.getDate() - dob.getDate();
+    if(d<0){ m--; d += new Date(target.getFullYear(), target.getMonth(), 0).getDate(); }
+    if(m<0){ y--; m+=12; }
+
+    document.getElementById('ageYears').textContent = y;
+    document.getElementById('ageMonths').textContent = m;
+    document.getElementById('ageDays').textContent = d;
+    document.getElementById('ageHours').textContent = totalHours.toLocaleString();
+    document.getElementById('ageMinutes').textContent = totalMinutes.toLocaleString();
+    document.getElementById('ageWeeks').textContent = totalWeeks.toLocaleString();
+
+    // Next birthday
+    let nextBday = new Date(target.getFullYear(), dob.getMonth(), dob.getDate());
+    if(nextBday <= target) nextBday.setFullYear(nextBday.getFullYear()+1);
+    const daysLeft = Math.ceil((nextBday - target) / 86400000);
+    document.getElementById('bdayDays').textContent = daysLeft === 365 ? 'Today! 🎉' : daysLeft + ' days left';
+    document.getElementById('bdayDate').textContent = nextBday.toDateString();
+
+    // Progress bars (out of 100 years max)
+    const maxYears = 100;
+    const pct = Math.min(100, (y/maxYears)*100);
+    document.getElementById('pbarDays').style.width = pct+'%';
+    document.getElementById('pbarWeeks').style.width = pct+'%';
+    document.getElementById('pbarMonths').style.width = pct+'%';
+    document.getElementById('totalDaysVal').textContent = totalDays.toLocaleString();
+    document.getElementById('totalWeeksVal').textContent = totalWeeks.toLocaleString();
+    document.getElementById('totalMonthsVal').textContent = totalMonths.toLocaleString();
+  }
+
+  // Live update ticker
+  setInterval(()=>{ if(document.getElementById('dob').value) calcAge(); }, 60000);
+</script>
+</body>
+</html>

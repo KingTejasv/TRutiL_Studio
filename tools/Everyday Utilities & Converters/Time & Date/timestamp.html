@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Timestamp Converter — TRutiL Studio</title>
+<link href="../../../style.css?v=3" rel="stylesheet"/>
+
+<link href="../../../custom-tools.css?v=3" rel="stylesheet"/>
+    <script src="../../../theme.js?v=3"></script>
+</head>
+<body>
+<div class="app-layout" id="app-layout">
+<div class="main-content">
+<div class="page-content"><div id="tool-timestamp">
+<div class="app-header">
+<div class="app-icon" style="background:linear-gradient(135deg,#8B5CF6,#6D28D9)">⏱️</div>
+<div>
+<h1>Timestamp Converter</h1>
+<p>Convert UNIX epoch to human-readable date, and vice versa</p>
+</div>
+</div>
+<div class="ticking-section">
+<div style="color: var(--text-muted); font-size: 1rem; font-weight: 500;">Current Epoch Time</div>
+<div class="ticking-time" id="current-epoch">Loading...</div>
+<div class="ticking-actions">
+<button class="btn btn-primary" onclick="copyCurrent('sec')">Copy Seconds</button>
+<button class="btn btn-ghost" onclick="copyCurrent('ms')">Copy Milliseconds</button>
+</div>
+</div>
+<div class="grid-2">
+<!-- Epoch to Date -->
+<div class="card">
+<h2>Epoch to Date</h2>
+<div class="form-group">
+<label class="form-label">UNIX Timestamp</label>
+<input class="form-input" id="input-epoch" inputmode="numeric" oninput="convertEpochToDate()" placeholder="e.g. 1690000000" type="text"/>
+</div>
+<div class="form-group">
+<label class="form-label">Format</label>
+<select class="form-select form-input" id="epoch-format" onchange="convertEpochToDate()">
+<option value="auto">Auto-detect (Seconds/Milliseconds)</option>
+<option value="sec">Seconds (s)</option>
+<option value="ms">Milliseconds (ms)</option>
+</select>
+</div>
+<div class="output-group" id="epoch-output-group">
+<div class="output-row">
+<span class="output-label">Local Time</span>
+<span class="output-value" id="out-local">-</span>
+</div>
+<div class="output-row">
+<span class="output-label">UTC Time</span>
+<span class="output-value" id="out-utc">-</span>
+</div>
+<div class="output-row">
+<span class="output-label">Relative</span>
+<span class="output-value" id="out-relative">-</span>
+</div>
+</div>
+</div>
+<!-- Date to Epoch -->
+<div class="card">
+<h2>Date to Epoch</h2>
+<div style="display: flex; gap: 12px;">
+<div class="form-group" style="flex: 1;">
+<label class="form-label">Date</label>
+<input class="form-input" id="input-date" onchange="convertDateToEpoch()" oninput="convertDateToEpoch()" type="date"/>
+</div>
+<div class="form-group" style="flex: 1;">
+<label class="form-label">Time</label>
+<input class="form-input" id="input-time" onchange="convertDateToEpoch()" oninput="convertDateToEpoch()" step="1" type="time"/>
+</div>
+</div>
+<div class="form-group">
+<label class="form-label">Timezone</label>
+<select class="form-select form-input" id="input-tz" onchange="convertDateToEpoch()">
+<option value="local">Local Time</option>
+<option value="utc">UTC</option>
+</select>
+</div>
+<div class="output-group">
+<div class="output-row">
+<span class="output-label">Seconds</span>
+<div class="copyable-row">
+<span class="output-value" id="out-epoch-sec">-</span>
+<button class="btn btn-ghost btn-small" onclick="copyText('out-epoch-sec', 'Seconds copied')">Copy</button>
+</div>
+</div>
+<div class="output-row">
+<span class="output-label">Milliseconds</span>
+<div class="copyable-row">
+<span class="output-value" id="out-epoch-ms">-</span>
+<button class="btn btn-ghost btn-small" onclick="copyText('out-epoch-ms', 'Milliseconds copied')">Copy</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div></div>
+</div>
+</div>
+<div class="toast" id="toast">Copied to clipboard!</div>
+<script>
+  let currentEpochMs = Date.now();
+  const currentEpochEl = document.getElementById('current-epoch');
+  
+  function updateTicking() {
+      currentEpochMs = Date.now();
+      currentEpochEl.innerText = Math.floor(currentEpochMs / 1000);
+  }
+  
+  setInterval(updateTicking, 1000);
+  updateTicking();
+
+  function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.innerText = msg;
+      toast.classList.add('show');
+      setTimeout(() => {
+          toast.classList.remove('show');
+      }, 2000);
+  }
+
+  function copyCurrent(format) {
+      const val = format === 'sec' ? Math.floor(currentEpochMs / 1000) : currentEpochMs;
+      navigator.clipboard.writeText(val.toString()).then(() => {
+          showToast(format === 'sec' ? 'Copied current seconds!' : 'Copied current milliseconds!');
+      });
+  }
+
+  function convertEpochToDate() {
+      const rawVal = document.getElementById('input-epoch').value.trim();
+      const inputVal = rawVal.replace(/[^\d-]/g, '');
+      const outLocal = document.getElementById('out-local');
+      const outUtc = document.getElementById('out-utc');
+      const outRelative = document.getElementById('out-relative');
+
+      if (!inputVal || isNaN(parseFloat(inputVal))) {
+          outLocal.innerText = '-';
+          outUtc.innerText = '-';
+          outRelative.innerText = '-';
+          return;
+      }
+      
+      let epoch = parseFloat(inputVal);
+      const format = document.getElementById('epoch-format').value;
+      
+      if (format === 'auto') {
+          if (inputVal.length > 11) {
+              // assume ms
+          } else {
+              epoch *= 1000;
+          }
+      } else if (format === 'sec') {
+          epoch *= 1000;
+      }
+      
+      const d = new Date(epoch);
+      if (isNaN(d.getTime())) {
+          outLocal.innerText = 'Invalid Date';
+          outUtc.innerText = 'Invalid Date';
+          outRelative.innerText = '-';
+          return;
+      }
+      
+      const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', timeZoneName: 'short' };
+      outLocal.innerText = d.toLocaleString(undefined, options);
+      
+      const utcOptions = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: 'UTC', timeZoneName: 'short' };
+      outUtc.innerText = d.toLocaleString(undefined, utcOptions);
+      
+      outRelative.innerText = getRelativeTime(epoch);
+  }
+
+  function convertDateToEpoch() {
+      const dVal = document.getElementById('input-date').value;
+      const tVal = document.getElementById('input-time').value || '00:00:00';
+      const tz = document.getElementById('input-tz').value;
+      
+      const outSec = document.getElementById('out-epoch-sec');
+      const outMs = document.getElementById('out-epoch-ms');
+
+      if (!dVal) {
+          outSec.innerText = '-';
+          outMs.innerText = '-';
+          return;
+      }
+      
+      // Pad time correctly (e.g. 10:30 -> 10:30:00)
+      let timeParts = tVal.split(':');
+      if (timeParts.length === 2) timeParts.push('00');
+      const timeStr = timeParts.join(':');
+
+      let dateStr = `${dVal}T${timeStr}`;
+      let d;
+      
+      if (tz === 'utc') {
+          dateStr += 'Z';
+          d = new Date(dateStr);
+      } else {
+          // Local time
+          d = new Date(dateStr);
+      }
+      
+      if (isNaN(d.getTime())) {
+          outSec.innerText = 'Invalid';
+          outMs.innerText = 'Invalid';
+          return;
+      }
+      
+      outSec.innerText = Math.floor(d.getTime() / 1000);
+      outMs.innerText = d.getTime();
+  }
+
+  function getRelativeTime(ms) {
+      const now = Date.now();
+      const diff = ms - now;
+      const absDiff = Math.abs(diff);
+      
+      const seconds = Math.floor(absDiff / 1000);
+      const minutes = Math.floor(seconds / 60);
+      const hours = Math.floor(minutes / 60);
+      const days = Math.floor(hours / 24);
+      const months = Math.floor(days / 30);
+      const years = Math.floor(days / 365);
+      
+      if (seconds === 0) return 'just now';
+      
+      let str = '';
+      if (years > 0) str = `${years} year${years > 1 ? 's' : ''}`;
+      else if (months > 0) str = `${months} month${months > 1 ? 's' : ''}`;
+      else if (days > 0) str = `${days} day${days > 1 ? 's' : ''}`;
+      else if (hours > 0) str = `${hours} hour${hours > 1 ? 's' : ''}`;
+      else if (minutes > 0) str = `${minutes} minute${minutes > 1 ? 's' : ''}`;
+      else str = `${seconds} second${seconds !== 1 ? 's' : ''}`;
+      
+      if (diff < 0) return `${str} ago`;
+      return `in ${str}`;
+  }
+
+  function copyText(elementId, msg) {
+      const text = document.getElementById(elementId).innerText;
+      if (text !== '-' && text !== 'Invalid') {
+          navigator.clipboard.writeText(text).then(() => {
+              showToast(msg || 'Copied!');
+          });
+      }
+  }
+
+  // initialize inputs
+  function init() {
+      const now = new Date();
+      
+      // Set epoch input to current seconds
+      document.getElementById('input-epoch').value = Math.floor(now.getTime() / 1000);
+      convertEpochToDate();
+      
+      // Set date inputs to current local time
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      document.getElementById('input-date').value = `${year}-${month}-${day}`;
+      
+      const hours = String(now.getHours()).padStart(2, '0');
+      const mins = String(now.getMinutes()).padStart(2, '0');
+      const secs = String(now.getSeconds()).padStart(2, '0');
+      document.getElementById('input-time').value = `${hours}:${mins}:${secs}`;
+      
+      convertDateToEpoch();
+  }
+  
+  window.onload = init;
+</script>
+</body>
+</html>

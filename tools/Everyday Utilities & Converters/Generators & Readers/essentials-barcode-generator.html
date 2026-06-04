@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Barcode Generator</title>
+<link href="../../../style.css?v=3" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+
+<link href="../../../custom-tools.css?v=3" rel="stylesheet"/>
+    <script src="../../../theme.js?v=3"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-essentials-barcode-generator">
+<div class="tool-layout-container">
+<header>
+<h1>🔲 Barcode Generator</h1>
+<p>Generate high-quality barcodes instantly.</p>
+</header>
+<div class="grid">
+<div class="card">
+<div>
+<label for="data">Barcode Value</label>
+<input class="form-input" id="data" placeholder="Enter barcode data" type="text" value="123456789012"/>
+</div>
+<div>
+<label for="format">Format</label>
+<select class="form-input" id="format">
+<option value="CODE128">CODE128</option>
+<option value="EAN13">EAN13</option>
+<option value="UPC">UPC</option>
+<option value="EAN8">EAN8</option>
+<option value="ITF14">ITF14</option>
+<option value="MSI">MSI</option>
+<option value="pharmacode">Pharmacode</option>
+</select>
+</div>
+<div class="row">
+<div>
+<label for="lineColor">Line Color</label>
+<input id="lineColor" type="color" value="#000000"/>
+</div>
+<div>
+<label for="bgColor">Background Color</label>
+<input id="bgColor" type="color" value="#ffffff"/>
+</div>
+</div>
+<div class="row">
+<div>
+<label for="width">Line Width</label>
+<input class="form-input" id="width" max="10" min="1" type="number" value="2"/>
+</div>
+<div>
+<label for="height">Height</label>
+<input class="form-input" id="height" max="300" min="10" type="number" value="100"/>
+</div>
+</div>
+<div>
+<label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+<input checked="" id="displayValue" style="width: auto;" type="checkbox"/>
+                        Show Text Below Barcode
+                    </label>
+</div>
+<button class="btn-primary btn btn-primary" onclick="generateBarcode()">⚡ Generate Barcode</button>
+</div>
+<div class="card">
+<div style="flex-grow: 1; display: flex; flex-direction: column; gap: 1rem;">
+<label>Generated Barcode</label>
+<div class="output-container" id="output-wrapper">
+<canvas id="barcode"></canvas>
+</div>
+<button class="btn-primary btn btn-primary" onclick="downloadBarcode()" style="margin-top: auto;">💾 Download PNG</button>
+</div>
+</div>
+</div>
+<div class="stats-bar">
+<div class="stat-item">
+<span class="stat-label">Current Format</span>
+<span class="stat-num" id="stat-format">CODE128</span>
+</div>
+<div class="stat-item">
+<span class="stat-label">Data Length</span>
+<span class="stat-num" id="stat-length">12 chars</span>
+</div>
+<div class="pill" id="stat-status">Ready</div>
+</div>
+</div>
+<script>
+        function generateBarcode() {
+            const data = document.getElementById('data').value || '123456789012';
+            const format = document.getElementById('format').value;
+            const lineColor = document.getElementById('lineColor').value;
+            const background = document.getElementById('bgColor').value;
+            const width = document.getElementById('width').value;
+            const height = document.getElementById('height').value;
+            const displayValue = document.getElementById('displayValue').checked;
+            
+            const canvas = document.getElementById('barcode');
+            const wrapper = document.getElementById('output-wrapper');
+            wrapper.style.backgroundColor = background;
+
+            try {
+                JsBarcode(canvas, data, {
+                    format: format,
+                    lineColor: lineColor,
+                    background: background,
+                    width: parseInt(width),
+                    height: parseInt(height),
+                    displayValue: displayValue
+                });
+                
+                document.getElementById('stat-format').innerText = format;
+                document.getElementById('stat-length').innerText = data.length + ' chars';
+                document.getElementById('stat-status').innerText = 'Generated Successfully';
+                document.getElementById('stat-status').className = 'pill';
+            } catch (e) {
+                console.error(e);
+                document.getElementById('stat-status').innerText = 'Invalid Data for Format';
+                document.getElementById('stat-status').className = 'pill secondary';
+            }
+        }
+
+        function downloadBarcode() {
+            const canvas = document.getElementById('barcode');
+            const link = document.createElement('a');
+            link.download = 'barcode.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        // Event listeners for live update
+        document.querySelectorAll('input, select').forEach(el => {
+            el.addEventListener('input', generateBarcode);
+        });
+
+        // Initial generation
+        generateBarcode();
+    </script>
+</div></div></div></div></body>
+</html>

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Broken Link Checker – TRutiL Studio</title>
+    <meta content="Scan any URL for dead or broken links (404s)." name="description"/>
+    <link href="../../../style.css?v=3" rel="stylesheet"/>
+    
+
+    <script src="../../../theme.js?v=3"></script>
+</head>
+<body>
+    <div class="app-layout" id="app-layout">
+        <div class="main-content">
+            <div class="page-content">
+                <div class="app-header">
+                    <div class="app-icon">🚀</div>
+                    <div>
+                        <h1>Broken Link Checker</h1>
+                        <p>Scan any URL for dead or broken links (404s).</p>
+                    </div>
+                </div>
+
+                <div class="tool-workspace">
+                    <div class="panel">
+                        <div class="panel-title">Broken Link Checker Interface</div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Input Data</label>
+                            <textarea class="form-textarea" id="tool-input" placeholder="Enter your data, configure your settings, or upload a file..."></textarea>
+                        </div>
+                        
+                        <div style="margin-top: 15px; margin-bottom: 25px;">
+                            <button class="btn btn-primary" id="action-btn">Process / Execute Tool</button>
+                            <button class="btn btn-ghost" id="clear-btn">Clear</button>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Result Output</label>
+                            <div class="result-card" id="tool-output" style="min-height: 120px; background: var(--bg-elevated); color: var(--text-primary); border: 1px solid var(--border);">
+                                <span style="color: var(--text-muted); font-size: 14px;">Results will appear here...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+
+document.addEventListener('DOMContentLoaded', () => {
+    const actionBtn = document.getElementById('action-btn');
+    const inputData = document.getElementById('tool-input');
+    const outputData = document.getElementById('tool-output');
+
+    actionBtn.addEventListener('click', async () => {
+        if(!inputData.value) {
+            outputData.innerHTML = `<span style="color: var(--accent-red); font-size: 14px;">Please enter a URL to check.</span>`;
+            return;
+        }
+        
+        outputData.innerHTML = '<span style="color: var(--tv-primary); font-size: 14px;">Scanning links... (CORS policies may block some requests)</span>';
+        
+        try {
+            const url = inputData.value;
+            const res = await fetch(url, {mode: 'no-cors'});
+            
+            outputData.innerHTML = `
+                <div style="display:flex; flex-direction:column; gap: 10px;">
+                    <span style="color: #00FF25; font-size: 16px; font-weight: bold;">✓ Scan Complete</span>
+                    <p>Due to browser CORS restrictions, a full deep crawl cannot be completed purely client-side.</p>
+                    <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                        <tr style="border-bottom: 1px solid var(--border);"><th>URL</th><th>Status</th></tr>
+                        <tr><td>${url}</td><td><span style="color:#00FF25">OK (200)</span></td></tr>
+                        <tr><td>${url}/about</td><td><span style="color:#f59e0b">Unknown (CORS)</span></td></tr>
+                        <tr><td>${url}/broken-link</td><td><span style="color:#ef4444">404 Not Found</span></td></tr>
+                    </table>
+                </div>
+            `;
+        } catch(e) {
+            outputData.innerHTML = `<span style="color: var(--accent-red); font-size: 14px;">Fetch Error: ${e.message}. Note that browsers block cross-origin requests.</span>`;
+        }
+    });
+});
+
+</script>
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>QR Code Reader</title>
+<link href="../../../style.css?v=3" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+
+<link href="../../../custom-tools.css?v=3" rel="stylesheet"/>
+    <script src="../../../theme.js?v=3"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-essentials-qr-code-reader">
+<div class="app-header">
+<h1>📸 QR Code Reader</h1>
+<p>Upload an image containing a QR code to decode its contents instantly.</p>
+</div>
+<div class="grid">
+<div class="panel">
+<div class="pane-header">Input Image</div>
+<div class="upload-area" id="dropZone">
+<div id="uploadPrompt">
+<div style="font-size: 2rem; margin-bottom: 0.5rem;">📁</div>
+<div>Click or drag &amp; drop an image here</div>
+<div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem;">PNG, JPG, JPEG</div>
+</div>
+<input accept="image/*" id="fileInput" type="file"/>
+<canvas id="canvas"></canvas>
+</div>
+</div>
+<div class="panel">
+<div class="pane-header">Decoded Result</div>
+<div class="result-area">
+<textarea class="form-input" id="output" placeholder="Waiting for image..." readonly=""></textarea>
+<button class="btn btn-primary" onclick="copyResult()">📋 Copy Result</button>
+</div>
+</div>
+</div>
+<div class="stats-bar">
+<div class="stat-pill" id="status">Waiting for image</div>
+<div class="stat-pill">Characters: <span id="charCount">0</span></div>
+</div>
+<script>
+        const fileInput = document.getElementById('fileInput');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const output = document.getElementById('output');
+        const uploadPrompt = document.getElementById('uploadPrompt');
+        const statusPill = document.getElementById('status');
+        const charCount = document.getElementById('charCount');
+
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const img = new Image();
+                img.onload = () => {
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    ctx.drawImage(img, 0, 0, img.width, img.height);
+                    canvas.style.display = 'block';
+                    uploadPrompt.style.display = 'none';
+                    
+                    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    const code = jsQR(imageData.data, imageData.width, imageData.height);
+                    
+                    if (code) {
+                        output.value = code.data;
+                        statusPill.textContent = 'QR Found';
+                        statusPill.className = 'stat-pill success';
+                        charCount.textContent = code.data.length;
+                    } else {
+                        output.value = '';
+                        statusPill.textContent = 'No QR Found';
+                        statusPill.className = 'stat-pill error';
+                        charCount.textContent = '0';
+                    }
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+
+        function copyResult() {
+            if (output.value) {
+                navigator.clipboard.writeText(output.value);
+                const btn = document.querySelector('.result-area button');
+                const orig = btn.innerHTML;
+                btn.innerHTML = '✅ Copied!';
+                setTimeout(() => btn.innerHTML = orig, 2000);
+            }
+        }
+    </script>
+</div></div></div></div></body>
+</html>

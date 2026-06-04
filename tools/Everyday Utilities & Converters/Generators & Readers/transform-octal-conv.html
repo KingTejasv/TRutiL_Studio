@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Octal Converter</title>
+<link href="../../../style.css?v=3" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Cascadia+Code&amp;display=swap" rel="stylesheet"/>
+
+<link href="../../../custom-tools.css?v=3" rel="stylesheet"/>
+    <script src="../../../theme.js?v=3"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-transform-octal-conv">
+<div class="app-header">
+<h1>🐙 Octal Converter</h1>
+<p>Instantly convert numbers across Octal, Decimal, Hexadecimal, and Binary bases</p>
+</div>
+<div class="toolbar">
+<button class="btn btn-primary" onclick="clearAll()">🗑️ Clear All</button>
+</div>
+<div class="tool-layout-container">
+<div class="base-pane">
+<label>Octal <span class="badge">Base 8</span></label>
+<input class="form-input" id="oct" oninput="update('oct')" placeholder="0" type="text"/>
+</div>
+<div class="base-pane">
+<label>Decimal <span class="badge">Base 10</span></label>
+<input class="form-input" id="dec" oninput="update('dec')" placeholder="0" type="text"/>
+</div>
+<div class="base-pane">
+<label>Hexadecimal <span class="badge">Base 16</span></label>
+<input class="form-input" id="hex" oninput="update('hex')" placeholder="0" type="text"/>
+</div>
+<div class="base-pane">
+<label>Binary <span class="badge">Base 2</span></label>
+<input class="form-input" id="bin" oninput="update('bin')" placeholder="0" type="text"/>
+</div>
+</div>
+<div class="stats-bar">
+<div class="pill idle" id="status-pill">Ready</div>
+</div>
+<script>
+        function update(baseChanged) {
+            const decEl = document.getElementById('dec');
+            const octEl = document.getElementById('oct');
+            const hexEl = document.getElementById('hex');
+            const binEl = document.getElementById('bin');
+            const pill = document.getElementById('status-pill');
+            
+            try {
+                let decVal = 0n;
+                let val = '';
+
+                if (baseChanged === 'dec') {
+                    val = decEl.value.trim();
+                    if(!val) { clearAllSilently(); return; }
+                    if (!/^-?\d+$/.test(val)) throw new Error();
+                    decVal = BigInt(val);
+                } else if (baseChanged === 'oct') {
+                    val = octEl.value.trim();
+                    if(!val) { clearAllSilently(); return; }
+                    if (!/^-?[0-7]+$/.test(val)) throw new Error();
+                    decVal = BigInt(val[0] === '-' ? "-0o" + val.slice(1) : "0o" + val);
+                } else if (baseChanged === 'hex') {
+                    val = hexEl.value.trim();
+                    if(!val) { clearAllSilently(); return; }
+                    if (!/^-?[0-9A-Fa-f]+$/.test(val)) throw new Error();
+                    decVal = BigInt(val[0] === '-' ? "-0x" + val.slice(1) : "0x" + val);
+                } else if (baseChanged === 'bin') {
+                    val = binEl.value.trim();
+                    if(!val) { clearAllSilently(); return; }
+                    if (!/^-?[01]+$/.test(val)) throw new Error();
+                    decVal = BigInt(val[0] === '-' ? "-0b" + val.slice(1) : "0b" + val);
+                }
+
+                if (baseChanged !== 'dec') decEl.value = decVal.toString(10);
+                if (baseChanged !== 'oct') octEl.value = decVal.toString(8);
+                if (baseChanged !== 'hex') hexEl.value = decVal.toString(16).toUpperCase();
+                if (baseChanged !== 'bin') binEl.value = decVal.toString(2);
+                
+                pill.className = 'pill';
+                pill.textContent = 'Valid conversion';
+            } catch (e) {
+                pill.className = 'pill error';
+                pill.textContent = 'Invalid input for base';
+            }
+        }
+
+        function clearAllSilently() {
+            document.getElementById('dec').value = '';
+            document.getElementById('oct').value = '';
+            document.getElementById('hex').value = '';
+            document.getElementById('bin').value = '';
+            const pill = document.getElementById('status-pill');
+            pill.className = 'pill idle';
+            pill.textContent = 'Ready';
+        }
+
+        function clearAll() {
+            clearAllSilently();
+            document.getElementById('oct').focus();
+        }
+    </script>
+</div></div></div></div></body>
+</html>

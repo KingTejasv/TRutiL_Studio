@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Percentage Calculator — TRutiL Studio</title>
+<meta content="Calculate percentages, discounts, tips, and percentage changes." name="description"/>
+<link href="../../../style.css?v=3" rel="stylesheet"/>
+
+<link href="../../../custom-tools.css?v=3" rel="stylesheet"/>
+    <script src="../../../theme.js?v=3"></script>
+</head>
+<body>
+<div class="app-layout" id="app-layout">
+<div class="main-content">
+<div class="page-content"><div id="tool-percentage">
+<div class="app-header">
+<div class="app-icon" style="background:linear-gradient(135deg,#06b6d4,#10b981)">💯</div>
+<div>
+<h1>Percentage Calculator</h1>
+<p>Percentages, discounts, tips, and changes</p>
+</div>
+</div>
+<div class="two-col">
+<!-- Basic % -->
+<div class="pct-card">
+<h2>📊 What is X% of Y?</h2>
+<div class="form-group">
+<label class="form-label">Percentage (%)</label>
+<input class="form-input" id="pct1" oninput="calcPct1()" type="number" value="15"/>
+</div>
+<div class="form-group">
+<label class="form-label">Of Number</label>
+<input class="form-input" id="num1" oninput="calcPct1()" type="number" value="200"/>
+</div>
+<div style="background:var(--bg-card);border-radius:var(--radius-sm);padding:14px;">
+<div class="text-muted text-sm">Result</div>
+<div class="pct-result" id="res1">30</div>
+</div>
+</div>
+<!-- X is what % of Y -->
+<div class="pct-card">
+<h2>🔍 X is what % of Y?</h2>
+<div class="form-group">
+<label class="form-label">Value (X)</label>
+<input class="form-input" id="pct2x" oninput="calcPct2()" type="number" value="30"/>
+</div>
+<div class="form-group">
+<label class="form-label">Total (Y)</label>
+<input class="form-input" id="pct2y" oninput="calcPct2()" type="number" value="200"/>
+</div>
+<div style="background:var(--bg-card);border-radius:var(--radius-sm);padding:14px;">
+<div class="text-muted text-sm">Result</div>
+<div class="pct-result" id="res2">15%</div>
+</div>
+</div>
+<!-- % Change -->
+<div class="pct-card">
+<h2>📈 Percentage Change</h2>
+<div class="form-group">
+<label class="form-label">From Value</label>
+<input allow-negative="" class="form-input" id="from" oninput="calcChange()" type="number" value="100"/>
+</div>
+<div class="form-group">
+<label class="form-label">To Value</label>
+<input allow-negative="" class="form-input" id="to" oninput="calcChange()" type="number" value="120"/>
+</div>
+<div style="background:var(--bg-card);border-radius:var(--radius-sm);padding:14px;">
+<div class="text-muted text-sm">Change</div>
+<div class="pct-result" id="resChange" style="color:var(--accent-green);-webkit-text-fill-color:initial">+20%</div>
+</div>
+</div>
+<!-- Discount -->
+<div class="pct-card">
+<h2>🏷️ Discount Calculator</h2>
+<div class="form-group">
+<label class="form-label">Original Price (₹)</label>
+<input class="form-input" id="origPrice" oninput="calcDiscount()" type="number" value="1000"/>
+</div>
+<div class="form-group">
+<label class="form-label">Discount (%)</label>
+<input class="form-input" id="discount" oninput="calcDiscount()" type="number" value="20"/>
+</div>
+<div style="background:var(--bg-card);border-radius:var(--radius-sm);padding:14px;">
+<div class="text-muted text-sm">Final Price</div>
+<div class="pct-result" id="resDiscount">₹800</div>
+<div id="resSaving" style="font-size:13px;color:var(--accent-green);margin-top:4px;">You save ₹200</div>
+</div>
+</div>
+<!-- Tip Calculator -->
+<div class="pct-card">
+<h2>🍽️ Tip Calculator</h2>
+<div class="form-group">
+<label class="form-label">Bill Amount (₹)</label>
+<input class="form-input" id="bill" oninput="calcTip()" type="number" value="500"/>
+</div>
+<div class="form-group">
+<label class="form-label">Tip % <span id="tipPctLabel">15%</span></label>
+<input id="tipSlider" max="50" min="0" oninput="document.getElementById('tipPctLabel').textContent=this.value+'%';calcTip()" step="1" style="-webkit-appearance:none;width:100%;height:6px;background:var(--bg-elevated);border-radius:99px;cursor:pointer;" type="range" value="15"/>
+</div>
+<div class="form-group">
+<label class="form-label">Split between</label>
+<input class="form-input" id="people" min="1" oninput="calcTip()" type="number" value="2"/>
+</div>
+<div style="background:var(--bg-card);border-radius:var(--radius-sm);padding:14px;">
+<div class="text-muted text-sm">Per person</div>
+<div class="pct-result" id="resTip">₹287.50</div>
+</div>
+</div>
+<!-- Reverse % -->
+<div class="pct-card">
+<h2>🔄 Reverse Percentage</h2>
+<div class="form-group">
+<label class="form-label">Final Value</label>
+<input class="form-input" id="finalVal" oninput="calcReverse()" type="number" value="85"/>
+</div>
+<div class="form-group">
+<label class="form-label">Is what % of Original?</label>
+<input class="form-input" id="knownPct" oninput="calcReverse()" type="number" value="85"/>
+</div>
+<div style="background:var(--bg-card);border-radius:var(--radius-sm);padding:14px;">
+<div class="text-muted text-sm">Original Value</div>
+<div class="pct-result" id="resReverse">100</div>
+</div>
+</div>
+</div>
+</div></div>
+</div>
+</div>
+<script>
+  function calcPct1(){
+    const p=parseFloat(document.getElementById('pct1').value)||0;
+    const n=parseFloat(document.getElementById('num1').value)||0;
+    document.getElementById('res1').textContent=(p*n/100).toFixed(4).replace(/\.?0+$/, '');
+  }
+  function calcPct2(){
+    const x=parseFloat(document.getElementById('pct2x').value)||0;
+    const y=parseFloat(document.getElementById('pct2y').value)||1;
+    document.getElementById('res2').textContent=(x/y*100).toFixed(4).replace(/\.?0+$/, '')+'%';
+  }
+  function calcChange(){
+    const f=parseFloat(document.getElementById('from').value)||1;
+    const t=parseFloat(document.getElementById('to').value)||0;
+    const ch=((t-f)/Math.abs(f)*100);
+    const el=document.getElementById('resChange');
+    el.textContent=(ch>=0?'+':'')+ch.toFixed(2)+'%';
+    el.style.color=ch>=0?'var(--accent-green)':'var(--accent-pink)';
+  }
+  function calcDiscount(){
+    const p=parseFloat(document.getElementById('origPrice').value)||0;
+    const d=parseFloat(document.getElementById('discount').value)||0;
+    const saving=p*d/100;
+    const final=p-saving;
+    document.getElementById('resDiscount').textContent='₹'+final.toLocaleString('en-IN');
+    document.getElementById('resSaving').textContent='You save ₹'+saving.toLocaleString('en-IN');
+  }
+  function calcTip(){
+    const b=parseFloat(document.getElementById('bill').value)||0;
+    const t=parseFloat(document.getElementById('tipSlider').value)||0;
+    const n=parseInt(document.getElementById('people').value)||1;
+    const total=b+(b*t/100);
+    document.getElementById('resTip').textContent='₹'+(total/n).toFixed(2);
+  }
+  function calcReverse(){
+    const f=parseFloat(document.getElementById('finalVal').value)||0;
+    const p=parseFloat(document.getElementById('knownPct').value)||1;
+    document.getElementById('resReverse').textContent=(f*100/p).toFixed(4).replace(/\.?0+$/, '');
+  }
+  calcPct1();calcPct2();calcChange();calcDiscount();calcTip();calcReverse();
+</script>
+</body>
+</html>

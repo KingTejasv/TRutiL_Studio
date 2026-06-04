@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>.htaccess Generator</title>
+<link href="../../../style.css?v=3" rel="stylesheet"/>
+<link href="../../../custom-tools.css?v=3" rel="stylesheet"/>
+<script src="../../../theme.js?v=3"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-cypher-htaccess-generator">
+<div class="app-header">
+<div class="app-icon" style="background:linear-gradient(135deg, #3b82f6, #1d4ed8);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:24px;">⚙</div>
+<div>
+<h1>️ .htaccess Generator</h1>
+<p>Generate standard Apache .htaccess configuration rules.</p>
+</div>
+</div>
+<div class="tool-layout-container">
+<div class="panel">
+<h2>🔧 Configuration Rules</h2>
+<div class="checkbox-group">
+<input checked="" id="https" onchange="generate()" type="checkbox"/>
+<label for="https">Force HTTPS</label>
+</div>
+<div class="form-group">
+<label for="www">WWW Prefix Redirect</label>
+<select class="form-input" id="www" onchange="generate()">
+<option value="none">No Redirect</option>
+<option value="www">Force www (example.com → www.example.com)</option>
+<option value="non-www">Force non-www (www.example.com → example.com)</option>
+</select>
+</div>
+<div class="checkbox-group">
+<input checked="" id="no_index" onchange="generate()" type="checkbox"/>
+<label for="no_index">Prevent Directory Listing</label>
+</div>
+<div class="checkbox-group">
+<input checked="" id="no_sig" onchange="generate()" type="checkbox"/>
+<label for="no_sig">Disable Server Signature</label>
+</div>
+<div class="checkbox-group">
+<input checked="" id="utf8" onchange="generate()" type="checkbox"/>
+<label for="utf8">Set Default Charset to UTF-8</label>
+</div>
+<div class="checkbox-group">
+<input id="cache" onchange="generate()" type="checkbox"/>
+<label for="cache">Enable Browser Caching (Basic)</label>
+</div>
+<div class="form-group" style="margin-top: 1rem;">
+<label for="err404">Custom 404 Error Page</label>
+<input class="form-input" id="err404" oninput="generate()" placeholder="/404.html" type="text"/>
+</div>
+<div class="form-group">
+<label for="err403">Custom 403 Error Page</label>
+<input class="form-input" id="err403" oninput="generate()" placeholder="/403.html" type="text"/>
+</div>
+</div>
+<div class="panel">
+<h2>📄 Generated .htaccess</h2>
+<textarea class="form-input" id="output" readonly=""></textarea>
+<button class="btn btn-primary" onclick="copyCode()">📋 Copy to Clipboard</button>
+</div>
+</div>
+<script>
+    function generate() {
+        let out = [];
+        
+        let https = document.getElementById('https').checked;
+        let www = document.getElementById('www').value;
+        
+        if (https || www !== 'none') {
+            out.push("<IfModule mod_rewrite.c>");
+            out.push("RewriteEngine On");
+            out.push("");
+            
+            if (https) {
+                out.push("# Force HTTPS");
+                out.push("RewriteCond %{HTTPS} off");
+                out.push("RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]");
+                out.push("");
+            }
+            
+            if (www === 'non-www') {
+                out.push("# Force non-www");
+                out.push("RewriteCond %{HTTP_HOST} ^www\.(.*)$ [NC]");
+                out.push("RewriteRule ^(.*)$ https://%1/$1 [R=301,L]");
+                out.push("");
+            } else if (www === 'www') {
+                out.push("# Force www");
+                out.push("RewriteCond %{HTTP_HOST} !^www\. [NC]");
+                out.push("RewriteRule ^(.*)$ https://www.%{HTTP_HOST}/$1 [R=301,L]");
+                out.push("");
+            }
+            
+            out.push("</IfModule>\n");
+        }
+        
+        if (document.getElementById('no_index').checked) {
+            out.push("# Prevent directory listing");
+            out.push("Options -Indexes\n");
+        }
+        
+        if (document.getElementById('no_sig').checked) {
+            out.push("# Disable server signature");
+            out.push("ServerSignature Off\n");
+        }
+        
+        if (document.getElementById('utf8').checked) {
+            out.push("# Set default charset to UTF-8");
+            out.push("AddDefaultCharset UTF-8\n");
+        }
+        
+        if (document.getElementById('cache').checked) {
+            out.push("<IfModule mod_expires.c>");
+            out.push("ExpiresActive On");
+            out.push("ExpiresByType image/jpg \"access plus 1 year\"");
+            out.push("ExpiresByType image/jpeg \"access plus 1 year\"");
+            out.push("ExpiresByType image/gif \"access plus 1 year\"");
+            out.push("ExpiresByType image/png \"access plus 1 year\"");
+            out.push("ExpiresByType text/css \"access plus 1 month\"");
+            out.push("ExpiresByType application/pdf \"access plus 1 month\"");
+            out.push("ExpiresByType text/x-javascript \"access plus 1 month\"");
+            out.push("ExpiresByType application/javascript \"access plus 1 month\"");
+            out.push("ExpiresByType application/x-shockwave-flash \"access plus 1 month\"");
+            out.push("ExpiresByType image/x-icon \"access plus 1 year\"");
+            out.push("ExpiresDefault \"access plus 2 days\"");
+            out.push("</IfModule>\n");
+        }
+        
+        let err404 = document.getElementById('err404').value.trim();
+        if (err404) {
+            out.push("# Custom 404 error page");
+            out.push(`ErrorDocument 404 ${err404}\n`);
+        }
+        
+        let err403 = document.getElementById('err403').value.trim();
+        if (err403) {
+            out.push("# Custom 403 error page");
+            out.push(`ErrorDocument 403 ${err403}\n`);
+        }
+        
+        document.getElementById('output').value = out.join("\n").trim();
+    }
+
+    function copyCode() {
+        const out = document.getElementById('output');
+        out.select();
+        document.execCommand('copy');
+        const btn = document.querySelector('.btn');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '✅ Copied!';
+        setTimeout(() => btn.innerHTML = originalText, 2000);
+    }
+
+    // Initialize
+    generate();
+</script>
+</div></div></div></div></body>
+</html>

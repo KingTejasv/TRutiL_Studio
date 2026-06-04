@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>RSA Key Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Fira+Code&amp;display=swap" rel="stylesheet"/>
+<link href="../../../style.css?v=3" rel="stylesheet"/>
+
+<link href="../../../custom-tools.css?v=3" rel="stylesheet"/>
+    <script src="../../../theme.js?v=3"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-cypher-rsa-key-gen">
+<div class="tool-layout-container">
+<div class="app-header">
+<h1>🔐 RSA Key Generator</h1>
+<p>Generate secure RSA public and private key pairs instantly in your browser.</p>
+</div>
+<div class="toolbar">
+<select class="form-input" id="keySize">
+<option value="1024">1024-bit (Fast)</option>
+<option selected="" value="2048">2048-bit (Standard)</option>
+<option value="4096">4096-bit (Secure)</option>
+</select>
+<button class="primary btn btn-primary" id="generateBtn">⚡ Generate Keys</button>
+</div>
+<div class="grid">
+<div class="panel">
+<div class="pane-header">
+<span>Public Key</span>
+<button class="copy-btn btn btn-primary" onclick="copyText('publicKey')">Copy</button>
+</div>
+<textarea class="form-input" id="publicKey" placeholder="Your generated public key will appear here..." readonly=""></textarea>
+</div>
+<div class="panel">
+<div class="pane-header">
+<span>Private Key</span>
+<button class="copy-btn btn btn-primary" onclick="copyText('privateKey')">Copy</button>
+</div>
+<textarea class="form-input" id="privateKey" placeholder="Your generated private key will appear here..." readonly=""></textarea>
+</div>
+</div>
+<div class="stats-bar">
+<div>
+<span style="color: var(--text-muted); font-size: 0.9rem;">Status: <span id="statusText" style="color: var(--text-primary);">Ready</span></span>
+</div>
+<div class="stat-pill" id="securityStatus" style="color: var(--text-muted); background: transparent; border-color: var(--border);">Awaiting Generation</div>
+</div>
+</div>
+<script>
+        function arrayBufferToBase64(buffer) {
+            let binary = '';
+            const bytes = new Uint8Array(buffer);
+            const len = bytes.byteLength;
+            for (let i = 0; i < len; i++) {
+                binary += String.fromCharCode(bytes[i]);
+            }
+            return window.btoa(binary);
+        }
+
+        function formatPEM(base64, type) {
+            const chunks = base64.match(/.{1,64}/g);
+            return `-----BEGIN ${type}-----\n${chunks.join('\n')}\n-----END ${type}-----`;
+        }
+
+        async function generateKeys() {
+            const btn = document.getElementById('generateBtn');
+            const size = parseInt(document.getElementById('keySize').value);
+            const status = document.getElementById('statusText');
+            const secStatus = document.getElementById('securityStatus');
+            
+            btn.disabled = true;
+            btn.textContent = '⏳ Generating...';
+            status.textContent = `Generating ${size}-bit RSA keys...`;
+            secStatus.textContent = 'Processing';
+            secStatus.style.color = '#F59E0B';
+            secStatus.style.background = 'rgba(245, 158, 11, 0.15)';
+            secStatus.style.borderColor = 'rgba(245, 158, 11, 0.3)';
+
+            try {
+                const keyPair = await window.crypto.subtle.generateKey(
+                    {
+                        name: "RSA-OAEP",
+                        modulusLength: size,
+                        publicExponent: new Uint8Array([1, 0, 1]),
+                        hash: "SHA-256"
+                    },
+                    true,
+                    ["encrypt", "decrypt"]
+                );
+
+                const publicKeyBuffer = await window.crypto.subtle.exportKey("spki", keyPair.publicKey);
+                const privateKeyBuffer = await window.crypto.subtle.exportKey("pkcs8", keyPair.privateKey);
+
+                document.getElementById('publicKey').value = formatPEM(arrayBufferToBase64(publicKeyBuffer), "PUBLIC KEY");
+                document.getElementById('privateKey').value = formatPEM(arrayBufferToBase64(privateKeyBuffer), "PRIVATE KEY");
+
+                status.textContent = 'Keys generated successfully.';
+                secStatus.textContent = `${size}-bit Secured`;
+                secStatus.style.color = '#10B981';
+                secStatus.style.background = 'rgba(16, 185, 129, 0.15)';
+                secStatus.style.borderColor = 'rgba(16, 185, 129, 0.3)';
+            } catch (err) {
+                status.textContent = 'Error generating keys.';
+                console.error(err);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '⚡ Generate Keys';
+            }
+        }
+
+        function copyText(id) {
+            const el = document.getElementById(id);
+            if (!el.value) return;
+            el.select();
+            document.execCommand('copy');
+            const btn = el.previousElementSibling.querySelector('.copy-btn');
+            const originalText = btn.textContent;
+            btn.textContent = 'Copied!';
+            setTimeout(() => btn.textContent = originalText, 2000);
+        }
+
+        document.getElementById('generateBtn').addEventListener('click', generateKeys);
+    </script>
+</div></div></div></div></body>
+</html>

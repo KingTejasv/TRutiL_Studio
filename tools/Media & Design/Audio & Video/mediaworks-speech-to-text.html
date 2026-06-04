@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Speech to Text – TRutiL Studio</title>
+    <meta content="Real-time speech recognition and dictation." name="description"/>
+    <link href="../../../style.css?v=3" rel="stylesheet"/>
+    
+
+    <script src="../../../theme.js?v=3"></script>
+</head>
+<body>
+    <div class="app-layout" id="app-layout">
+        <div class="main-content">
+            <div class="page-content">
+                <div class="app-header">
+                    <div class="app-icon">🎥</div>
+                    <div>
+                        <h1>Speech to Text</h1>
+                        <p>Real-time speech recognition and dictation.</p>
+                    </div>
+                </div>
+                <div class="tool-workspace">
+                    
+<div class="panel" style="text-align:center;">
+    <button class="btn btn-primary" id="btn-start-record" style="border-radius: 50%; width: 80px; height: 80px; font-size: 32px; padding: 0;">🎤</button>
+    <div id="recording-status" style="margin-top: 15px; color: var(--accent-red); font-weight: bold; display: none;">Recording... Speak now.</div>
+    <div style="margin-top: 30px; text-align: left;">
+        <label class="form-label">Recognized Text</label>
+        <textarea class="form-textarea" id="s2t-output" style="min-height: 250px; font-size: 18px;"></textarea>
+    </div>
+</div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+if(!SpeechRecognition) {
+    document.getElementById('s2t-output').value = "Your browser does not support Speech Recognition. Please try Google Chrome.";
+} else {
+    const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    
+    let isRecording = false;
+    let finalTranscript = "";
+    
+    const btn = document.getElementById('btn-start-record');
+    const status = document.getElementById('recording-status');
+    const out = document.getElementById('s2t-output');
+    
+    btn.addEventListener('click', () => {
+        if(isRecording) {
+            recognition.stop();
+            btn.style.background = 'var(--accent)';
+            status.style.display = 'none';
+        } else {
+            recognition.start();
+            btn.style.background = 'var(--accent-red)';
+            status.style.display = 'block';
+        }
+        isRecording = !isRecording;
+    });
+    
+    recognition.onresult = (event) => {
+        let interim = "";
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+            if (event.results[i].isFinal) {
+                finalTranscript += event.results[i][0].transcript;
+            } else {
+                interim += event.results[i][0].transcript;
+            }
+        }
+        out.value = finalTranscript + interim;
+    };
+}
+
+    </script>
+</body>
+</html>

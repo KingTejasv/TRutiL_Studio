@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>JSON to CSV Converter</title>
+<link href="../../../style.css?v=3" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Cascadia+Code&amp;display=swap" rel="stylesheet"/>
+
+<link href="../../../custom-tools.css?v=3" rel="stylesheet"/>
+    <script src="../../../theme.js?v=3"></script>
+</head>
+<body><div class="app-layout" id="app-layout"><div class="main-content"><div class="page-content"><div id="tool-transform-json-to-csv">
+<div class="app-header">
+<h1>🔀 JSON to CSV Converter</h1>
+<p>Convert JSON arrays of objects to comma-separated values format</p>
+</div>
+<div class="toolbar">
+<button class="btn btn-primary" onclick="convert()">⚡ Convert to CSV</button>
+<button class="btn btn-primary" onclick="copyOutput()">📋 Copy Output</button>
+<button class="btn btn-primary" onclick="clearAll()">🗑️ Clear</button>
+</div>
+<div class="tool-layout-container">
+<div class="panel">
+<label for="input">Input JSON</label>
+<textarea class="form-input" id="input" oninput="debounceConvert()" placeholder='[{"name": "John", "age": 30}, {"name": "Jane", "age": 25}]'></textarea>
+</div>
+<div class="panel">
+<label for="output">Output CSV</label>
+<textarea class="form-input" id="output" placeholder="name,age
+John,30
+Jane,25" readonly=""></textarea>
+</div>
+</div>
+<div class="stats-bar">
+<div class="stats-group">
+<div class="stat">
+<span class="stat-label">JSON Size</span>
+<span class="stat-value" id="in-size">0 B</span>
+</div>
+<div class="stat">
+<span class="stat-label">CSV Size</span>
+<span class="stat-value" id="out-size">0 B</span>
+</div>
+</div>
+<div class="pill idle" id="status-pill">Waiting for input</div>
+</div>
+<script>
+        let timeout = null;
+        function debounceConvert() {
+            clearTimeout(timeout);
+            timeout = setTimeout(convert, 300);
+        }
+
+        function convert() {
+            const input = document.getElementById('input').value;
+            const outputEl = document.getElementById('output');
+            const pill = document.getElementById('status-pill');
+            
+            if (!input.trim()) {
+                outputEl.value = '';
+                updateStats(0, 0);
+                pill.className = 'pill idle';
+                pill.textContent = 'Waiting for input';
+                return;
+            }
+
+            try {
+                const data = JSON.parse(input);
+                if (!Array.isArray(data)) {
+                    throw new Error("Input must be a JSON array");
+                }
+                if (data.length === 0) {
+                    outputEl.value = "";
+                    updateStats(input.length, 0);
+                    pill.className = 'pill';
+                    pill.textContent = 'Success';
+                    return;
+                }
+                
+                const keys = new Set();
+                data.forEach(obj => {
+                    if(typeof obj === 'object' && obj !== null) {
+                        Object.keys(obj).forEach(k => keys.add(k));
+                    }
+                });
+                const header = Array.from(keys);
+                
+                let csv = header.map(escapeCsv).join(',') + '\n';
+                data.forEach(obj => {
+                    if(typeof obj !== 'object' || obj === null) return;
+                    const row = header.map(key => {
+                        let val = obj[key];
+                        if (val === null || val === undefined) val = '';
+                        else if (typeof val === 'object') val = JSON.stringify(val);
+                        else val = String(val);
+                        return escapeCsv(val);
+                    });
+                    csv += row.join(',') + '\n';
+                });
+                
+                outputEl.value = csv;
+                updateStats(new Blob([input]).size, new Blob([csv]).size);
+                
+                pill.className = 'pill';
+                pill.textContent = 'Success';
+            } catch (e) {
+                pill.className = 'pill error';
+                pill.textContent = 'Error: ' + e.message;
+            }
+        }
+
+        function escapeCsv(val) {
+            let str = String(val);
+            str = str.replace(/"/g, '""');
+            if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
+                str = `"${str}"`;
+            }
+            return str;
+        }
+
+        function updateStats(inBytes, outBytes) {
+            document.getElementById('in-size').textContent = formatBytes(inBytes);
+            document.getElementById('out-size').textContent = formatBytes(outBytes);
+        }
+
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function copyOutput() {
+            const out = document.getElementById('output');
+            out.select();
+            document.execCommand('copy');
+        }
+
+        function clearAll() {
+            document.getElementById('input').value = '';
+            document.getElementById('output').value = '';
+            debounceConvert();
+        }
+    </script>
+</div></div></div></div></body>
+</html>

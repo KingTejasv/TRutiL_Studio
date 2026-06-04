@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Trading & Stock Calculator - TRutiL Studio</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link href="../../../style.css?v=3" rel="stylesheet"/>
+<link href="../../../custom-tools.css?v=3" rel="stylesheet"/>
+<script src="../../../theme.js?v=3"></script>
+<style>
+    .panel { display: flex; flex-direction: column; gap: 1rem; }
+    .metrics-bar {
+        display: flex; justify-content: space-between; padding: 1rem;
+        background: linear-gradient(to right, rgba(0,0,0,0.02), transparent);
+        border: 1px solid var(--border); border-radius: var(--radius-sm);
+        margin-top: 1rem; align-items: center;
+    }
+    [data-theme="dark"] .metrics-bar {
+        background: linear-gradient(to right, rgba(255,255,255,0.02), transparent);
+    }
+</style>
+</head>
+<body>
+<div class="app-layout" id="app-layout">
+<div class="main-content">
+<div class="page-content">
+<div class="tool-layout-container">
+    <div class="app-header">
+        <h1>📈 Trading & Stock Calculator</h1>
+        <p>Calculate your stock profit/loss and overall trading profitability.</p>
+    </div>
+    
+    <div class="split-pane">
+        <div class="panel">
+            <div class="pane-header"><div class="pane-title">Stock Profit / Loss</div></div>
+            <div class="form-group"><label class="form-label">Buy Price ($)</label><input type="number" class="form-input" id="stock-buy" placeholder="e.g. 150"></div>
+            <div class="form-group"><label class="form-label">Sell Price ($)</label><input type="number" class="form-input" id="stock-sell" placeholder="e.g. 175"></div>
+            <div class="form-group"><label class="form-label">Number of Shares</label><input type="number" class="form-input" id="stock-shares" placeholder="e.g. 100"></div>
+            <div class="form-group"><label class="form-label">Commissions ($)</label><input type="number" class="form-input" id="stock-fees" placeholder="e.g. 5"></div>
+            <button class="btn btn-primary" onclick="calcStock()">Calculate</button>
+            <div class="metrics-bar"><span style="font-weight:500;">Net Profit/Loss:</span><strong id="stock-net" style="font-size:1.25rem;">$0.00</strong></div>
+        </div>
+        <div class="panel">
+            <div class="pane-header"><div class="pane-title">Trading Profitability</div></div>
+            <div class="form-group"><label class="form-label">Total Trades</label><input type="number" class="form-input" id="trade-total" placeholder="e.g. 50"></div>
+            <div class="form-group"><label class="form-label">Winning Trades</label><input type="number" class="form-input" id="trade-wins" placeholder="e.g. 30"></div>
+            <div class="form-group"><label class="form-label">Average Win ($)</label><input type="number" class="form-input" id="trade-avg-win" placeholder="e.g. 200"></div>
+            <div class="form-group"><label class="form-label">Average Loss ($)</label><input type="number" class="form-input" id="trade-avg-loss" placeholder="e.g. 100"></div>
+            <button class="btn btn-primary" onclick="calcTrade()">Calculate</button>
+            <div class="metrics-bar" style="flex-direction:column; gap:0.5rem; align-items:flex-start;">
+                <div style="width:100%; display:flex; justify-content:space-between;"><span>Win Rate:</span><strong id="trade-rate">0%</strong></div>
+                <div style="width:100%; display:flex; justify-content:space-between;"><span>Expectancy per Trade:</span><strong id="trade-exp">$0.00</strong></div>
+            </div>
+        </div>
+    </div>
+
+</div>
+</div>
+</div>
+</div>
+
+<script>
+    function calcStock() {
+        const b = parseFloat(document.getElementById('stock-buy').value)||0;
+        const s = parseFloat(document.getElementById('stock-sell').value)||0;
+        const n = parseFloat(document.getElementById('stock-shares').value)||0;
+        const f = parseFloat(document.getElementById('stock-fees').value)||0;
+        const net = (s*n) - (b*n) - f;
+        const e = document.getElementById('stock-net');
+        e.textContent = (net>=0?'+$':'-$') + Math.abs(net).toFixed(2);
+        e.style.color = net>=0 ? '#10b981' : '#ef4444';
+    }
+    function calcTrade() {
+        const t = parseFloat(document.getElementById('trade-total').value)||0;
+        const w = parseFloat(document.getElementById('trade-wins').value)||0;
+        const aw = parseFloat(document.getElementById('trade-avg-win').value)||0;
+        const al = parseFloat(document.getElementById('trade-avg-loss').value)||0;
+        if(t===0) return;
+        const wr = w/t; const exp = (wr*aw) - ((1-wr)*al);
+        document.getElementById('trade-rate').textContent = (wr*100).toFixed(1)+'%';
+        const e = document.getElementById('trade-exp');
+        e.textContent = (exp>=0?'+$':'-$') + Math.abs(exp).toFixed(2);
+        e.style.color = exp>=0 ? '#10b981' : '#ef4444';
+    }
+</script>
+
+</body>
+</html>

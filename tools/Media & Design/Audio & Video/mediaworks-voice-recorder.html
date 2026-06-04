@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Voice Recorder – TRutiL Studio</title>
+<meta content="Record and download audio from your microphone." name="description"/>
+<link href="../../../style.css?v=3" rel="stylesheet"/>
+<script src="../../../theme.js?v=3"></script>
+</head>
+<body>
+<div class="app-layout" id="app-layout">
+<div class="main-content">
+<div class="page-content">
+<div class="app-header">
+<div class="app-icon" style="background:linear-gradient(135deg, #3b82f6, #1d4ed8);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:24px;">⚙️</div>
+<div>
+<h1>Voice Recorder</h1>
+<p>Record and download audio from your microphone.</p>
+</div>
+</div>
+<div class="tool-workspace">
+<div class="panel" style="text-align:center;">
+<button class="btn btn-primary" id="btn-record-audio" style="border-radius: 50%; width: 80px; height: 80px; font-size: 32px; padding: 0;">🎙️</button>
+<div id="vr-status" style="margin-top: 15px; color: var(--accent-red); font-weight: bold; display: none;">Recording Audio...</div>
+<div style="margin-top: 30px;">
+<audio controls="" id="audio-playback" style="width: 100%; display: none;"></audio>
+</div>
+<button class="btn btn-success btn-primary" id="btn-download-audio" style="margin-top: 20px; display: none;">Download Audio</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script>
+
+let mediaRecorder;
+let audioChunks = [];
+const btnRecord = document.getElementById('btn-record-audio');
+const status = document.getElementById('vr-status');
+const playback = document.getElementById('audio-playback');
+const download = document.getElementById('btn-download-audio');
+let isRecording = false;
+
+btnRecord.addEventListener('click', async () => {
+    if(!isRecording) {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        mediaRecorder.ondataavailable = e => { if(e.data.size > 0) audioChunks.push(e.data); };
+        mediaRecorder.onstop = () => {
+            const blob = new Blob(audioChunks, { type: 'audio/webm' });
+            const url = URL.createObjectURL(blob);
+            playback.src = url;
+            playback.style.display = 'block';
+            download.style.display = 'inline-block';
+            download.onclick = () => {
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'recording.webm';
+                a.click();
+            };
+            audioChunks = [];
+        };
+        mediaRecorder.start();
+        isRecording = true;
+        btnRecord.style.background = 'var(--accent-red)';
+        status.style.display = 'block';
+        playback.style.display = 'none';
+        download.style.display = 'none';
+    } else {
+        mediaRecorder.stop();
+        mediaRecorder.stream.getTracks().forEach(t => t.stop());
+        isRecording = false;
+        btnRecord.style.background = 'var(--accent)';
+        status.style.display = 'none';
+    }
+});
+
+    </script>
+</body>
+</html>
