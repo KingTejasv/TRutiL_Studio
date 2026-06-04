@@ -88,5 +88,45 @@ btnRecordSr.addEventListener('click', async () => {
 });
 
     </script>
+
+<!-- TRutiL Ad Banners -->
+<div class="trutil-ad-container" style="text-align: center; padding: 2rem 0; width: 100%; display: flex; justify-content: center; align-items: center; clear: both; z-index: 10; background: transparent;">
+    <style>
+        .ad-desktop { display: block; }
+        .ad-mobile { display: none; }
+        @media (max-width: 768px) {
+            .ad-desktop { display: none; }
+            .ad-mobile { display: block; }
+        }
+    </style>
+    <!-- Desktop Ad -->
+    <div class="ad-desktop">
+        <script>
+          atOptions = {
+            'key' : '942071af326c41104ebf587a5c0f6369',
+            'format' : 'iframe',
+            'height' : 90,
+            'width' : 728,
+            'params' : {}
+          };
+        </script>
+        <script src="https://www.highperformanceformat.com/942071af326c41104ebf587a5c0f6369/invoke.js"></script>
+    </div>
+    <!-- Mobile Ad -->
+    <div class="ad-mobile">
+        <script>
+          atOptions = {
+            'key' : '5d57461c36c8b0bc930f7743b2ee22e2',
+            'format' : 'iframe',
+            'height' : 50,
+            'width' : 320,
+            'params' : {}
+          };
+        </script>
+        <script src="https://www.highperformanceformat.com/5d57461c36c8b0bc930f7743b2ee22e2/invoke.js"></script>
+    </div>
+</div>
+<!-- End TRutiL Ad Banners -->
+
 </body>
 </html>
