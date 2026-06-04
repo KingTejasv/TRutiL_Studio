@@ -5,31 +5,30 @@ function createWindow () {
   const win = new BrowserWindow({
     width: 1280,
     height: 720,
+    titleBarStyle: 'hidden',
+    titleBarOverlay: {
+      color: '#0f172a',
+      symbolColor: '#ffffff',
+      height: 40
+    },
     webPreferences: {
       nodeIntegration: true,
-      contextIsolation: false
+      contextIsolation: false,
+      webviewTag: true
     }
   })
 
-  // Load the index.html of the app.
-  win.loadFile('index.html')
-
-  // Remove the default menu
+  win.loadFile('app-shell.html')
   win.setMenuBarVisibility(false)
 }
 
 app.whenReady().then(() => {
   createWindow()
-
   app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      createWindow()
-    }
+    if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
 })
 
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit()
-  }
+  if (process.platform !== 'darwin') app.quit()
 })
