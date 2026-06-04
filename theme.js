@@ -489,6 +489,7 @@
                 <div class="tv-footer-content" style="max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; font-size: 0.875rem; color: var(--tv-text); opacity: 0.7; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
                     <div>&copy; 2026 TRutiL Studio. All rights reserved.</div>
                     <div style="display: flex; gap: 1.5rem;">
+                        <a href="${prefix}about.html" style="color: inherit; text-decoration: none;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">About Us</a>
                         <a href="${prefix}terms.html" style="color: inherit; text-decoration: none;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">Terms of Service</a>
                         <a href="${prefix}privacy.html" style="color: inherit; text-decoration: none;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">Privacy Policy</a>
                     </div>
