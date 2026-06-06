@@ -5,7 +5,7 @@ Welcome to **TRutiL Studio**, the ultimate, privacy-first developer and SEO tool
 
 Built for speed and simplicity, TRutiL Studio provides a massive collection of over **200+** web-based tools designed to help developers, designers, and webmasters optimize their workflows directly in the browser.
 
-🔗 **Live Website:** [https://trutilstudio.netlify.app](https://trutilstudio.netlify.app)
+🔗 **Live Website:** [https://trutilstudio.entitiz.workers.dev](https://trutilstudio.entitiz.workers.dev)
 
 ---
 
